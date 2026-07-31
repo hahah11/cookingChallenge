@@ -1,0 +1,196 @@
+@startuml domain-model
+title CookingChallenge — Domain Model (DDD)
+
+skinparam classAttributeIconSize 0
+hide circle
+
+note as N0
+  Every aggregate root ID (AccountId, ChallengeId,
+  ScoreSubmissionId, CookRivalryId) is a TSID:
+  BIGINT storage, Base32-encoded at the API boundary.
+  See docs/backend/03-code-style.md#id-generation-tsid.
+end note
+
+package "auth" {
+  class Account << (A,orange) AggregateRoot >> {
+    id : AccountId
+    email : String
+    name : String
+    passwordHash : String
+    roles : Set<SystemRole>
+    --
+    +grantRole(role : SystemRole)
+    +revokeRole(role : SystemRole)
+  }
+  note bottom of Account
+    No self-registration: the host creates an
+    Account (email + name) for each person.
+    roles are *system permissions*, unrelated to
+    whether this account is cooking or a guest
+    in any particular Challenge (see below).
+  end note
+
+  enum SystemRole {
+    ADMIN
+    ORGANIZER
+    USER
+  }
+  note bottom of SystemRole
+    ADMIN: manage anything
+    ORGANIZER: create challenges, assign cooks/guests, score
+    USER: score only
+  end note
+
+  Account --> SystemRole
+}
+
+package "cookoff" {
+
+  ' ---------- Aggregate Roots ----------
+
+  class Challenge << (A,orange) AggregateRoot >> {
+    id : ChallengeId
+    date : LocalDate
+    title : String
+    dishName : DishName
+    status : ChallengeStatus
+    createdBy : AccountId
+    --
+    +assignCooks(cookAAccountId, cookBAccountId)
+    +addGuest(guestAccountId)
+    +reveal() : ChallengeRevealed
+  }
+  note bottom of Challenge
+    "Cook" and "Guest" are not separate entities —
+    they're the roles an Account plays *within this
+    one Challenge*: cookAssignments picks the two
+    cooking accounts (+ their blind label A/B),
+    guestAccountIds lists the tasting/scoring accounts.
+    The same Account could appear as a cook in one
+    Challenge and a guest in another.
+  end note
+
+  class ScoreSubmission << (A,orange) AggregateRoot >> {
+    id : ScoreSubmissionId
+    challengeId : ChallengeId
+    guestAccountId : AccountId
+    scores : List<Score>
+    submittedAt : Instant
+    --
+    +submit(scores) : ScoreSubmission
+  }
+  note bottom of ScoreSubmission
+    invariant: at most one submission per
+    (challengeId, guestAccountId) — enforced by
+    the repository/unique constraint.
+  end note
+
+  class CookRivalry << (A,orange) AggregateRoot >> {
+    id : CookRivalryId
+    cookAAccountId : AccountId
+    cookBAccountId : AccountId
+    cookAWins : int
+    cookBWins : int
+    draws : int
+    totalChallenges : int
+    --
+    +recordResult(overallWinnerAccountId : AccountId?)
+  }
+
+  ' ---------- Value Objects ----------
+
+  class CookAssignment << (V,lightblue) ValueObject >> {
+    accountId : AccountId
+    label : DishLabel
+  }
+
+  class DishName << (V,lightblue) ValueObject >> {
+    value : String
+  }
+
+  class Score << (V,lightblue) ValueObject >> {
+    dishLabel : DishLabel
+    category : Category
+    points : int
+  }
+  note bottom of Score
+    invariant: 0 <= points <= 5
+  end note
+
+  class ChallengeResult << (V,lightblue) ValueObject >> {
+    categoryWinners : Map<Category, DishLabel>
+    overallWinnerAccountId : AccountId?
+  }
+
+  ' ---------- Enums ----------
+
+  enum Category {
+    MUNDGEFUEHL
+    TELLERSPRACHE
+    GESCHMACK
+  }
+
+  enum DishLabel {
+    A
+    B
+  }
+
+  enum ChallengeStatus {
+    OPEN
+    REVEALED
+  }
+
+  ' ---------- Domain Service ----------
+
+  class ResultCalculator << (S,lightgreen) DomainService >> {
+    +calculate(challenge : Challenge, submissions : List<ScoreSubmission>) : ChallengeResult
+  }
+
+  ' ---------- Domain Event ----------
+
+  class ChallengeRevealed << (E,pink) DomainEvent >> {
+    challengeId : ChallengeId
+    cookAAccountId : AccountId
+    cookBAccountId : AccountId
+    overallWinnerAccountId : AccountId?
+  }
+
+  ' ---------- Relationships ----------
+
+  Challenge "1" *-- "2" CookAssignment
+  Challenge "1" --> "1" DishName
+  CookAssignment --> DishLabel
+
+  ScoreSubmission "*" --> "1" Challenge : challengeId >
+  ScoreSubmission "1" *-- "6" Score
+
+  Score --> Category
+  Score --> DishLabel
+
+  ResultCalculator ..> Challenge : reads
+  ResultCalculator ..> ScoreSubmission : reads
+  ResultCalculator ..> ChallengeResult : produces
+
+  Challenge ..> ChallengeRevealed : emits on reveal()
+  ChallengeRevealed ..> CookRivalry : updates (recordResult)
+
+  Challenge --> ChallengeStatus
+}
+
+' ---------- Cross-module references (by ID only) ----------
+
+CookAssignment ..> Account : accountId >
+Challenge ..> Account : guestAccountIds / createdBy >
+ScoreSubmission ..> Account : guestAccountId >
+CookRivalry ..> Account : cookAAccountId / cookBAccountId >
+
+note as N1
+  Every participant reference is a plain AccountId —
+  there is no separate Cook/Guest aggregate. "Being a
+  cook" or "being a guest" is contextual to one
+  Challenge, not a standalone identity or a system
+  permission. SystemRole (auth) and cookoff
+  participation are two independent concerns.
+end note
+
+@enduml

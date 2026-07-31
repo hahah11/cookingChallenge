@@ -13,7 +13,7 @@
 ## Module Structure (DDD Bounded Context = Spring Modulith Module)
 
 ```
-com.impepi.customer/
+com.cookingchallenge.customer/
 ├── domain/                    # Inner circle - Entities + DDD
 │   ├── model/
 │   │   ├── Customer.java      # Aggregate Root

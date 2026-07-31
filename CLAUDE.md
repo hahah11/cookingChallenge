@@ -1,9 +1,9 @@
-# IMPEPI Workspace
+# CookingChallenge Workspace
 
 This workspace contains two projects:
 
-- **impepi-backend**: Spring Boot 4 with DB2
-- **impepi-angular**: Angular 21 with standalone components
+- **cookingChallenge-backend**: Spring Boot 4 with DB2
+- **cookingChallenge-angular**: Angular 21 with standalone components
 
 ## General Rules
 
@@ -95,13 +95,13 @@ When creating implementation plans:
 ## Project Structure
 
 ```
-/home/nfrai/projects/IMPEPI/
-├── impepi-backend/              # Spring Boot 4 application
-│   └── src/main/java/com/impepi/
+/home/nfrai/projects/cookingChallenge/
+├── cookingChallenge-backend/    # Spring Boot 4 application
+│   └── src/main/java/com/cookingchallenge/
 │       ├── customer/            # Customer module (DDD bounded context)
 │       ├── order/               # Order module
 │       └── shared/              # Shared kernel
-├── impepi-angular/              # Angular 21 application
+├── cookingChallenge-angular/    # Angular 21 application
 │   └── src/app/
 │       ├── features/            # Feature modules (standalone components)
 │       ├── shared/              # Reusable components

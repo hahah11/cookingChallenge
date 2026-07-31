@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
 
 ### Test Organization
 ```
-src/test/java/com/impepi/
+src/test/java/com/cookingchallenge/
 ├── unit/
 │   ├── service/
 │   │   └── CustomerServiceTest.java
@@ -120,6 +120,45 @@ public class CustomerService {
         // ...
         log.info("Customer created with ID: {}", customer.getId());
     }
+}
+```
+
+## ID Generation (TSID)
+
+- Use **TSID** (time-sorted unique identifier, Twitter-Snowflake-style) for every
+  aggregate root ID — one consistent strategy, no special-casing "internal" vs.
+  "public-facing" aggregates.
+- Generate with [`tsid-creator`](https://github.com/f4b6a3/tsid-creator); store as
+  `BIGINT` in Postgres (k-sortable, index-friendly, unlike random UUIDv4).
+- Encode as a Crockford Base32 string at the API/URL boundary (e.g.
+  `"0S4G9FVCC9CPP"`) — compact, URL-safe, and not a bare sequential integer, so IDs
+  exposed in links aren't trivially enumerable.
+- Wrap the raw TSID in a typed ID value object per aggregate (`CustomerId`, not a bare
+  `Long`), with `toString()`/`fromString()` handling the Base32 encoding at the
+  boundary.
+
+```java
+// Domain value object
+public record CustomerId(long value) {
+    public static CustomerId generate() {
+        return new CustomerId(TsidCreator.getTsid().toLong());
+    }
+
+    public static CustomerId fromString(String base32) {
+        return new CustomerId(Tsid.from(base32).toLong());
+    }
+
+    @Override
+    public String toString() {
+        return Tsid.from(value).toString(); // Crockford Base32
+    }
+}
+
+// JPA entity column
+@Entity
+public class CustomerJpaEntity {
+    @Id
+    private Long id; // raw TSID long, mapped to/from CustomerId at the boundary
 }
 ```
 
@@ -197,7 +236,7 @@ public class CustomerService {
 
 ### Package Structure
 ```
-com.impepi.customer/
+com.cookingchallenge.customer/
 ├── domain/
 │   ├── model/
 │   ├── repository/

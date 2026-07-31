@@ -86,7 +86,7 @@
 ## Package Structure
 
 ```
-src/main/java/com/impepi/
+src/main/java/com/cookingchallenge/
 ├── controller/       # REST endpoints
 │   ├── CustomerController.java
 │   └── OrderController.java
