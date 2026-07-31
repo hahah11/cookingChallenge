@@ -42,8 +42,138 @@
   `org.springframework.boot.jdbc.test.autoconfigure`, `org.springframework.boot.jpa.test.autoconfigure`
   respectively) — the old `org.springframework.boot.test.autoconfigure.orm.jpa`/`...jdbc` paths
   from Spring Boot 3.x no longer exist.
-- **Not done** (this plan): Phase 3 onward — access-link mechanism, REST controllers, security
-  config.
+- **Done** (Phase 3 — see `at.fraihs.cookoff.auth.application.{port,service,exception}` and
+  `at.fraihs.cookoff.auth.infrastructure.accesslink`): `AccessLinkService.issue(AccountId,
+  long challengeId, Duration validFor)` / `.verify(String token)`, backed by an
+  `AccessLinkRepository` port (`application/port/AccessLinkRepository.java` +
+  `application/port/AccessLink.java`) and its `AccessLinkRepositoryImpl` JPA adapter —
+  mirrors the Phase 2 port/adapter split so `AccessLinkService` stays testable with Mockito
+  instead of needing Spring context. **Deviation from the plan's literal `issue(AccountId,
+  ChallengeId, Duration)` signature**: `challengeId` is a raw `long`, not the cookoff
+  module's typed `ChallengeId` — `cookoff` already depends on `auth` for `AccountId`
+  (one-way), so giving `auth` a compile dependency back on `cookoff.domain.model.ChallengeId`
+  would create a module cycle; a raw TSID long avoids it without losing anything (callers in
+  `cookoff` just pass `challengeId.value()`). Token: `SecureRandom`-generated 256-bit,
+  Base64url-encoded, **not** TSID (matches `docs/backend/03-code-style.md`'s ID-generation
+  note that TSID is sortable/predictable and unfit as a secret). **Single-use vs reusable
+  decision, as flagged in the plan**: implemented **reusable-until-expiry** — `verify()`
+  never rejects on `usedAt`, matching the "home" flow across multiple open challenges. The
+  `access_links.used_at` column is not currently populated by `verify()` (left `null`
+  always) — no audit-stamping was requested; wire it up later if per-link "first opened"
+  tracking is actually needed. `AccessLinkJpaEntity`/`AccessLinkJpaRepository` in
+  `auth.infrastructure.accesslink`, per the plan. Unit tests
+  (`AccessLinkServiceTest`, Mockito) cover issue→verify happy path, reuse of the same
+  token, unknown-token rejection, and expired-token rejection; `AccessLinkRepositoryImplTest`
+  (`@DataJpaTest`) round-trips a real row against H2, satisfying the `access_links` FK
+  constraints by persisting `AccountJpaEntity`/`ChallengeJpaEntity` rows directly via
+  `TestEntityManager` — the same cross-module JPA-entity-in-test pattern
+  `ChallengeRepositoryImplTest` already uses for `AccountJpaEntity`. All 75 backend tests
+  pass (69 prior + 6 new). Spring Security integration is still Phase 5, not built here, per
+  the plan.
+- **Done** (Phase 4 — see `at.fraihs.cookoff.{auth,cookoff}.interfaces.rest` and
+  `at.fraihs.cookoff.shared.web`): all REST controllers from `first-plan.md` Step 3's API
+  table except `AuthController` (still deferred — see below) and the optional
+  `CookRivalryController`. Several deviations/decisions made along the way, recorded here
+  per this plan's own instruction to flag them:
+  - **Package name deviation: `interfaces/rest`, not `interface/rest`** — `interface` is a
+    reserved Java keyword and cannot be a package segment, so
+    `docs/backend/02-ddd-modulith.md`'s literal `interface/rest` structure doesn't compile.
+    Used the common real-world workaround `interfaces/rest` in both modules instead.
+  - **Finished the Phase 1 leftover first**: `cookoff.application.port.NotificationPort`
+    (`sendAccessLink(Email, String link)`) and `SendChallengeInvitationsService` (issues
+    one `AccessLinkService` token per distinct participant — both cooks + every guest,
+    deduped — via a 30-day `Duration` constant, then calls the port) needed to exist
+    before `POST /challenges/{id}/invitations` could be built, matching the original
+    Phase 1 note ("implement after Phase 3"). `cookoff.infrastructure.notification.
+    LoggingNotificationAdapter` is the stub adapter (`log.info`, no real email); the link
+    URL is built from `app.frontend.base-url` (`application.yaml`, defaults to
+    `http://localhost:4200`) — not yet the real frontend origin since it isn't scaffolded.
+  - **Response envelope**: `shared.web.ApiResponse<T>`/`ApiMeta` (success) and
+    `ApiErrorResponse`/`ApiErrorBody`/`ApiErrorDetail` (error), matching
+    `docs/shared/04-api-design.md` exactly (no `pagination` block added — nothing in the
+    Step 3 table needs it, so it was left out rather than built speculatively).
+    `shared.web.GlobalExceptionHandler` maps every existing application exception; status
+    code choices not explicitly in the docs: `ChallengeNotOpenException`/
+    `DuplicateSubmissionException` → 409 (state conflict, not malformed request),
+    `NotAParticipantException`/`ForbiddenException` → 403, `InvalidOrExpiredLinkException`
+    → 401, not-found exceptions (including the new `ChallengeNotRevealedException` for
+    `GET .../results` before reveal) → 404, bean-validation failures → 400 with a
+    `details[]` field/message list, a bare `IllegalStateException` (e.g. double-reveal) →
+    409, `IllegalArgumentException` (domain constructor guards) → 400.
+  - **Guest identification, done now rather than deferred**: rather than trust a
+    client-supplied `accountId` on link-token endpoints (`GET /challenges/{id}`,
+    `GET .../results`, `POST .../scores`, `GET /me/home`), each of those controller
+    methods takes a `token` query parameter and calls `AccessLinkService.verify(token)`
+    directly to resolve the `AccountId` — the same lookup Phase 5's filter will eventually
+    do, just at the controller instead of a shared `OncePerRequestFilter`. This satisfies
+    the plan's "never let a client claim someone else's identity" rule immediately instead
+    of leaving it unenforced until Phase 5; Phase 5 should replace the per-controller
+    `verify(token)` calls with the filter setting the request principal (ideally via
+    `@AuthenticationPrincipal`), not re-derive the identity logic from scratch.
+  - **New guest-facing `ChallengeParticipantView` DTO** (`cookoff.application.dto`),
+    distinct from the organizer-facing `ChallengeView`: omits the cook↔label mapping
+    (`cookAssignments` is `null`) until `status == REVEALED`, matching the domain rule
+    "the assignment is never exposed to guests before reveal" — `ChallengeView` always
+    includes it and stays organizer-only. Used by both `GET /challenges/{id}` and
+    `GET /me/home` so neither leaks the mapping early.
+  - **New domain method `Challenge.isParticipant(AccountId)`** (guest OR either cook) —
+    added for the new participant-gated services below rather than reusing
+    `SubmitScoreService`'s existing inline `isGuest`-or-cook check, to avoid touching
+    already-tested code per this repo's "only refactor code you touch" rule; the two
+    checks are logically identical but literally duplicated. Fine as-is; worth
+    consolidating if a third call site needs it.
+  - **New read-model application services** (`cookoff.application.service`):
+    `ListChallengesService` (organizer history list), `GetChallengeStatusService`
+    (submission progress — counts only the pre-added *guest* list against
+    `first-plan.md`'s literal "which guests have/haven't submitted" wording, not the two
+    cooks, even though `SubmitScoreService` also accepts a cook's own submission),
+    `GetChallengeForParticipantService` and `GetChallengeResultsService` (both
+    `AccountId`-gated via `isParticipant`, throwing `NotAParticipantException` otherwise;
+    `GetChallengeResultsService` additionally 404s via `ChallengeNotRevealedException`
+    before `REVEALED` — results aren't persisted separately from the one-time
+    `ChallengeRevealed` → `CookRivalry` update, so this recomputes them on every call via
+    the existing `ResultCalculator` against the now-immutable stored submissions), and
+    `HomeService` (open challenges via the new repository query below, filtered to ones
+    the account hasn't submitted for yet).
+  - **New repository methods, added when their controller needed them** (per the plan's
+    own "don't retrofit speculatively" guidance): `AccountRepository.findAll()` (backs
+    `GET /accounts`) and `ChallengeRepository.findOpenByParticipant(AccountId)` (backs
+    `GET /me/home`; JPA adapter is a JPQL `@Query` left-joining the `guestAccountIds`
+    element collection since Spring Data derived-query syntax can't express "cook A OR
+    cook B OR in this collection").
+  - **Interim `shared.config.SecurityConfig`**: `spring-boot-starter-security` was already
+    on the classpath (added ahead of Phase 5), so its default auto-config locked every
+    endpoint behind generated-password HTTP Basic the moment any controller existed —
+    Phase 4 was otherwise unreachable/untestable. Added a minimal `SecurityFilterChain`
+    bean (`csrf().disable()`, `anyRequest().permitAll()`) explicitly documented as a
+    placeholder Phase 5 replaces wholesale with real JWT + link-token filters and
+    per-endpoint role rules; `@WebMvcTest`s `@Import` it alongside `GlobalExceptionHandler`
+    so the slice context sees it too.
+  - **Organizer/admin role enforcement is still not wired up** for `POST /accounts`,
+    `GET /accounts`, `POST /challenges`, `GET /challenges`, `GET .../status`,
+    `POST .../reveal`, `POST .../invitations` — consistent with the pre-existing gap in
+    `RevealChallengeService` (which never checked who was calling it, unlike
+    `CreateChallengeService`, which already validates `canOrganize()` against an explicit
+    `organizerAccountId` request field). This is explicitly Phase 5's job
+    (`@PreAuthorize`/JWT-role matchers), not addressed here.
+  - **`AuthController` / `POST /auth/login` deliberately not built** — the plan's own text
+    says to stub it "after Phase 5's security beans exist"; building it now would mean
+    wiring a fake `AuthenticationManager` just to remove it again in Phase 5, so it's left
+    for that phase entirely.
+  - **Spring Boot 4 / Jackson 3 note** (same spirit as Phase 2's `@DataJpaTest` package
+    move): the JSON `ObjectMapper` used by `spring-boot-starter-webmvc-test` is
+    `tools.jackson.databind.ObjectMapper` (Jackson 3), not `com.fasterxml.jackson.databind
+    .ObjectMapper` (Jackson 2) — the old import compiles-fails with "package does not
+    exist" since only `jackson-annotations` still lives under `com.fasterxml`.
+  - `spring-boot-starter-validation` added to `build.gradle.kts` (`@Valid`/Bean Validation
+    wasn't on the classpath before Phase 4's request DTOs needed it).
+  - All 112 backend tests pass (75 prior + 37 new: `@WebMvcTest` for `AccountController`/
+    `ChallengeController`/`HomeController`, Mockito unit tests for every new application
+    service, plus new `ChallengeTest`/`ChallengeRepositoryImplTest` coverage for
+    `isParticipant`/`findOpenByParticipant`).
+- **Not done** (this plan): Phase 5 — security config (JWT + link-token filter,
+  `AuthController`, real role enforcement replacing the `SecurityConfig` placeholder
+  above).
 
 Read `docs/cookingChallenge/first-plan.md` (the domain/API/data-model design) and
 `docs/cookingChallenge/domain-model.puml` before starting — this plan assumes that

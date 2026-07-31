@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -83,5 +84,23 @@ class ChallengeTest {
         challenge.reveal(null);
 
         assertThrows(IllegalStateException.class, () -> challenge.addGuest(AccountId.generate()));
+    }
+
+    @Test
+    void should_beParticipant_when_accountIsACookOrGuest() {
+        Challenge challenge = newChallenge();
+        AccountId guest = AccountId.generate();
+        challenge.addGuest(guest);
+
+        assertTrue(challenge.isParticipant(cookA));
+        assertTrue(challenge.isParticipant(cookB));
+        assertTrue(challenge.isParticipant(guest));
+    }
+
+    @Test
+    void should_notBeParticipant_when_accountIsUnrelated() {
+        Challenge challenge = newChallenge();
+
+        assertFalse(challenge.isParticipant(AccountId.generate()));
     }
 }

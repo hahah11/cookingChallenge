@@ -1,7 +1,9 @@
 package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 
+import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
+import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.domain.repository.ChallengeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,6 +26,13 @@ class ChallengeRepositoryImpl implements ChallengeRepository {
     @Override
     public List<Challenge> findAll() {
         return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Challenge> findOpenByParticipant(AccountId accountId) {
+        return jpaRepository.findByStatusAndParticipant(ChallengeStatus.OPEN, accountId.value()).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override

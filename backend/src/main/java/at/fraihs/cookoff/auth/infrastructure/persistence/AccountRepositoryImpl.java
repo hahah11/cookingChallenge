@@ -7,6 +7,7 @@ import at.fraihs.cookoff.auth.domain.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -29,6 +30,11 @@ class AccountRepositoryImpl implements AccountRepository {
     @Override
     public boolean existsByEmail(Email email) {
         return jpaRepository.existsByEmail(email.value());
+    }
+
+    @Override
+    public List<Account> findAll() {
+        return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
     }
 
     @Override

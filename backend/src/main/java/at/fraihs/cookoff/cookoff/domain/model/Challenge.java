@@ -95,6 +95,12 @@ public class Challenge {
         return guestAccountIds.contains(accountId);
     }
 
+    /** Either of the two cooks, or a pre-added guest — the full set of people who may score. */
+    public boolean isParticipant(AccountId accountId) {
+        return isGuest(accountId)
+                || cookAssignments.stream().anyMatch(assignment -> assignment.accountId().equals(accountId));
+    }
+
     private void requireOpen() {
         if (status != ChallengeStatus.OPEN) {
             throw new IllegalStateException("Challenge is not open (status=" + status + ")");

@@ -76,6 +76,32 @@ class ChallengeRepositoryImplTest {
         assertEquals(2, repository.findAll().size());
     }
 
+    @Test
+    void should_returnOpenChallengesForParticipant_when_accountIsCookOrGuest_butNotWhenRevealedOrUnrelated() {
+        AccountId organizer = new AccountId(persistAccount());
+        AccountId cookA = new AccountId(persistAccount());
+        AccountId cookB = new AccountId(persistAccount());
+        AccountId guest = new AccountId(persistAccount());
+        AccountId stranger = new AccountId(persistAccount());
+
+        Challenge openAsGuest = repository.save(Challenge.create(LocalDate.now(), null, new DishName("Goulash"),
+                cookA, new AccountId(persistAccount()), List.of(guest), organizer));
+        Challenge openAsCook = repository.save(Challenge.create(LocalDate.now(), null, new DishName("Kaiserschmarrn"),
+                cookB, new AccountId(persistAccount()), List.of(), organizer));
+        Challenge revealed = Challenge.create(LocalDate.now(), null, new DishName("Palatschinken"),
+                cookA, cookB, List.of(guest), organizer);
+        revealed.reveal(null);
+        repository.save(revealed);
+
+        List<Challenge> guestResult = repository.findOpenByParticipant(guest);
+        assertEquals(List.of(openAsGuest.getId()), guestResult.stream().map(Challenge::getId).toList());
+
+        List<Challenge> cookResult = repository.findOpenByParticipant(cookB);
+        assertEquals(List.of(openAsCook.getId()), cookResult.stream().map(Challenge::getId).toList());
+
+        assertTrue(repository.findOpenByParticipant(stranger).isEmpty());
+    }
+
     private long persistAccount() {
         AccountId id = AccountId.generate();
         entityManager.persistAndFlush(new AccountJpaEntity(
