@@ -83,6 +83,15 @@ All development guidelines are organized in the `docs/` folder by technology:
 
 ---
 
+## Planning
+
+When creating implementation plans:
+
+- Save every plan to `docs/cookingChallenge/plans/`.
+- Use Markdown.
+- Update the existing plan instead of creating duplicates.
+- Treat plans as project artifacts that should be committed to git.
+
 ## Project Structure
 
 ```
