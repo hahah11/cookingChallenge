@@ -10,8 +10,40 @@
   ID strategy for every aggregate root. `tsid-creator` + `postgresql` driver are already
   in `build.gradle.kts`; a Postgres service is in `compose.yaml`; the full Step 5 schema
   is in `backend/src/main/resources/db/changelog/`.
-- **Not done** (this plan): everything below. No application services, no JPA adapters,
-  no REST controllers, no security config exist yet.
+- **Done** (Phase 1 — see `at.fraihs.cookoff.{auth,cookoff}.application.*`): all application
+  services, DTOs, and exceptions listed below, including `ChallengeRevealedRivalryUpdater`.
+  `SendChallengeInvitationsService`/`NotificationPort` are still deferred to after Phase 3, as
+  planned. `./gradlew test` passes (the only failure is `CookoffApplicationTests.contextLoads()`,
+  expected until Phase 6 starts a real datasource).
+- **Done** (Phase 2 — see `at.fraihs.cookoff.{auth,cookoff}.infrastructure.persistence`): all
+  JPA entities, MapStruct mappers, Spring Data repositories, and `*RepositoryImpl` adapters for
+  `Account`, `Challenge`, `ScoreSubmission`, and `CookRivalry`. `org.mapstruct:mapstruct:1.6.3` /
+  `mapstruct-processor:1.6.3` added to `build.gradle.kts`. Every mapper is hand-written
+  (`default` methods delegating to each aggregate's `reconstitute(...)` factory) rather than
+  MapStruct-generated field mapping, since every domain aggregate here is immutable with no
+  public constructor. `ScoreSubmissionRepositoryImpl.save()` uses `saveAndFlush` (not `save`) so
+  the `score_submissions` unique-constraint violation surfaces synchronously and gets caught as
+  `DuplicateSubmissionException`, instead of at some later, unrelated flush point.
+  **Test database decision — H2 in-memory, not Testcontainers** (superseding the earlier
+  Testcontainers decision this section used to document — see
+  `docs/cookingChallenge/adr/0001-use-h2-in-memory-db-for-datajpatest.md` for the full record,
+  including a non-obvious Spring Boot 4.1.0 pitfall found along the way): `@DataJpaTest`
+  repository tests run against `com.h2database:h2` (`testRuntimeOnly`), configured via an
+  **explicit** `spring.datasource.url` in `backend/src/test/resources/application.yaml` plus
+  `@AutoConfigureTestDatabase(replace = Replace.NONE)` on every `@DataJpaTest` class — not Spring
+  Boot's default auto-generated embedded datasource, which was found to deterministically corrupt
+  a `CHECK` constraint's evaluation on this stack. `spring.jpa.hibernate.ddl-auto: none` is set
+  globally in `backend/src/main/resources/application.yaml` so Hibernate never generates/drops
+  schema — Liquibase (`db/changelog`) stays the single source of truth, in prod and in tests.
+  Full suite (69 tests) now runs in ~11–13s with no Docker dependency; `CookoffApplicationTests`
+  passes as a side effect too. Also note Spring Boot 4 moved
+  `@DataJpaTest`/`@AutoConfigureTestDatabase`/`TestEntityManager` to new packages
+  (`org.springframework.boot.data.jpa.test.autoconfigure`,
+  `org.springframework.boot.jdbc.test.autoconfigure`, `org.springframework.boot.jpa.test.autoconfigure`
+  respectively) — the old `org.springframework.boot.test.autoconfigure.orm.jpa`/`...jdbc` paths
+  from Spring Boot 3.x no longer exist.
+- **Not done** (this plan): Phase 3 onward — access-link mechanism, REST controllers, security
+  config.
 
 Read `docs/cookingChallenge/first-plan.md` (the domain/API/data-model design) and
 `docs/cookingChallenge/domain-model.puml` before starting — this plan assumes that
@@ -108,6 +140,12 @@ Package: `at.fraihs.cookoff.{module}.infrastructure.persistence`. All JPA entity
 the raw TSID `long` (matching the `BIGINT` columns from the Phase-0 changelog); mappers
 convert to/from the domain's typed ID records (`new ChallengeId(entity.getId())` /
 `.value()`). Never expose the JPA entity outside `infrastructure/persistence`.
+
+Add `org.mapstruct:mapstruct` (`implementation`) + `org.mapstruct:mapstruct-processor`
+(`annotationProcessor`) to `build.gradle.kts` at the start of this phase — not present yet.
+Every `*Mapper` below (`AccountMapper`, `ChallengeMapper`, `ScoreSubmissionMapper`,
+`CookRivalryMapper`) is a MapStruct `@Mapper(componentModel = "spring")` interface, per
+`docs/backend/03-code-style.md#mapper-usage-mapstruct` — not a hand-written class.
 
 ### 2.1 `auth` module
 

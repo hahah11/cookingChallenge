@@ -17,12 +17,14 @@ import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.repository.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.domain.repository.ScoreSubmissionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubmitScoreService {
@@ -36,6 +38,7 @@ public class SubmitScoreService {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(command.challengeId()));
         if (challenge.getStatus() != ChallengeStatus.OPEN) {
+            log.warn("Score submission rejected, challenge not open: {}", challengeId);
             throw new ChallengeNotOpenException(command.challengeId());
         }
 
@@ -43,10 +46,14 @@ public class SubmitScoreService {
         boolean isCook = challenge.getCookAssignments().stream()
                 .anyMatch(assignment -> assignment.accountId().equals(guestAccountId));
         if (!challenge.isGuest(guestAccountId) && !isCook) {
+            log.warn("Score submission rejected, account {} is not a participant of challenge {}",
+                    guestAccountId, challengeId);
             throw new NotAParticipantException(command.guestAccountId(), command.challengeId());
         }
 
         if (scoreSubmissionRepository.existsByChallengeIdAndGuestAccountId(challengeId, guestAccountId)) {
+            log.warn("Score submission rejected, account {} already submitted for challenge {}",
+                    guestAccountId, challengeId);
             throw new DuplicateSubmissionException(command.guestAccountId(), command.challengeId());
         }
 
@@ -55,6 +62,7 @@ public class SubmitScoreService {
                 .toList();
         ScoreSubmission submission = ScoreSubmission.submit(challengeId, guestAccountId, scores, Instant.now());
         scoreSubmissionRepository.save(submission);
+        log.info("Score submission recorded: challenge {}, account {}", challengeId, guestAccountId);
     }
 
     private static Score toScore(ScoreInput input) {

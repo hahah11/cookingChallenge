@@ -11,7 +11,8 @@ This workspace contains two projects:
 - Prefer updating backend and frontend in the same task when appropriate.
 - Don't modify generated code.
 - Ask before changing public APIs.
-
+- Use intellij MCP server as a read-only oracle where ever possible. Also for running tests
+- - DON'T use intellij when you want to run bash commands
 ---
 
 ## Documentation Structure

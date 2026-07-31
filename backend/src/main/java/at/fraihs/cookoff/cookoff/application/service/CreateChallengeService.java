@@ -11,11 +11,13 @@ import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.repository.ChallengeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CreateChallengeService {
@@ -29,6 +31,7 @@ public class CreateChallengeService {
         Account organizer = accountRepository.findById(organizerId)
                 .orElseThrow(() -> new AccountNotFoundException(command.organizerAccountId()));
         if (!organizer.canOrganize()) {
+            log.warn("Challenge creation rejected, account cannot organize: {}", organizerId);
             throw new ForbiddenException("Account is not allowed to organize challenges: " + command.organizerAccountId());
         }
 
@@ -47,6 +50,7 @@ public class CreateChallengeService {
                 guestAccountIds,
                 organizerId);
         challengeRepository.save(challenge);
+        log.info("Challenge created: {}, organizer: {}", challenge.getId(), organizerId);
         return ChallengeView.from(challenge);
     }
 }

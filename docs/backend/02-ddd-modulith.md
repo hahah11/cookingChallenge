@@ -40,7 +40,7 @@ com.cookingchallenge.customer/
 │   ├── persistence/
 │   │   ├── CustomerJpaEntity.java       # DB mapping
 │   │   ├── CustomerRepositoryImpl.java  # Adapter (implements domain repo)
-│   │   └── CustomerMapper.java          # Domain ↔ Entity conversion
+│   │   └── CustomerMapper.java          # Domain ↔ Entity conversion (MapStruct interface)
 │   ├── notification/
 │   │   └── EmailNotificationAdapter.java # Implements NotificationPort
 │   └── config/
@@ -93,6 +93,8 @@ public interface CustomerRepository {
 }
 
 // Infrastructure adapter - in infrastructure package
+// CustomerMapper is a MapStruct interface (see docs/backend/03-code-style.md#mapper-usage-mapstruct);
+// Spring injects the generated Impl like any other bean.
 @Repository
 @RequiredArgsConstructor
 public class CustomerRepositoryImpl implements CustomerRepository {

@@ -33,6 +33,39 @@ public class Customer {
 }
 ```
 
+### Mapper Usage (MapStruct)
+- Use **MapStruct** for every `infrastructure/persistence` mapper (`CustomerMapper`,
+  `AccountMapper`, `ChallengeMapper`, ...) instead of hand-written `toDomain`/`toEntity`
+  methods — less boilerplate, compile-time-checked field mapping, and one consistent
+  pattern across modules.
+- Declare the mapper as a plain interface annotated `@Mapper(componentModel = "spring")`
+  in `infrastructure/persistence`; MapStruct generates the `Impl` class as a Spring bean
+  at compile time (`org.mapstruct:mapstruct` + `org.mapstruct:mapstruct-processor` on the
+  annotation processor path).
+- Typed IDs, VOs, and enums (`AccountId`, `Email`, `SystemRole`) generally map 1:1 by
+  field name — let MapStruct infer those. Only add an explicit `@Mapping`/default method
+  when the shapes genuinely diverge (e.g. `Challenge`'s `List<CookAssignment>` vs. the
+  JPA entity's separate `cookAAccountId`/`cookBAccountId` columns) — those cases need a
+  hand-written `default` method on the mapper interface, not a switch to fully manual
+  mapping for the whole class.
+- Still respect the domain's factory methods: a MapStruct `toDomain` cannot call a
+  private constructor, so target the aggregate's `reconstitute(...)` factory (via
+  `@ObjectFactory` or a `default` method that delegates to it) rather than letting
+  MapStruct attempt field injection into the domain class.
+- Never generate a mapper for a JPA entity that isn't in `infrastructure/persistence` —
+  mappers stay next to the entity they convert, per the module structure below.
+
+```java
+@Mapper(componentModel = "spring")
+public interface CustomerMapper {
+    @Mapping(target = "id", source = "id", qualifiedByName = "toCustomerId")
+    Customer toDomain(CustomerJpaEntity entity);
+
+    @InheritInverseConfiguration
+    CustomerJpaEntity toEntity(Customer customer);
+}
+```
+
 ### Records vs Classes
 - Use **records** for DTOs and value objects (immutable, data-only)
 - Use **classes** for entities and domain objects with behavior

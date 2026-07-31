@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    # Explicit URL, not Spring Boot's auto-generated random-name embedded H2 datasource
+    # (see docs/cookingChallenge/adr/0001-use-h2-in-memory-db-for-datajpatest.md) — the
+    # auto-generated one intermittently produced corrupted CHECK constraints on H2 2.4.240.
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE

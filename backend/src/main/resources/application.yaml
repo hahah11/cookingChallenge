@@ -1,3 +1,9 @@
 spring:
   application:
     name: cookoff
+  jpa:
+    hibernate:
+      # Liquibase (db/changelog) is the single source of schema truth, including the
+      # hand-written CHECK constraints raw SQL adds — never let Hibernate generate or
+      # drop schema, in prod or in @DataJpaTest's embedded H2.
+      ddl-auto: none

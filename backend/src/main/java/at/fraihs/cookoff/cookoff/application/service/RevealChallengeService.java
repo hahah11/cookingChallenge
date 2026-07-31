@@ -12,6 +12,7 @@ import at.fraihs.cookoff.cookoff.domain.repository.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.service.ChallengeResult;
 import at.fraihs.cookoff.cookoff.domain.service.ResultCalculator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RevealChallengeService {
@@ -41,6 +43,7 @@ public class RevealChallengeService {
         ChallengeRevealed event = challenge.reveal(result.overallWinnerAccountId());
         challengeRepository.save(challenge);
         eventPublisher.publishEvent(event);
+        log.info("Challenge revealed: {}, overall winner: {}", challengeId, result.overallWinnerAccountId());
 
         return toView(challenge, result);
     }
