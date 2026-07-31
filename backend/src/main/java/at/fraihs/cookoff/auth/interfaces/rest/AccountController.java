@@ -32,7 +32,8 @@ public class AccountController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<AccountView>> create(@Valid @RequestBody CreateAccountRequest request) {
-        CreateAccountCommand command = new CreateAccountCommand(request.email(), request.name(), request.roles());
+        CreateAccountCommand command = new CreateAccountCommand(
+                request.email(), request.name(), request.roles(), request.password());
         AccountView view = createAccountService.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.of(view));
     }

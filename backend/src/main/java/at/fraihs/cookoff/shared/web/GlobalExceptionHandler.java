@@ -2,6 +2,7 @@ package at.fraihs.cookoff.shared.web;
 
 import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsException;
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
+import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
 import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotOpenException;
@@ -56,6 +57,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidOrExpiredLinkException.class)
     public ResponseEntity<ApiErrorResponse> handleInvalidOrExpiredLink(InvalidOrExpiredLinkException ex) {
         return error(HttpStatus.UNAUTHORIZED, "INVALID_OR_EXPIRED_LINK", ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return error(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", ex.getMessage());
     }
 
     @ExceptionHandler({AccountNotFoundException.class, ChallengeNotFoundException.class,

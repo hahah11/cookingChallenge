@@ -1,7 +1,5 @@
 package at.fraihs.cookoff.cookoff.interfaces.rest;
 
-import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkException;
-import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.dto.ChallengeParticipantView;
 import at.fraihs.cookoff.cookoff.application.dto.ChallengeResultView;
@@ -18,12 +16,15 @@ import at.fraihs.cookoff.cookoff.application.service.ListChallengesService;
 import at.fraihs.cookoff.cookoff.application.service.RevealChallengeService;
 import at.fraihs.cookoff.cookoff.application.service.SendChallengeInvitationsService;
 import at.fraihs.cookoff.cookoff.application.service.SubmitScoreService;
-import at.fraihs.cookoff.shared.config.SecurityConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
@@ -42,8 +43,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Security enforcement (JWT roles, link tokens) is covered by
+ * {@code shared.security.SecurityIntegrationTest} — this slice test disables the security
+ * filter chain (@AutoConfigureMockMvc(addFilters = false)). With the filter chain disabled,
+ * {@code SecurityContextHolderFilter} never runs, so the usual
+ * {@code .with(authentication(...))} RequestPostProcessor (which only stashes a context for
+ * that filter to load) has no effect — instead {@code authenticateAs} sets
+ * {@link SecurityContextHolder} directly, which MockMvc's single-threaded dispatch still
+ * honors, per docs/cookingChallenge/plans/backend-persistence-api-security-plan.md Phase 5.
+ */
 @WebMvcTest(ChallengeController.class)
-@Import({GlobalExceptionHandler.class, SecurityConfig.class})
+@AutoConfigureMockMvc(addFilters = false)
+@Import(GlobalExceptionHandler.class)
 class ChallengeControllerTest {
 
     @Autowired
@@ -68,8 +80,15 @@ class ChallengeControllerTest {
     private SendChallengeInvitationsService sendChallengeInvitationsService;
     @MockitoBean
     private SubmitScoreService submitScoreService;
-    @MockitoBean
-    private AccessLinkService accessLinkService;
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private void authenticateAs(AccountId accountId) {
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(accountId, null));
+    }
 
     private ChallengeView sampleView() {
         return new ChallengeView("chal-1", LocalDate.now(), "Title", "Schnitzel", "OPEN",
@@ -109,34 +128,25 @@ class ChallengeControllerTest {
     @Test
     void should_return200_when_gettingChallengeForValidToken() throws Exception {
         AccountId accountId = AccountId.generate();
-        when(accessLinkService.verify("good-token")).thenReturn(accountId);
         ChallengeParticipantView view = new ChallengeParticipantView(
                 "chal-1", LocalDate.now(), "Title", "Schnitzel", "OPEN",
                 List.of("A", "B"), List.of("MUNDGEFUEHL"), List.of(), null);
         when(getChallengeForParticipantService.execute(eq("chal-1"), eq(accountId))).thenReturn(view);
+        authenticateAs(accountId);
 
-        mockMvc.perform(get("/api/v1/challenges/chal-1").param("token", "good-token"))
+        mockMvc.perform(get("/api/v1/challenges/chal-1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.cookAssignments").value(nullValue()));
     }
 
     @Test
-    void should_return401_when_tokenInvalid() throws Exception {
-        when(accessLinkService.verify("bad-token")).thenThrow(new InvalidOrExpiredLinkException());
-
-        mockMvc.perform(get("/api/v1/challenges/chal-1").param("token", "bad-token"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error.code").value("INVALID_OR_EXPIRED_LINK"));
-    }
-
-    @Test
     void should_return403_when_requesterNotAParticipant() throws Exception {
         AccountId accountId = AccountId.generate();
-        when(accessLinkService.verify("good-token")).thenReturn(accountId);
         when(getChallengeForParticipantService.execute(anyString(), eq(accountId)))
                 .thenThrow(new NotAParticipantException(accountId.toString(), "chal-1"));
+        authenticateAs(accountId);
 
-        mockMvc.perform(get("/api/v1/challenges/chal-1").param("token", "good-token"))
+        mockMvc.perform(get("/api/v1/challenges/chal-1"))
                 .andExpect(status().isForbidden());
     }
 
@@ -163,22 +173,22 @@ class ChallengeControllerTest {
     @Test
     void should_return200_when_gettingResults() throws Exception {
         AccountId accountId = AccountId.generate();
-        when(accessLinkService.verify("good-token")).thenReturn(accountId);
         when(getChallengeResultsService.execute("chal-1", accountId))
                 .thenReturn(new ChallengeResultView("chal-1", Map.of(), null, List.of()));
+        authenticateAs(accountId);
 
-        mockMvc.perform(get("/api/v1/challenges/chal-1/results").param("token", "good-token"))
+        mockMvc.perform(get("/api/v1/challenges/chal-1/results"))
                 .andExpect(status().isOk());
     }
 
     @Test
     void should_return404_when_resultsNotYetRevealed() throws Exception {
         AccountId accountId = AccountId.generate();
-        when(accessLinkService.verify("good-token")).thenReturn(accountId);
         when(getChallengeResultsService.execute("chal-1", accountId))
                 .thenThrow(new ChallengeNotRevealedException("chal-1"));
+        authenticateAs(accountId);
 
-        mockMvc.perform(get("/api/v1/challenges/chal-1/results").param("token", "good-token"))
+        mockMvc.perform(get("/api/v1/challenges/chal-1/results"))
                 .andExpect(status().isNotFound());
     }
 
@@ -194,10 +204,9 @@ class ChallengeControllerTest {
     @Test
     void should_return201_when_submittingScores() throws Exception {
         AccountId accountId = AccountId.generate();
-        when(accessLinkService.verify("good-token")).thenReturn(accountId);
+        authenticateAs(accountId);
 
         mockMvc.perform(post("/api/v1/challenges/chal-1/scores")
-                        .param("token", "good-token")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(new SubmitScoresRequest(
                                 List.of(new ScoreEntryRequest("A", "GESCHMACK", 4))))))
@@ -207,12 +216,11 @@ class ChallengeControllerTest {
     @Test
     void should_return409_when_duplicateSubmission() throws Exception {
         AccountId accountId = AccountId.generate();
-        when(accessLinkService.verify("good-token")).thenReturn(accountId);
         org.mockito.Mockito.doThrow(new DuplicateSubmissionException(accountId.toString(), "chal-1"))
                 .when(submitScoreService).execute(any());
+        authenticateAs(accountId);
 
         mockMvc.perform(post("/api/v1/challenges/chal-1/scores")
-                        .param("token", "good-token")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(new SubmitScoresRequest(
                                 List.of(new ScoreEntryRequest("A", "GESCHMACK", 4))))))

@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
 
@@ -29,6 +30,9 @@ class CreateAccountServiceTest {
     @Mock
     private AccountRepository accountRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private CreateAccountService service;
 
@@ -38,7 +42,7 @@ class CreateAccountServiceTest {
         when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AccountView view = service.execute(
-                new CreateAccountCommand("host@example.com", "Host", Set.of(SystemRole.ORGANIZER)));
+                new CreateAccountCommand("host@example.com", "Host", Set.of(SystemRole.ORGANIZER), null));
 
         assertEquals("host@example.com", view.email());
         assertEquals("Host", view.name());
@@ -53,6 +57,6 @@ class CreateAccountServiceTest {
         when(accountRepository.existsByEmail(new Email("host@example.com"))).thenReturn(true);
 
         assertThrows(AccountAlreadyExistsException.class, () -> service.execute(
-                new CreateAccountCommand("host@example.com", "Host", Set.of())));
+                new CreateAccountCommand("host@example.com", "Host", Set.of(), null)));
     }
 }

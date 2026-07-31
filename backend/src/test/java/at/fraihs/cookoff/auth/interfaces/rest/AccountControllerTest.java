@@ -5,11 +5,11 @@ import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsExceptio
 import at.fraihs.cookoff.auth.application.service.CreateAccountService;
 import at.fraihs.cookoff.auth.application.service.ListAccountsService;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import at.fraihs.cookoff.shared.config.SecurityConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -25,8 +25,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Security enforcement (JWT roles, link tokens) is covered by
+ * {@code shared.security.SecurityIntegrationTest} — this slice test disables the security
+ * filter chain (@AutoConfigureMockMvc(addFilters = false)) to focus purely on
+ * controller/application-service wiring, per
+ * docs/cookingChallenge/plans/backend-persistence-api-security-plan.md Phase 5.
+ */
 @WebMvcTest(AccountController.class)
-@Import({GlobalExceptionHandler.class, SecurityConfig.class})
+@AutoConfigureMockMvc(addFilters = false)
+@Import(GlobalExceptionHandler.class)
 class AccountControllerTest {
 
     @Autowired
@@ -48,7 +56,7 @@ class AccountControllerTest {
 
         mockMvc.perform(post("/api/v1/accounts")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new CreateAccountRequest("a@b.com", "Alice", Set.of(SystemRole.USER)))))
+                        .content(objectMapper.writeValueAsString(new CreateAccountRequest("a@b.com", "Alice", Set.of(SystemRole.USER), null))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.email").value("a@b.com"));
     }
@@ -57,7 +65,7 @@ class AccountControllerTest {
     void should_return400_when_emailBlank() throws Exception {
         mockMvc.perform(post("/api/v1/accounts")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new CreateAccountRequest("", "Alice", Set.of()))))
+                        .content(objectMapper.writeValueAsString(new CreateAccountRequest("", "Alice", Set.of(), null))))
                 .andExpect(status().isBadRequest());
     }
 
@@ -67,7 +75,7 @@ class AccountControllerTest {
 
         mockMvc.perform(post("/api/v1/accounts")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new CreateAccountRequest("a@b.com", "Alice", Set.of()))))
+                        .content(objectMapper.writeValueAsString(new CreateAccountRequest("a@b.com", "Alice", Set.of(), null))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("ACCOUNT_ALREADY_EXISTS"));
     }

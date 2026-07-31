@@ -7,3 +7,11 @@ spring:
       # hand-written CHECK constraints raw SQL adds — never let Hibernate generate or
       # drop schema, in prod or in @DataJpaTest's embedded H2.
       ddl-auto: none
+
+app:
+  frontend:
+    base-url: http://localhost:4200
+  jwt:
+    issuer: cookoff
+    # Organizer/admin JWT lifetime (POST /api/v1/auth/login) — ISO-8601 duration.
+    expiration: PT12H

@@ -171,9 +171,76 @@
     `ChallengeController`/`HomeController`, Mockito unit tests for every new application
     service, plus new `ChallengeTest`/`ChallengeRepositoryImplTest` coverage for
     `isParticipant`/`findOpenByParticipant`).
-- **Not done** (this plan): Phase 5 — security config (JWT + link-token filter,
-  `AuthController`, real role enforcement replacing the `SecurityConfig` placeholder
-  above).
+- **Done** (Phase 5 — see `at.fraihs.cookoff.shared.{config,security}` and
+  `at.fraihs.cookoff.auth.{application,interfaces.rest}`): real JWT + link-token security,
+  replacing the Phase 4 permit-all placeholder. Deviations/decisions, flagged per this
+  plan's own instruction:
+  - **JWT signing key: in-memory RSA keypair, generated fresh on every startup**
+    (`shared.config.JwtConfig`, `NimbusJwtEncoder`/`NimbusJwtDecoder` beans) — no external
+    JWKS/rotation infra for this app's scale; every previously issued token is invalidated
+    on restart. Revisit if multi-instance deployment or cross-restart token validity is
+    ever needed.
+  - **Roles claim**: JWT carries a `roles` claim (`List<String>` of `SystemRole` names,
+    set at login time from the account's current roles — not re-checked per request).
+    `shared.config.SecurityConfig#jwtAuthenticationConverter` maps it to
+    `ROLE_*`-prefixed `GrantedAuthority`s via `JwtGrantedAuthoritiesConverter`.
+  - **`POST /api/v1/auth/login`** (`auth.application.service.LoginService` +
+    `auth.interfaces.rest.AuthController`): looks up the `Account` by email, verifies the
+    password via `PasswordEncoder.matches` (`BCryptPasswordEncoder`,
+    `shared.config.SecurityConfig#passwordEncoder`), then signs a JWT (`app.jwt.expiration`,
+    default `PT12H`, `application.yaml`). Deliberately does not distinguish "unknown
+    email" from "wrong password" from "no password ever set" — all three throw the same
+    `InvalidCredentialsException` (→ 401 `INVALID_CREDENTIALS`) to avoid leaking which
+    emails are registered.
+  - **Password now settable at account creation**: `CreateAccountCommand`/
+    `CreateAccountRequest`/`CreateAccountService` gained an optional `password` field
+    (Phase 1 didn't have one; the plan's own Phase 5 section calls this out as needed
+    "if not already covered by Phase 1"). Blank/absent leaves `passwordHash` unset, same
+    as before — that account just can't pass `/auth/login` until a password is set later
+    (no separate "set/reset password" endpoint was built; not asked for).
+  - **Endpoint roles follow `first-plan.md`'s API table exactly, not just this plan's own
+    coarser Phase 5 grouping**: `POST /api/v1/accounts` is `ADMIN`-only there (not
+    "organizer/admin" as this plan's bullet list said) — `SecurityConfig` enforces the
+    table's version since it's the more specific source.
+  - **Link-token endpoints no longer call `AccessLinkService.verify(token)` per-controller**
+    (Phase 4's stopgap) — `shared.security.AccessLinkAuthenticationFilter` (a
+    `OncePerRequestFilter`, `addFilterBefore(..., BearerTokenAuthenticationFilter.class)`)
+    now does this for exactly the four "link token" rows in the API table (`GET
+    /me/home`, `GET /challenges/{id}`, `POST /challenges/{id}/scores`, `GET
+    /challenges/{id}/results`, matched via `PathPatternRequestMatcher` — Spring Security
+    7's replacement for the removed `AntPathRequestMatcher`), setting a
+    `UsernamePasswordAuthenticationToken(AccountId, null, ROLE_LINK)` as principal.
+    `ChallengeController`/`HomeController` now take `@AuthenticationPrincipal AccountId`
+    instead of a `token` request param, per this plan's own instruction. On a
+    missing/invalid/expired token the filter short-circuits and writes the
+    `INVALID_OR_EXPIRED_LINK` 401 envelope itself (matching Phase 4's exact error
+    contract) rather than deferring to `GlobalExceptionHandler`, since exceptions thrown
+    inside the filter chain never reach `@RestControllerAdvice`.
+  - **`shared.security.RestAuthenticationEntryPoint`/`RestAccessDeniedHandler`**: write
+    the shared `ApiErrorResponse` envelope (`UNAUTHENTICATED` 401 / `FORBIDDEN` 403)
+    instead of Spring Security's default responses, for every other protected endpoint
+    (JWT-gated organizer/admin routes with no/insufficient role).
+  - **Sessions are stateless** (`SessionCreationPolicy.STATELESS`) — both auth mechanisms
+    are per-request (bearer JWT, link token), no `HttpSession` involved.
+  - **CORS deferred**, per the plan's own instruction — Angular still isn't scaffolded.
+  - **Testing split**: per-controller `@WebMvcTest`s (`ChallengeControllerTest`,
+    `HomeControllerTest`, `AccountControllerTest`) now disable the security filter chain
+    entirely (`@AutoConfigureMockMvc(addFilters = false)`) and simulate the
+    `AccountId`/JWT principal by setting `SecurityContextHolder` directly — the usual
+    `.with(authentication(...))` `RequestPostProcessor` turned out to be a no-op with
+    `addFilters = false` (it only stashes a context for `SecurityContextHolderFilter` to
+    load, and that filter is exactly what's disabled), so slice tests set
+    `SecurityContextHolder` directly instead, relying on MockMvc's single-threaded,
+    synchronous dispatch. All real security enforcement (JWT roles, link-token
+    validation/expiry, 401/403 envelopes) is instead covered by one new
+    `@SpringBootTest`+`@AutoConfigureMockMvc` class, `shared.security.SecurityIntegrationTest`,
+    matching this plan's own "Verify Phase 5" checklist line for line. New
+    `LoginServiceTest` (Mockito) covers the login happy path and all three credential
+    failure modes.
+  - All 121 backend tests pass (112 prior + 11 new − 2 removed: the old per-controller
+    `should_return401_when_tokenInvalid` tests in `ChallengeControllerTest`/
+    `HomeControllerTest` no longer apply now that token verification moved to the filter,
+    and are superseded by `SecurityIntegrationTest`'s equivalent).
 
 Read `docs/cookingChallenge/first-plan.md` (the domain/API/data-model design) and
 `docs/cookingChallenge/domain-model.puml` before starting — this plan assumes that

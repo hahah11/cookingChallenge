@@ -9,5 +9,6 @@ import java.util.Set;
 public record CreateAccountRequest(
         @NotBlank(message = "email is required") @Email(message = "must be a valid email address") String email,
         @NotBlank(message = "name is required") String name,
-        Set<SystemRole> roles) {
+        Set<SystemRole> roles,
+        String password) {
 }

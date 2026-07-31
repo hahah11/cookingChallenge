@@ -9,6 +9,7 @@ import at.fraihs.cookoff.auth.domain.model.SystemRole;
 import at.fraihs.cookoff.auth.domain.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CreateAccountService {
 
     private final AccountRepository accountRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public AccountView execute(CreateAccountCommand command) {
@@ -30,6 +32,9 @@ public class CreateAccountService {
                 ? new SystemRole[0]
                 : command.initialRoles().toArray(new SystemRole[0]);
         Account account = Account.create(email, command.name(), initialRoles);
+        if (command.password() != null && !command.password().isBlank()) {
+            account.changePasswordHash(passwordEncoder.encode(command.password()));
+        }
         accountRepository.save(account);
         log.info("Account created: {}", account.getId());
         return AccountView.from(account);

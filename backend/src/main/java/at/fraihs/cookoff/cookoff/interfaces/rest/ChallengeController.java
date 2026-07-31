@@ -1,6 +1,5 @@
 package at.fraihs.cookoff.cookoff.interfaces.rest;
 
-import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.dto.ChallengeParticipantView;
 import at.fraihs.cookoff.cookoff.application.dto.ChallengeResultView;
@@ -27,19 +26,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 /**
  * Endpoint table from docs/cookingChallenge/first-plan.md Step 3. Link-token endpoints
- * (guest info, scoring, results) take the token as a `token` query parameter and resolve
- * it via AccessLinkService right here in the controller — Phase 5 replaces this with a
- * shared OncePerRequestFilter that sets the AccountId as the request principal instead,
- * per docs/cookingChallenge/plans/backend-persistence-api-security-plan.md Phase 5. Until
- * then, organizer-only actions below (create, list, status, reveal, invitations) have no
- * role enforcement — same pre-Phase-5 gap as RevealChallengeService already had.
+ * (guest info, scoring, results) resolve the requester's AccountId via
+ * {@code @AuthenticationPrincipal}, set by {@code shared.security.AccessLinkAuthenticationFilter}
+ * from the request's {@code token} query parameter — see
+ * docs/cookingChallenge/plans/backend-persistence-api-security-plan.md Phase 5. Role
+ * enforcement for organizer-only actions (create, list, status, reveal, invitations) is
+ * handled by {@code shared.config.SecurityConfig}'s {@code authorizeHttpRequests} rules,
+ * not here.
  */
 @RestController
 @RequestMapping("/api/v1/challenges")
@@ -54,7 +54,6 @@ public class ChallengeController {
     private final GetChallengeResultsService getChallengeResultsService;
     private final SendChallengeInvitationsService sendChallengeInvitationsService;
     private final SubmitScoreService submitScoreService;
-    private final AccessLinkService accessLinkService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<ChallengeView>> create(@Valid @RequestBody CreateChallengeRequest request) {
@@ -74,8 +73,7 @@ public class ChallengeController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ChallengeParticipantView>> getForParticipant(
-            @PathVariable String id, @RequestParam String token) {
-        AccountId accountId = accessLinkService.verify(token);
+            @PathVariable String id, @AuthenticationPrincipal AccountId accountId) {
         return ResponseEntity.ok(ApiResponse.of(getChallengeForParticipantService.execute(id, accountId)));
     }
 
@@ -91,8 +89,7 @@ public class ChallengeController {
 
     @GetMapping("/{id}/results")
     public ResponseEntity<ApiResponse<ChallengeResultView>> results(
-            @PathVariable String id, @RequestParam String token) {
-        AccountId accountId = accessLinkService.verify(token);
+            @PathVariable String id, @AuthenticationPrincipal AccountId accountId) {
         return ResponseEntity.ok(ApiResponse.of(getChallengeResultsService.execute(id, accountId)));
     }
 
@@ -104,8 +101,8 @@ public class ChallengeController {
 
     @PostMapping("/{id}/scores")
     public ResponseEntity<ApiResponse<Void>> submitScores(
-            @PathVariable String id, @RequestParam String token, @Valid @RequestBody SubmitScoresRequest request) {
-        AccountId accountId = accessLinkService.verify(token);
+            @PathVariable String id, @AuthenticationPrincipal AccountId accountId,
+            @Valid @RequestBody SubmitScoresRequest request) {
         List<ScoreInput> scores = request.scores().stream()
                 .map(entry -> new ScoreInput(entry.dish(), entry.category(), entry.points()))
                 .toList();
