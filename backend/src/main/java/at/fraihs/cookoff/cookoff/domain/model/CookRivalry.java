@@ -1,10 +1,14 @@
 package at.fraihs.cookoff.cookoff.domain.model;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import org.jmolecules.ddd.annotation.AggregateRoot;
+import org.jmolecules.ddd.annotation.Identity;
 
 /** Running head-to-head record for one specific pair of cooks, updated on each ChallengeRevealed. */
+@AggregateRoot
 public class CookRivalry {
 
+    @Identity
     private final CookRivalryId id;
     private final AccountId cookAAccountId;
     private final AccountId cookBAccountId;

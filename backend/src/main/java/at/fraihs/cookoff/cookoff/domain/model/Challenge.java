@@ -2,13 +2,17 @@ package at.fraihs.cookoff.cookoff.domain.model;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeRevealed;
+import org.jmolecules.ddd.annotation.AggregateRoot;
+import org.jmolecules.ddd.annotation.Identity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+@AggregateRoot
 public class Challenge {
 
+    @Identity
     private final ChallengeId id;
     private final LocalDate date;
     private final String title;

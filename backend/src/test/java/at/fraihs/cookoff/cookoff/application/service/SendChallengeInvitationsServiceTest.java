@@ -1,12 +1,11 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
 import at.fraihs.cookoff.auth.application.service.AccessLinkService;
-import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
-import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import at.fraihs.cookoff.auth.domain.repository.AccountRepository;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.port.NotificationPort;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
@@ -39,7 +38,7 @@ class SendChallengeInvitationsServiceTest {
     private ChallengeRepository challengeRepository;
 
     @Mock
-    private AccountRepository accountRepository;
+    private AccountLookup accountLookup;
 
     @Mock
     private AccessLinkService accessLinkService;
@@ -60,16 +59,16 @@ class SendChallengeInvitationsServiceTest {
                 cookAId, cookBId, List.of(guestId), organizerId);
     }
 
-    private Account accountFor(AccountId id) {
-        return Account.create(new Email(id + "@example.com"), "Name " + id, SystemRole.USER);
+    private AccountSummary accountFor(AccountId id) {
+        return new AccountSummary(id, new Email(id + "@example.com"), "Name " + id);
     }
 
     @Test
     void should_issueLinkAndNotify_forEachDistinctParticipant_when_challengeExists() {
         Challenge challenge = challenge();
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
-        when(accountRepository.findById(any(AccountId.class)))
-                .thenAnswer(invocation -> Optional.of(accountFor(invocation.getArgument(0))));
+        when(accountLookup.getById(any(AccountId.class)))
+                .thenAnswer(invocation -> accountFor(invocation.getArgument(0)));
         when(accessLinkService.issue(any(AccountId.class), anyLong(), any(Duration.class))).thenReturn("token");
 
         int sent = service.execute(challenge.getId().toString());
@@ -90,7 +89,8 @@ class SendChallengeInvitationsServiceTest {
     void should_throw_when_participantAccountMissing() {
         Challenge challenge = challenge();
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
-        when(accountRepository.findById(any(AccountId.class))).thenReturn(Optional.empty());
+        when(accountLookup.getById(any(AccountId.class)))
+                .thenThrow(new AccountNotFoundException("missing"));
 
         assertThrows(AccountNotFoundException.class, () -> service.execute(challenge.getId().toString()));
     }

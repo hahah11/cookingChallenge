@@ -4,10 +4,12 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
+import org.jmolecules.ddd.annotation.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface ScoreSubmissionRepository {
 
     Optional<ScoreSubmission> findById(ScoreSubmissionId id);

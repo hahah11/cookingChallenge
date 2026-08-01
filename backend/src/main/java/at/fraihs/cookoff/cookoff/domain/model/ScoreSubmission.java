@@ -1,6 +1,8 @@
 package at.fraihs.cookoff.cookoff.domain.model;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import org.jmolecules.ddd.annotation.AggregateRoot;
+import org.jmolecules.ddd.annotation.Identity;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -12,8 +14,10 @@ import java.util.Set;
  * Uniqueness of (challengeId, guestAccountId) is enforced by the repository/DB constraint,
  * not here — a single submission has no visibility into siblings.
  */
+@AggregateRoot
 public class ScoreSubmission {
 
+    @Identity
     private final ScoreSubmissionId id;
     private final ChallengeId challengeId;
     private final AccountId guestAccountId;

@@ -1,10 +1,15 @@
 package at.fraihs.cookoff.auth.domain.model;
 
+import org.jmolecules.ddd.annotation.AggregateRoot;
+import org.jmolecules.ddd.annotation.Identity;
+
 import java.util.EnumSet;
 import java.util.Set;
 
+@AggregateRoot
 public class Account {
 
+    @Identity
     private final AccountId id;
     private final Email email;
     private String name;

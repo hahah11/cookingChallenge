@@ -1,7 +1,10 @@
 package at.fraihs.cookoff.auth.domain.model;
 
+import org.jmolecules.ddd.annotation.ValueObject;
+
 import java.util.regex.Pattern;
 
+@ValueObject
 public record Email(String value) {
 
     private static final Pattern PATTERN = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");

@@ -1,10 +1,9 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
-import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
+import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.application.service.AccessLinkService;
-import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.auth.domain.repository.AccountRepository;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.port.NotificationPort;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
@@ -34,7 +33,7 @@ public class SendChallengeInvitationsService {
     private static final Duration LINK_VALIDITY = Duration.ofDays(30);
 
     private final ChallengeRepository challengeRepository;
-    private final AccountRepository accountRepository;
+    private final AccountLookup accountLookup;
     private final AccessLinkService accessLinkService;
     private final NotificationPort notificationPort;
 
@@ -52,10 +51,9 @@ public class SendChallengeInvitationsService {
         participantIds.addAll(challenge.getGuestAccountIds());
 
         for (AccountId participantId : participantIds) {
-            Account account = accountRepository.findById(participantId)
-                    .orElseThrow(() -> new AccountNotFoundException(participantId.toString()));
+            AccountSummary account = accountLookup.getById(participantId);
             String token = accessLinkService.issue(participantId, challengeId.value(), LINK_VALIDITY);
-            notificationPort.sendAccessLink(account.getEmail(), frontendBaseUrl + "/home?token=" + token);
+            notificationPort.sendAccessLink(account.email(), frontendBaseUrl + "/home?token=" + token);
         }
 
         log.info("Sent {} invitation(s) for challenge {}", participantIds.size(), challengeId);

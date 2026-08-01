@@ -1,6 +1,9 @@
 package at.fraihs.cookoff.cookoff.domain.model;
 
+import org.jmolecules.ddd.annotation.ValueObject;
+
 /** The one dish both cooks make (e.g. "Schnitzel") — a Challenge has a single DishName, not one per label. */
+@ValueObject
 public record DishName(String value) {
 
     public DishName {

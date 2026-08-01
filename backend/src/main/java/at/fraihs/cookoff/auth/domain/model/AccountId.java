@@ -1,7 +1,9 @@
 package at.fraihs.cookoff.auth.domain.model;
 
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
+import org.jmolecules.ddd.annotation.ValueObject;
 
+@ValueObject
 public record AccountId(long value) {
 
     public static AccountId generate() {

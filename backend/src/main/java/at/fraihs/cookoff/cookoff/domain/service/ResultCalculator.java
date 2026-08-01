@@ -6,6 +6,7 @@ import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
+import org.jmolecules.ddd.annotation.Service;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Map;
  * Spans two aggregates (Challenge, ScoreSubmission) so it lives as a stateless domain
  * service rather than a method on either aggregate.
  */
+@Service
 public class ResultCalculator {
 
     public ChallengeResult calculate(Challenge challenge, List<ScoreSubmission> submissions) {

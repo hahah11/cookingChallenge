@@ -1,7 +1,9 @@
 package at.fraihs.cookoff.cookoff.domain.model;
 
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
+import org.jmolecules.ddd.annotation.ValueObject;
 
+@ValueObject
 public record CookRivalryId(long value) {
 
     public static CookRivalryId generate() {

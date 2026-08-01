@@ -1,11 +1,8 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
-import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.auth.domain.model.Email;
-import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import at.fraihs.cookoff.auth.domain.repository.AccountRepository;
 import at.fraihs.cookoff.cookoff.application.dto.ChallengeView;
 import at.fraihs.cookoff.cookoff.application.dto.CreateChallengeCommand;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
@@ -19,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,7 +26,7 @@ import static org.mockito.Mockito.when;
 class CreateChallengeServiceTest {
 
     @Mock
-    private AccountRepository accountRepository;
+    private AccountLookup accountLookup;
 
     @Mock
     private ChallengeRepository challengeRepository;
@@ -50,8 +46,7 @@ class CreateChallengeServiceTest {
 
     @Test
     void should_createChallenge_when_organizerCanOrganize() {
-        Account organizer = Account.create(new Email("organizer@example.com"), "Organizer", SystemRole.ORGANIZER);
-        when(accountRepository.findById(organizerId)).thenReturn(Optional.of(organizer));
+        when(accountLookup.canOrganize(organizerId)).thenReturn(true);
         when(challengeRepository.save(any(Challenge.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ChallengeView view = service.execute(command());
@@ -62,15 +57,14 @@ class CreateChallengeServiceTest {
 
     @Test
     void should_throw_when_organizerAccountDoesNotExist() {
-        when(accountRepository.findById(organizerId)).thenReturn(Optional.empty());
+        when(accountLookup.canOrganize(organizerId)).thenThrow(new AccountNotFoundException(organizerId.toString()));
 
         assertThrows(AccountNotFoundException.class, () -> service.execute(command()));
     }
 
     @Test
     void should_throw_when_accountCannotOrganize() {
-        Account plainUser = Account.create(new Email("user@example.com"), "User", SystemRole.USER);
-        when(accountRepository.findById(organizerId)).thenReturn(Optional.of(plainUser));
+        when(accountLookup.canOrganize(organizerId)).thenReturn(false);
 
         assertThrows(ForbiddenException.class, () -> service.execute(command()));
     }
