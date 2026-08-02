@@ -2,6 +2,7 @@ plugins {
 	java
 	id("org.springframework.boot") version "4.1.0"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("org.openapi.generator") version "7.24.0"
 }
 
 group = "at.fraihs"
@@ -35,6 +36,8 @@ dependencies {
 	implementation("org.mapstruct:mapstruct:1.6.3")
 	implementation("org.jmolecules:jmolecules-ddd")
 	implementation("org.jmolecules:jmolecules-events")
+	implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.31")
+	implementation("org.openapitools:jackson-databind-nullable:0.2.6")
 	runtimeOnly("org.postgresql:postgresql")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -64,4 +67,35 @@ dependencyManagement {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+val openApiSpec = rootDir.resolve("../openapi/cookingchallenge-api.yaml").canonicalPath
+val openApiOutputDir = layout.buildDirectory.dir("generated/openapi").get().asFile
+
+openApiGenerate {
+	generatorName.set("spring")
+	inputSpec.set(openApiSpec)
+	outputDir.set(openApiOutputDir.path)
+	apiPackage.set("at.fraihs.cookoff.shared.web.openapi.api")
+	modelPackage.set("at.fraihs.cookoff.shared.web.openapi.model")
+	configOptions.set(
+		mapOf(
+			"interfaceOnly" to "true",
+			"skipDefaultInterface" to "true",
+			"useTags" to "true",
+			"useSpringBoot3" to "true",
+		)
+	)
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir(openApiOutputDir.resolve("src/main/java"))
+		}
+	}
+}
+
+tasks.named("compileJava") {
+	dependsOn("openApiGenerate")
 }
