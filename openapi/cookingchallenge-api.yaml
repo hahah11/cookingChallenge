@@ -95,10 +95,30 @@ paths:
           $ref: '#/components/responses/Conflict'
 
   /api/v1/accounts/{accountId}:
+    get:
+      tags: [Accounts]
+      operationId: getAccount
+      summary: Get a single account, for the edit dialog to load fresh data on open
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/AccountIdPathParam'
+      responses:
+        '200':
+          description: Account detail, including the roles selectable when editing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
     patch:
       tags: [Accounts]
       operationId: updateAccount
-      summary: Edit an account's name/roles
+      summary: Edit an account's name/email/roles
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/AccountIdPathParam'
@@ -123,6 +143,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
 
   /api/v1/challenges:
     get:
@@ -716,6 +738,9 @@ components:
       properties:
         name:
           type: string
+        email:
+          type: string
+          format: email
         roles:
           type: array
           items:
@@ -731,9 +756,23 @@ components:
         meta:
           $ref: '#/components/schemas/ApiMeta'
 
+    AccountDetailResponse:
+      type: object
+      required: [data, availableRoles, meta]
+      properties:
+        data:
+          $ref: '#/components/schemas/Account'
+        availableRoles:
+          type: array
+          items:
+            $ref: '#/components/schemas/SystemRole'
+          description: Roles selectable when editing this account, for the edit dialog's role picker.
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
     AccountListResponse:
       type: object
-      required: [data, pagination, meta]
+      required: [data, pagination, availableRoles, meta]
       properties:
         data:
           type: array
@@ -741,6 +780,11 @@ components:
             $ref: '#/components/schemas/Account'
         pagination:
           $ref: '#/components/schemas/Pagination'
+        availableRoles:
+          type: array
+          items:
+            $ref: '#/components/schemas/SystemRole'
+          description: Roles selectable when creating an account, loaded upfront for the "new account" dialog.
         meta:
           $ref: '#/components/schemas/ApiMeta'
 

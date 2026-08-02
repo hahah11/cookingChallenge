@@ -1,0 +1,105 @@
+{
+  "$note": [
+    "Historical cook-off / bake-off results, transcribed from before the app existed, for prefilling the database once accounts/challenges can be created.",
+    "Maps onto the domain model in docs/cookingChallenge/domain-model.puml: each entry below becomes one Challenge (aggregate root: id, date, title, dishName, cookAssignments A/B, status, createdBy).",
+    "Per-category scores (Mundgefuehl/Tellersprache/Geschmack, 0-5 per dish label) are NOT known for these historical events, so no ScoreSubmission data is included -- only the already-known overall winner per challenge.",
+    "Because there are no ScoreSubmissions to run through ResultCalculator, these challenges can't be 'revealed' the normal way when imported. The importer should set status=REVEALED and 'winnerName' directly, and feed the same winner into CookRivalry.recordResult() to seed the running head-to-head record, bypassing the score-based computation.",
+    "'organizer' is the admin account (SystemRole.ADMIN) -- becomes createdBy (AccountId) on every Challenge below once accounts exist. cookA/cookB/winnerName are given as plain names here since no AccountIds exist yet; the importer must resolve/create matching Accounts first.",
+    "cookA/cookB order is arbitrary (blind labels A/B carry no meaning after the fact) -- winnerName is one of cookA/cookB, or null for a draw.",
+    "'type' distinguishes cook-off (savory) vs bake-off (dessert) events -- both use the same Challenge model, this is just a descriptive label, not a domain-model field.",
+    "Cook-off #1 date was given as '15.12.203' (typo, one digit short) -- confirmed with the user as 2023-12-15.",
+    "Cook-off #6 (Lasagne, 2026-01-17) and Bake-off #1 (Apfelkuchen, 2026-01-17) share the same date -- confirmed as two distinct events on the same day, not a data error.",
+    "Entries are kept in the order/numbering given by the user, which is not strictly chronological (#5 2026-04-11 precedes #6 2026-01-17 in the list)."
+  ],
+  "organizer": "admin",
+  "events": [
+    {
+      "type": "cookoff",
+      "sequence": 1,
+      "title": "Erdäpfelgulasch",
+      "date": "2023-12-15",
+      "cookA": "Michael Holzer",
+      "cookB": "Daniel Bekasiewicz",
+      "winnerName": null,
+      "result": "draw",
+      "categoryScores": null
+    },
+    {
+      "type": "cookoff",
+      "sequence": 2,
+      "title": "Steinpilzrisotto",
+      "date": "2025-06-19",
+      "cookA": "Michael Holzer",
+      "cookB": "Daniel Bekasiewicz",
+      "winnerName": "Michael Holzer",
+      "result": "win",
+      "categoryScores": null
+    },
+    {
+      "type": "cookoff",
+      "sequence": 3,
+      "title": "Kartoffelgratin",
+      "date": "2025-08-22",
+      "cookA": "Michael Holzer",
+      "cookB": "Daniel Bekasiewicz",
+      "winnerName": "Daniel Bekasiewicz",
+      "result": "win",
+      "categoryScores": null
+    },
+    {
+      "type": "cookoff",
+      "sequence": 4,
+      "title": "Zwiebelsuppe",
+      "date": "2025-10-12",
+      "cookA": "Michael Holzer",
+      "cookB": "Daniel Bekasiewicz",
+      "winnerName": "Michael Holzer",
+      "result": "win",
+      "categoryScores": null
+    },
+    {
+      "type": "cookoff",
+      "sequence": 5,
+      "title": "Kohlrouladen mit Püree",
+      "date": "2026-04-11",
+      "cookA": "Michael Holzer",
+      "cookB": "Daniel Bekasiewicz",
+      "winnerName": "Daniel Bekasiewicz",
+      "result": "win",
+      "categoryScores": null
+    },
+    {
+      "type": "cookoff",
+      "sequence": 6,
+      "title": "Lasagne",
+      "date": "2026-01-17",
+      "cookA": "Michael Holzer",
+      "cookB": "Daniel Bekasiewicz",
+      "winnerName": "Daniel Bekasiewicz",
+      "result": "win",
+      "categoryScores": null
+    },
+    {
+      "type": "cookoff",
+      "sequence": 7,
+      "title": "Curry",
+      "date": "2026-05-23",
+      "cookA": "Michael Holzer",
+      "cookB": "Daniel Bekasiewicz",
+      "winnerName": "Daniel Bekasiewicz",
+      "result": "win",
+      "categoryScores": null
+    },
+    {
+      "type": "bakeoff",
+      "sequence": 1,
+      "title": "Apfelkuchen",
+      "date": "2026-01-17",
+      "cookA": "Petra Mayer",
+      "cookB": "Svenja",
+      "winnerName": "Petra Mayer",
+      "result": "win",
+      "categoryScores": null
+    }
+  ]
+}

@@ -10,6 +10,28 @@ skipDefaultInterface=true, useTags=true`) — compiles to one interface per tag
 The edit-until-reveal conflict (below) was resolved with the user before finalizing the
 scoring paths: **allow edit-until-reveal**.
 
+**Phase 1 revised (2026-08-02).** Account editing was under-specified: `UpdateAccountRequest`
+was missing `email` (organizer needs to edit name, email, *and* roles), and there was no way
+for the frontend to know which roles are selectable without hardcoding the `SystemRole` enum
+client-side. Fixed:
+
+- `UpdateAccountRequest` gained an optional `email` field; `PATCH /api/v1/accounts/{id}`
+  gained a `409` response (email is now editable, so it can collide with another account).
+- New `GET /api/v1/accounts/{accountId}` (→ `AccountDetailResponse`), so the edit dialog
+  loads that one account's current name/email/roles fresh when it opens, instead of trusting
+  a possibly-stale row from the list already held in frontend state.
+- `AccountListResponse` and `AccountDetailResponse` both carry `availableRoles: SystemRole[]`
+  — the server is the single source of truth for which roles exist, so the frontend never
+  hardcodes `[ADMIN, ORGANIZER, USER]` itself.
+
+This is also the concrete instance of a general frontend-loading principle, per the user:
+the frontend should fetch everything it needs to render a page **on that page's initial
+load** (accounts list + `availableRoles` for the "new account" dialog, both in one
+`GET /api/v1/accounts` call); opening a popup or navigating to another page/dialog triggers
+its *own* fresh fetch (the edit dialog's `GET /api/v1/accounts/{id}` call) rather than reusing
+whatever the parent page already had in memory. Apply this same pattern to future
+screens/dialogs, not just accounts.
+
 **Phase 2 done (2026-08-02).** `backend/build.gradle.kts` now applies
 `org.openapi.generator` 7.24.0, wired to the `openApiGenerate` task: `inputSpec` points at
 `../openapi/cookingchallenge-api.yaml`, output goes to `build/generated/openapi` (already
@@ -153,9 +175,10 @@ upsert target instead of a hard reject. See gap 6 below.
 | Reveal results | `POST /api/v1/challenges/{id}/reveal` | Existing (`RevealChallengeService`) |
 | Revealed results + rivalry text | `GET /api/v1/challenges/{id}/results` | Existing for results; rivalry summary needs joining in `CookRivalryRepository.findByPair` (repo method already exists — just needs wiring into the response) |
 | Unreveal challenge | `POST /api/v1/challenges/{id}/unreveal` | **New** — `Challenge` has no reverse transition; see the rivalry double-count question below |
-| Accounts list | `GET /api/v1/accounts` | Existing (`ListAccountsService`) |
+| Accounts list (+ `availableRoles` for the new-account dialog) | `GET /api/v1/accounts` | Existing (`ListAccountsService`), needs `availableRoles` added to the response |
 | New account | `POST /api/v1/accounts` | Existing (`CreateAccountService`) |
-| Edit account (name/roles) | `PATCH /api/v1/accounts/{id}` | **New** — no `Account` update method or repo update path yet |
+| Edit account: load fresh detail on dialog open | `GET /api/v1/accounts/{id}` | **New** — no single-account fetch exists today |
+| Edit account (name/email/roles) | `PATCH /api/v1/accounts/{id}` | **New** — no `Account` update method or repo update path yet |
 | Rivalries list | `GET /api/v1/rivalries` | **New** — `CookRivalryRepository` only has `findByPair`, needs `findAll()` |
 | Rivalry detail (pair + their challenges) | `GET /api/v1/rivalries/{cookAId}/{cookBId}` | **New** — needs a `ChallengeRepository` query by cook pair; the `CookRivalry` aggregate itself has no challenge references |
 | Guest home (open + past challenges) | `GET /api/v1/me/home` | Existing but scoped to *open, not-yet-submitted* only (`HomeService`) — mockup also needs a "past" bucket (submitted/revealed). Application-layer extension, no domain gap |
@@ -178,8 +201,9 @@ upsert target instead of a hard reject. See gap 6 below.
 4. A `ChallengeRepository` query for "challenges between this cook pair" for the rivalry
    detail screen (not a `CookRivalry` responsibility — that aggregate has no challenge
    references, only running counters).
-5. `Account` update — check whether `Account` has any mutation method today (name/roles);
-   if not, add one plus a corresponding `AccountRepository` update path.
+5. `Account` update — check whether `Account` has any mutation method today (name/email/roles);
+   if not, add one plus a corresponding `AccountRepository` update path. Email changes need
+   the same uniqueness check `CreateAccountService` already does, surfaced as the new `409`.
 6. `ScoreSubmission` update path — confirmed needed now that edit-until-reveal is decided
    (see "Resolved" section above): an `update(...)` domain method (or delete-and-recreate),
    and the repo's unique-constraint path becomes an upsert instead of a hard reject.
