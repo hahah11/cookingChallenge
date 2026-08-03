@@ -1,5 +1,17 @@
 # API Design Guidelines
 
+## API Contract: OpenAPI-First
+
+The API is spec-first, not code-first. `openapi/cookingchallenge-api.yaml` (repo root — a neutral contract, not nested under either project) is the single source of truth. Nobody hand-writes a controller interface or an HTTP client method that duplicates what the spec already describes — both sides generate from it.
+
+- **Backend**: `org.openapitools.openapi-generator-gradle-plugin` (generator `spring`, `interfaceOnly=true`, `skipDefaultInterface=true`, `useTags=true`) generates one Java interface per tag (`ChallengesApi`, `AccountsApi`, ...) plus model classes into a build-only output directory that is never committed. `@RestController` classes implement the generated interface — they don't declare their own request/response record types.
+- **Frontend**: `@openapitools/openapi-generator-cli` (generator `typescript-angular`) generates the Angular HTTP client from the same spec — same tool family as the backend, one codegen toolchain to learn instead of two.
+- **Never hand-edit generated code** (workspace rule, see `CLAUDE.md`). If a generated shape is wrong, fix the spec and regenerate — don't patch the output.
+- **The `{data, meta}` / error envelope is part of the spec, not bolted on after serialization.** OpenAPI 3.0 has no generics, so every response is its own named wrapper schema (`ChallengeResponse { data: Challenge, meta: ApiMeta }`, `ChallengeListResponse { data: Challenge[], meta: ApiMeta }`) — verbose to author, but it's the only way the generated client's types match the actual wire format.
+- **Page-scoped DTOs are spec schemas, not just a convention** (see "Page-Scoped Query Endpoints" below) — `OrderDetailPageResponse`, `CancelOrderDialogResponse`, etc. are each their own named schema in the spec, tagged to the endpoint that returns them.
+
+See [`docs/cookingChallenge/plans/openapi-first-api-plan.md`](../cookingChallenge/plans/openapi-first-api-plan.md) for the concrete rollout of this in the current codebase.
+
 ## REST Conventions
 
 ### HTTP Methods
@@ -143,6 +155,32 @@ public class CustomerControllerV2 { ... }
 3. Document migration guide for users
 4. Keep old version for at least 6 months
 
+## Page-Scoped Query Endpoints
+
+Every screen (page/route) gets **one primary GET endpoint** that returns exactly what's needed for its initial render — nothing the user hasn't asked to see yet. This is a BFF (Backend For Frontend)-style convention: endpoints and DTOs are shaped around screens, not generic reusable resources. Popups, dialogs, tabs, and expandable panels each get their **own** endpoint, called only when the user actually opens them (CQRS-lite: these are all read-side queries, kept separate from write-side commands).
+
+### Rules
+
+1. **One page = one primary query.** `GET /api/v1/orders/{id}` returns the order detail screen's data. It does NOT include the "cancel order" dialog's cancellation-reason options, or a side panel's full order history — those are separate calls.
+2. **Popups/dialogs fetch on open, not on page load.** A dialog component calls its own endpoint when it opens, and never reuses data already held by its parent page — even if fields overlap. This avoids showing stale data if something changed between the page load and the popup open.
+3. **DTOs are named after the screen/interaction they serve**, not the entity: `OrderDetailPageResponse`, `CancelOrderDialogResponse` — not one `OrderResponse` stretched to fit every context.
+4. **No client-side aggregation across modules.** If a screen needs data from two backend modules (e.g. order + customer), the backend aggregates it server-side into one page DTO — see [`docs/backend/02-ddd-modulith.md#page-query-services`](../backend/02-ddd-modulith.md#page-query-services). The frontend never fans out to multiple endpoints and stitches results together itself.
+5. **Cross-cutting data (roles, feature flags) is not page-scoped** — see Configuration Endpoint below.
+
+### Example
+
+```
+✅ GET /api/v1/orders/{id}                 # Order detail page (main data)
+✅ GET /api/v1/orders/{id}/cancel-options   # Cancel dialog, fetched on open
+✅ GET /api/v1/orders/{id}/history          # "View history" popup, fetched on open
+
+❌ GET /api/v1/orders/{id}                  # returns order + cancelOptions + fullHistory in one bloated DTO
+```
+
+### Configuration Endpoint
+
+Data that isn't tied to one screen — the current user's roles/permissions, feature flags, shared lookup/enum values — is served by a single `GET /api/v1/config` endpoint. The frontend fetches it once at app bootstrap (see [`docs/frontend/03-services-state.md#config-service`](../frontend/03-services-state.md#config-service)), not per page. Roles and permissions are never derived or hardcoded on the frontend — the UI always reflects what this endpoint returned.
+
 ## Query Parameters
 
 ### Filtering
@@ -188,6 +226,10 @@ public ResponseEntity<CustomerResponse> create(
     return ResponseEntity.status(HttpStatus.CREATED).body(CustomerResponse.from(customer));
 }
 ```
+
+### Validation Duplication
+
+Client-side validation (Angular reactive form validators) exists purely for UX responsiveness — instant feedback without a round trip. It is never trusted. The backend re-validates everything with Bean Validation (`@Valid`) and its own business rules regardless of what the frontend already checked, and must reject a request that skips the frontend entirely (Postman, another client, a malicious actor) exactly as it would reject one from the app. See [`docs/frontend/04-routing-forms-http.md#validation-is-ux-only`](../frontend/04-routing-forms-http.md#validation-is-ux-only).
 
 ## Best Practices
 

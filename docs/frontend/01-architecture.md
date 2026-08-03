@@ -25,6 +25,19 @@
 - HTTP interceptors for auth tokens, error handling
 - Keep these focused on single responsibilities
 
+## Data Loading Pattern
+
+Each routed page fetches exactly the data it displays immediately, via one primary API call, on load. Nothing needed only inside a popup/dialog/expandable panel is fetched up front.
+
+- **Page load → one main call.** A resolver or the top-level container component calls the page's primary endpoint (`GET /api/v1/orders/{id}`) and gets a DTO shaped for that screen (see [`docs/shared/04-api-design.md#page-scoped-query-endpoints`](../shared/04-api-design.md#page-scoped-query-endpoints)).
+- **Popups always fetch fresh.** A dialog/popup component never reuses data already held by its parent page, even where fields overlap — it calls its own endpoint when it opens. This avoids showing stale data if something changed between the page load and the popup open.
+- **No client-side joins.** If a screen needs data from two backend modules, that aggregation happens server-side in a page query service (see [`docs/backend/02-ddd-modulith.md#page-query-services`](../backend/02-ddd-modulith.md#page-query-services)) — the frontend never issues two calls and stitches the results together itself.
+- **Components stay display/gathering only** (see Component Layer above) — a component calls its one service method, binds the result to the template, and emits user actions. It does not decide what else to fetch.
+
+## App Configuration And Permissions
+
+Roles, permissions, and feature flags are not computed or hardcoded in the frontend — they come from the backend via a single `GET /api/v1/config` call (see [`docs/shared/04-api-design.md#configuration-endpoint`](../shared/04-api-design.md#configuration-endpoint)), fetched once at app bootstrap and cached in `core/services/config.service.ts` (see [`docs/frontend/03-services-state.md#config-service`](03-services-state.md#config-service)). Guards and components read from this service; they never infer permissions from other API responses or local logic.
+
 ## Project Structure
 
 ```

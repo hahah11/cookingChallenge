@@ -67,6 +67,42 @@ export class CustomerApiService {
 }
 ```
 
+### Config Service
+
+Roles, permissions, and feature flags are fetched once at app bootstrap — not per page — from `GET /api/v1/config` (see [`docs/shared/04-api-design.md#configuration-endpoint`](../shared/04-api-design.md#configuration-endpoint)).
+
+```typescript
+// ✅ core/services/config.service.ts
+@Injectable({ providedIn: 'root' })
+export class ConfigService {
+  private config = signal<AppConfig | null>(null);
+
+  readonly roles = computed(() => this.config()?.roles ?? []);
+  readonly featureFlags = computed(() => this.config()?.featureFlags ?? {});
+
+  constructor(private http: HttpClient) {}
+
+  load(): Observable<AppConfig> {
+    return this.http.get<AppConfig>('/api/v1/config').pipe(
+      tap(config => this.config.set(config))
+    );
+  }
+
+  hasRole(role: string): boolean {
+    return this.roles().includes(role);
+  }
+}
+
+// ✅ app.config.ts — load before the app renders
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideAppInitializer(() => inject(ConfigService).load())
+  ]
+};
+```
+
+Guards and components call `configService.hasRole(...)` — never hardcode role checks against raw API responses or infer permissions locally.
+
 ### Service Methods Best Practices
 
 ```typescript

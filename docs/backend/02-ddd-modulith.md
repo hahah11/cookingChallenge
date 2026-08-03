@@ -139,6 +139,51 @@ public class CreateCustomerService {
 }
 ```
 
+## Page Query Services
+
+Page-scoped endpoints (see [`docs/shared/04-api-design.md#page-scoped-query-endpoints`](../shared/04-api-design.md#page-scoped-query-endpoints)) are backed by **query services** — the read side of CQRS-lite. They live in `application/query/`, alongside the command services in `application/service/`, but follow different rules:
+
+- Return flat, screen-specific DTOs (`OrderDetailPageView`), not the rich domain aggregate.
+- May read directly via repositories/projections — no need to load a full aggregate just to display it.
+- Are the only place allowed to aggregate across modules for a single response, using other modules' published lookup interfaces (`CustomerModule.CustomerLookup`) — never their JPA entities or repositories directly.
+- Contain no business rules of their own — only assembly/mapping. Business rules (e.g. can this order be cancelled?) still live in the domain layer and are exposed as flags on the DTO (`canCancel: true`) for the frontend to render, so the frontend never re-derives them.
+
+```java
+// application/query/OrderDetailPageQueryService.java
+@Service
+@RequiredArgsConstructor
+public class OrderDetailPageQueryService {
+    private final OrderRepository orderRepository;
+    private final CustomerModule.CustomerLookup customerLookup;
+
+    public OrderDetailPageView execute(OrderId id) {
+        Order order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
+        CustomerView customer = customerLookup.findById(order.getCustomerId())
+            .orElseThrow(CustomerNotFoundException::new);
+
+        return new OrderDetailPageView(
+            order.getId(),
+            order.getStatus(),
+            order.canBeCancelled(),   // domain rule, exposed as a flag
+            customer.name()
+        );
+    }
+}
+
+// interface/rest/OrderController.java
+@GetMapping("/orders/{id}")
+public OrderDetailPageView getOrderDetailPage(@PathVariable OrderId id) {
+    return orderDetailPageQueryService.execute(id);
+}
+
+@GetMapping("/orders/{id}/cancel-options")
+public CancelOrderDialogView getCancelOptions(@PathVariable OrderId id) {
+    return cancelOrderDialogQueryService.execute(id);
+}
+```
+
+Command services (`CreateCustomerService`, etc. above) are unchanged by this — they still operate on the rich domain model and enforce invariants for writes. Query services are the deliberate exception to "always go through the aggregate", used only for read-only screen/popup data.
+
 ## Module Communication (Spring Modulith)
 
 ```java
@@ -201,6 +246,10 @@ public class OrderService {
 - Modules communicate ONLY via events or interfaces
 - NO direct database access across modules
 - NO direct entity access across modules
+
+### 3. API Contracts Are Generated, Not Hand-Written
+- Controllers implement generated Spring interfaces (`ChallengesApi`, `AccountsApi`, ...) produced from `openapi/cookingchallenge-api.yaml` — see [`docs/shared/04-api-design.md#api-contract-openapi-first`](../shared/04-api-design.md#api-contract-openapi-first). Hand-written `interface/rest/*Dto.java`-style request/response records aren't created going forward.
+- Command and query services (including page query services above) map domain/read-model data onto the generated model classes; they never define their own response types.
 
 ## Anti-Patterns to Avoid
 
