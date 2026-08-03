@@ -3,11 +3,12 @@ package at.fraihs.cookoff.auth.infrastructure.persistence;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
-import at.fraihs.cookoff.auth.domain.repository.AccountRepository;
+import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -33,8 +34,8 @@ class AccountRepositoryImpl implements AccountRepository {
     }
 
     @Override
-    public List<Account> findAll() {
-        return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    public Page<Account> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(mapper::toDomain);
     }
 
     @Override

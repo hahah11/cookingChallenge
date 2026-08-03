@@ -10,6 +10,7 @@ import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotRevealedExcep
 import at.fraihs.cookoff.cookoff.application.exception.DuplicateSubmissionException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
+import at.fraihs.cookoff.cookoff.application.exception.RivalryNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,7 +66,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({AccountNotFoundException.class, ChallengeNotFoundException.class,
-            ChallengeNotRevealedException.class})
+            ChallengeNotRevealedException.class, RivalryNotFoundException.class})
     public ResponseEntity<ApiErrorResponse> handleNotFound(RuntimeException ex) {
         return error(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage());
     }

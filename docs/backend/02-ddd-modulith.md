@@ -19,8 +19,6 @@ com.cookingchallenge.customer/
 │   │   ├── Customer.java      # Aggregate Root
 │   │   ├── CustomerId.java    # Value Object
 │   │   └── Email.java         # Value Object
-│   ├── repository/
-│   │   └── CustomerRepository.java  # Domain Interface (port)
 │   ├── service/
 │   │   └── CustomerPricingService.java  # Domain Service
 │   └── event/
@@ -34,12 +32,13 @@ com.cookingchallenge.customer/
 │   │   ├── CreateCustomerCommand.java   # CQRS Command
 │   │   └── CustomerView.java            # CQRS Query Result
 │   └── port/
+│       ├── CustomerRepository.java      # Outgoing port (interface) - see ADR 0002
 │       └── NotificationPort.java        # Outgoing port (interface)
 │
 ├── infrastructure/            # Outer circle - Frameworks & Drivers
 │   ├── persistence/
 │   │   ├── CustomerJpaEntity.java       # DB mapping
-│   │   ├── CustomerRepositoryImpl.java  # Adapter (implements domain repo)
+│   │   ├── CustomerRepositoryImpl.java  # Adapter (implements the application-layer port)
 │   │   └── CustomerMapper.java          # Domain ↔ Entity conversion (MapStruct interface)
 │   ├── notification/
 │   │   └── EmailNotificationAdapter.java # Implements NotificationPort
@@ -84,12 +83,28 @@ public class Customer {
 
 ## Repository Pattern (Ports and Adapters)
 
+Repository interfaces are declared in `application/port`, not `domain/repository` — a port is
+"what a use case needs from the outside world," and the application layer is where every
+other outgoing port (`NotificationPort`, `ImageStoragePort`, ...) already lives. Only the
+*aggregates/value objects/domain services* Repository methods reference are pure domain
+types; the port interface itself is an application-layer concern. See
+`docs/cookingChallenge/adr/0002-repository-ports-in-application-layer.md` for the full
+rationale and the trade-off against the alternative (Evans' DDD, which treats Repository as
+a domain-layer tactical pattern).
+
+One consequence: because `application` (unlike `domain`) is already allowed to depend on
+framework types (`@Transactional`, `ApplicationEventPublisher`, ...), a repository port's
+paginated query methods take/return Spring Data's `Pageable`/`Page<T>` directly rather than
+a hand-rolled pagination type — see
+`docs/cookingChallenge/adr/0003-spring-data-pageable-in-repository-ports.md`.
+
 ```java
-// Domain interface (port) - in domain package
+// Port (interface) - in application/port
 public interface CustomerRepository {
     Optional<Customer> findById(CustomerId id);
     Customer save(Customer customer);
     boolean existsByEmail(Email email);
+    Page<Customer> findAll(Pageable pageable);
 }
 
 // Infrastructure adapter - in infrastructure package
@@ -109,6 +124,12 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     @Override
     public Customer save(Customer customer) {
         return mapper.toDomain(jpaRepository.save(mapper.toEntity(customer)));
+    }
+
+    @Override
+    public Page<Customer> findAll(Pageable pageable) {
+        // JpaRepository<CustomerJpaEntity, Long> already provides findAll(Pageable) for free
+        return jpaRepository.findAll(pageable).map(mapper::toDomain);
     }
 }
 ```

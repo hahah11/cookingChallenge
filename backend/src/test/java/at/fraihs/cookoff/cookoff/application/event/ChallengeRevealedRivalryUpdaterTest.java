@@ -4,7 +4,7 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeRevealed;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
-import at.fraihs.cookoff.cookoff.domain.repository.CookRivalryRepository;
+import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

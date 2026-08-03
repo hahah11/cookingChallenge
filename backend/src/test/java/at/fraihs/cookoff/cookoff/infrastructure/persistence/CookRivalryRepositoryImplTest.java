@@ -11,8 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -72,9 +73,10 @@ class CookRivalryRepositoryImplTest {
         repository.save(CookRivalry.start(a, b));
         repository.save(CookRivalry.start(a, c));
 
-        List<CookRivalry> found = repository.findAll();
+        Page<CookRivalry> found = repository.findAll(PageRequest.of(0, 20));
 
-        assertEquals(2, found.size());
+        assertEquals(2, found.getContent().size());
+        assertEquals(2L, found.getTotalElements());
     }
 
     @Test

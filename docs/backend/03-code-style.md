@@ -54,6 +54,11 @@ public class Customer {
   MapStruct attempt field injection into the domain class.
 - Never generate a mapper for a JPA entity that isn't in `infrastructure/persistence` —
   mappers stay next to the entity they convert, per the module structure below.
+- This also covers domain → generated-OpenAPI-model mappers in the **application** layer
+  (e.g. `auth.application.service.AccountModelMapper`, domain `Account` → the generated
+  `Account` model) — same `@Mapper(componentModel = "spring")` interface, hand-written
+  `default` methods where a typed VO or enum needs explicit conversion, same reasoning as
+  above. Not just an `infrastructure/persistence` rule despite the section title.
 
 ```java
 @Mapper(componentModel = "spring")

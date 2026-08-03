@@ -175,6 +175,93 @@ application-service or controller work — that's still Phase 4/5):
   done here — that's still Phase 4/5, now unblocked for gaps 3–6 the same way Phase 7 already
   unblocked it for gaps 7–12.
 
+**Phase 4 in progress (2026-08-03).** Started with the two genuinely-new use cases called
+out in Phase 4's own description (gaps 3–5 from the list above) rather than the broader
+rewrite of already-existing services, since these don't touch any currently-live controller
+and give a self-contained, buildable increment:
+- **`GetAccountDetailService`** (`auth.application.service`) — `execute(AccountId)`, returns
+  the generated `Account` model directly (404 via the existing `AccountNotFoundException`).
+- **`UpdateAccountService`** — `execute(AccountId, UpdateAccountRequest)`. `name`/`email` are
+  applied only if non-null (partial update); `email` reuses `AccountAlreadyExistsException`
+  for the 409-on-collision case, skipping the uniqueness check entirely when the email is
+  unchanged. `roles` is spec'd as "replaces the account's full role set" but is a plain
+  (non-`JsonNullable`) list, so an omitted field and an explicitly empty array deserialize
+  identically — treated as "leave roles alone" rather than "clear all roles", since the
+  latter is unreachable anyway (`Account.revokeRole` refuses to drop the last role). When
+  roles *are* given, every target role is granted before any dropped role is revoked, so the
+  account never transiently holds zero roles mid-update.
+- **`RivalriesListService`** (`cookoff.application.service`, gap 3) — maps every
+  `CookRivalryRepository.findAll()` row to the generated `Rivalry` model, resolving cook
+  names via the existing `auth.AccountLookup` port (not `AccountRepository` directly — cross-
+  module access stays behind the published interface, same pattern
+  `EditChallengeParticipantsService` etc. already use).
+- **`RivalryDetailService`** (gap 4) — joins `ChallengeRepository.findByCookPair(...)` (every
+  shared challenge, revealed or not) with `CookRivalryRepository.findByPair(...)` (the
+  win/loss record, present only once the pair has been revealed at least once). New
+  `RivalryNotFoundException` (404, wired into `GlobalExceptionHandler`) fires only when
+  *neither* exists for the pair — i.e. the two accounts have never even been scheduled
+  together; a shared-but-unrevealed challenge still returns 200 with zeroed
+  wins/draws/totals. The path params are canonicalized via `CookRivalry.orderPair(...)`
+  before either repository call, so `{a}/{b}` and `{b}/{a}` return identically-shaped output.
+- New shared **`RivalryHeadline`** helper builds the spec's server-rendered display text
+  ("Alice leads Bob 3-1 (1 draw)"); reusable later by `GetChallengeResultsService`'s
+  `ChallengeResult.rivalry` field (`RivalrySummary` schema, same shape), which is a separate,
+  not-yet-done rewrite item below.
+- New shared **`PagedResult<T>`** (`shared.web`) wraps a Spring Data `Page<T>` into the
+  generated `Pagination` block, per `04-api-design.md`'s convention — used by
+  `RivalriesListService` now, intended for reuse by the accounts/challenges list rewrites
+  below. See the architecture follow-up entry immediately below for how this and the
+  repository ports it wraps evolved after this increment first shipped.
+- 24 new unit tests (Mockito-mocked repositories/ports, same style as the existing suite,
+  plus direct tests for the two new pure-logic helpers). `./gradlew build` passes end to
+  end: 230 tests (up from 207), including the jMolecules architecture suite.
+
+**Architecture follow-up (2026-08-03, same day).** Reviewing this increment surfaced two
+inconsistencies with the rest of the codebase, resolved with the user and recorded as ADRs
+rather than left as implicit choices:
+- **Repository ports relocated from `domain.repository` to `application.port`** — all five
+  (`AccountRepository`, `ChallengeRepository`, `ScoreSubmissionRepository`,
+  `PlateColorRepository`, `CookRivalryRepository`), across both modules. Rationale, full
+  consequences, and the alternative considered:
+  [`docs/cookingChallenge/adr/0002-repository-ports-in-application-layer.md`](../../adr/0002-repository-ports-in-application-layer.md).
+  `docs/backend/02-ddd-modulith.md` updated to match. Pure mechanical rename (55 files,
+  import-only changes) — no behavior change.
+- **`AccountRepository`/`CookRivalryRepository`'s `findAll()` now take
+  `org.springframework.data.domain.Pageable` and return `Page<T>`**, replacing the in-memory
+  `PagedResult.of(List, page, size)` slicing this increment first shipped with. Real DB-level
+  `LIMIT`/`OFFSET` now, not "load the whole table." `AccountRepositoryImpl`/
+  `CookRivalryRepositoryImpl` delegate straight to `JpaRepository.findAll(Pageable)` (already
+  free, no new query methods); `ListAccountsService` passes `Pageable.unpaged()` to keep its
+  pre-existing "return everything" behavior until its own Phase 4 rewrite lands. Rationale:
+  [`docs/cookingChallenge/adr/0003-spring-data-pageable-in-repository-ports.md`](../../adr/0003-spring-data-pageable-in-repository-ports.md).
+  `ChallengeRepository.findAll()` and other not-yet-paginated list methods are untouched —
+  this establishes the pattern, it doesn't retrofit every method in one pass.
+- **`AccountModelMapper`** (domain `Account` → generated `Account` model, used by
+  `GetAccountDetailService`/`UpdateAccountService`) converted from a hand-written static
+  utility to a MapStruct `@Mapper(componentModel = "spring")` interface with a `default`
+  method — matching `infrastructure/persistence`'s existing MapStruct mappers' own pattern
+  for typed-VO conversions (`AccountMapper`'s hand-written `default toDomain`/`toEntity`,
+  since `Account` has no public constructor MapStruct could target), extended here to the
+  domain→generated-model direction per `docs/backend/03-code-style.md`'s Mapper Usage
+  section (not previously scoped to that direction).
+- `./gradlew build` passes end to end: 229 tests (one net fewer than the prior entry — a
+  `PagedResult` test scenario specific to manual list-slicing no longer applies once it wraps
+  a real `Page`), including the jMolecules/ArchUnit layering suite, confirming the relocation
+  introduced no upward (domain → application) dependency.
+
+**Still open in Phase 4** — the broader item the plan's own Phase 4 section calls for:
+rewriting `CreateAccountService`/`ListAccountsService`/`LoginService` and every `cookoff`
+use-case service (`CreateChallengeService`, `ListChallengesService`,
+`GetChallengeStatusService`, `SendChallengeInvitationsService`, `RevealChallengeService`,
+`GetChallengeResultsService`, `HomeService`, `GetChallengeForParticipantService`,
+`SubmitScoreService`) to take/return generated types instead of the hand-written
+`AccountView`/`ChallengeView`/etc. DTOs. Deliberately deferred past this increment: those
+services' current callers are the **live** `AccountController`/`AuthController`/
+`ChallengeController`/`HomeController` — rewriting a service's signature without also
+swapping its controller in the same step would break a working endpoint, so that work is
+sequenced together with Phase 5 (new controllers), one use case at a time, rather than done
+as a separate Phase 4 pass first.
+
 ## Approach
 
 1. Design an OpenAPI spec shaped around what the UI ([`design-reference.md`](../design-reference.md),

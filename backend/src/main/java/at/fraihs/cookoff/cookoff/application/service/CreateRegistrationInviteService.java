@@ -9,7 +9,7 @@ import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
-import at.fraihs.cookoff.cookoff.domain.repository.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

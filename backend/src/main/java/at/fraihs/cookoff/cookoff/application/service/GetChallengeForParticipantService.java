@@ -6,7 +6,7 @@ import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundExceptio
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
-import at.fraihs.cookoff.cookoff.domain.repository.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

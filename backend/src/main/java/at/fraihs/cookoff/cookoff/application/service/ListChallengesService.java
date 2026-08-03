@@ -1,7 +1,7 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.cookoff.application.dto.ChallengeView;
-import at.fraihs.cookoff.cookoff.domain.repository.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

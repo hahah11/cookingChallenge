@@ -2,11 +2,12 @@ package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
-import at.fraihs.cookoff.cookoff.domain.repository.CookRivalryRepository;
+import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -29,8 +30,8 @@ class CookRivalryRepositoryImpl implements CookRivalryRepository {
     }
 
     @Override
-    public List<CookRivalry> findAll() {
-        return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    public Page<CookRivalry> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(mapper::toDomain);
     }
 
     @Override

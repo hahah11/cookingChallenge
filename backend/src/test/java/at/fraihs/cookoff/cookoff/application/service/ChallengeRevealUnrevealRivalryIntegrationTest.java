@@ -16,9 +16,9 @@ import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
-import at.fraihs.cookoff.cookoff.domain.repository.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.domain.repository.CookRivalryRepository;
-import at.fraihs.cookoff.cookoff.domain.repository.ScoreSubmissionRepository;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -217,8 +217,8 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         }
 
         @Override
-        public List<CookRivalry> findAll() {
-            return List.copyOf(store.values());
+        public org.springframework.data.domain.Page<CookRivalry> findAll(org.springframework.data.domain.Pageable pageable) {
+            return new org.springframework.data.domain.PageImpl<>(List.copyOf(store.values()), pageable, store.size());
         }
 
         @Override

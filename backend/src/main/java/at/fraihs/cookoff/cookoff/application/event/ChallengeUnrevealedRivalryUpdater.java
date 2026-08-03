@@ -2,7 +2,7 @@ package at.fraihs.cookoff.cookoff.application.event;
 
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeUnrevealed;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
-import at.fraihs.cookoff.cookoff.domain.repository.CookRivalryRepository;
+import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -2,8 +2,8 @@ package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.dto.ChallengeParticipantView;
-import at.fraihs.cookoff.cookoff.domain.repository.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.domain.repository.ScoreSubmissionRepository;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

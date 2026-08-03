@@ -5,7 +5,7 @@ import at.fraihs.cookoff.auth.application.dto.LoginCommand;
 import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.Email;
-import at.fraihs.cookoff.auth.domain.repository.AccountRepository;
+import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

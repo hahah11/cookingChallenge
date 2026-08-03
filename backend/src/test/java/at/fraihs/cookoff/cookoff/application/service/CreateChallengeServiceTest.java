@@ -7,7 +7,7 @@ import at.fraihs.cookoff.cookoff.application.dto.ChallengeView;
 import at.fraihs.cookoff.cookoff.application.dto.CreateChallengeCommand;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
-import at.fraihs.cookoff.cookoff.domain.repository.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

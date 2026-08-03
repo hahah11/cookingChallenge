@@ -5,7 +5,7 @@ import at.fraihs.cookoff.cookoff.application.exception.DuplicateSubmissionExcept
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
-import at.fraihs.cookoff.cookoff.domain.repository.ScoreSubmissionRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;

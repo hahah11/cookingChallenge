@@ -1,13 +1,18 @@
-package at.fraihs.cookoff.auth.domain.repository;
+package at.fraihs.cookoff.auth.application.port;
 
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import org.jmolecules.ddd.annotation.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository ports live in the application layer, not domain - see
+ * docs/cookingChallenge/adr/0002-repository-ports-in-application-layer.md.
+ */
 @Repository
 public interface AccountRepository {
 
@@ -17,7 +22,8 @@ public interface AccountRepository {
 
     boolean existsByEmail(Email email);
 
-    List<Account> findAll();
+    /** See docs/cookingChallenge/adr/0003-spring-data-pageable-in-repository-ports.md. */
+    Page<Account> findAll(Pageable pageable);
 
     Account save(Account account);
 }

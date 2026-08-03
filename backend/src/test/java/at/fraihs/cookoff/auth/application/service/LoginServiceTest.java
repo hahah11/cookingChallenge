@@ -6,7 +6,7 @@ import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import at.fraihs.cookoff.auth.domain.repository.AccountRepository;
+import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

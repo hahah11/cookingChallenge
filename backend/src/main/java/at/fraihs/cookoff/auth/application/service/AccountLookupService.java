@@ -5,7 +5,7 @@ import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.auth.domain.repository.AccountRepository;
+import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
