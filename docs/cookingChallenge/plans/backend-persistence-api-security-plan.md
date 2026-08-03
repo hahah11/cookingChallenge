@@ -571,8 +571,18 @@ and the corresponding sections of `docs/cookingChallenge/domain-model.puml`. Eac
 sub-section below is independently implementable/testable — order within the phase mostly
 doesn't matter except 7.2 before 7.3 (color-pick needs `PlateColor` to exist) and 7.6
 depending on nothing else added here. Follow the same package/testing conventions as
-Phases 1–5 (Mockito unit tests for services, `@DataJpaTest` for repository adapters,
-`@WebMvcTest` for controllers).
+Phases 1–5 (Mockito unit tests for services, `@DataJpaTest` for repository adapters).
+
+**Scope boundary, same as every earlier phase in this doc**: this phase stops at the
+`application.service` layer — domain methods, repository ports/adapters, and the
+application services that orchestrate them, each independently unit-testable against mocked
+ports per the Phase 1 pattern. It does **not** build REST controllers or touch
+`openapi/cookingchallenge-api.yaml`. Every endpoint path mentioned below is a forward
+reference for orientation only; the actual paths → generated interface → controller chain
+is `openapi-first-api-plan.md`'s job (its Phase 1 spec authoring — already restarting from
+scratch — needs to cover every path named here, then its Phase 5 wires the controller). No
+`@WebMvcTest`s in this phase's Verify steps for that reason — those land once
+`openapi-first-api-plan.md` Phase 5 produces the controllers to test.
 
 ### 7.1 Score scale: 0–5 → 1–5
 
@@ -631,11 +641,12 @@ constraint rejects `0`.
   the requested `colorId` is one of them, resolves "the other" as whichever of the 2 it
   isn't, calls `challenge.pickColor(...)`, saves. Rejects with `NotAParticipantException`
   if the caller isn't one of this challenge's two cooks.
-- New REST: `POST /api/v1/challenges/{id}/color-pick` (link-token gated, cook only).
+- Endpoint (built in `openapi-first-api-plan.md`, not here): `POST
+  /api/v1/challenges/{id}/color-pick`, link-token gated, cook only.
 
 **Verify 7.3**: unit tests for `Challenge.pickColor` (reject: not open, not a cook, already
 assigned; happy path: both colors set atomically) and `PickColorService` (Mockito); a
-`@WebMvcTest`/`@DataJpaTest` round-trip confirming the FK columns persist.
+`@DataJpaTest` round-trip confirming the FK columns persist.
 
 ### 7.4 Edit cooks & guests (+ color reset)
 
@@ -650,7 +661,8 @@ assigned; happy path: both colors set atomically) and `PickColorService` (Mockit
   "don't leave both versions around" rule from the earlier OpenAPI plan.
 - New `cookoff.application.service.EditChallengeParticipantsService`: organizer/admin-gated
   (`account.canOrganize()`), loads `Challenge`, calls `editParticipants(...)`, saves.
-- New REST: `PATCH /api/v1/challenges/{id}/participants` (organizer/admin only).
+- Endpoint (built in `openapi-first-api-plan.md`, not here): `PATCH
+  /api/v1/challenges/{id}/participants`, organizer/admin only.
 
 **Verify 7.4**: unit tests for `Challenge.editParticipants` (cook reassignment clears both
 colors; guest add/remove; reject when not open) and the new service's organizer-gate reject
@@ -677,13 +689,14 @@ path.
   calls `ImageStoragePort.store(...)` then `challenge.changeImage(ref)`; if replacing an
   existing image, calls `ImageStoragePort.delete(oldRef)` after the new one is persisted,
   not before (don't orphan the challenge with no image if the new upload fails partway).
-- New REST: `PATCH /api/v1/challenges/{id}/image` (multipart upload, organizer/admin only),
-  `GET /api/v1/challenges/{id}/image` (streams resolved bytes, same visibility as the
-  challenge itself — organizer JWT or a valid link token).
+- Endpoints (built in `openapi-first-api-plan.md`, not here): `PATCH
+  /api/v1/challenges/{id}/image` (multipart upload, organizer/admin only), `GET
+  /api/v1/challenges/{id}/image` (streams resolved bytes, same visibility as the challenge
+  itself — organizer JWT or a valid link token).
 
 **Verify 7.5**: unit test for `Challenge.changeImage`; `@DataJpaTest` round-trips a blob
-through `DatabaseImageStorageAdapter`; `@WebMvcTest` for the upload/download endpoints
-(content-type handling, 404 when no image set).
+through `DatabaseImageStorageAdapter`. Content-type handling and the 404-when-no-image case
+are `@WebMvcTest` concerns for the controller phase, not this one.
 
 ### 7.6 Unreveal + `CookRivalry` reversal
 
@@ -713,8 +726,9 @@ through `DatabaseImageStorageAdapter`; `@WebMvcTest` for the upload/download end
 - Liquibase: `challenges` + whatever columns the `lastRevealResult` encoding above needs
   (at minimum a nullable `AccountId`-typed column; add a boolean if that encoding is
   chosen).
-- New REST: `POST /api/v1/challenges/{id}/unreveal` (organizer/admin only, confirmation is
-  a frontend-only concern — no special backend handling beyond the state-transition guard).
+- Endpoint (built in `openapi-first-api-plan.md`, not here): `POST
+  /api/v1/challenges/{id}/unreveal`, organizer/admin only. Confirmation is a frontend-only
+  concern — no special backend handling beyond the state-transition guard.
 
 **Verify 7.6**: unit tests for `Challenge.unreveal` (reject if not `REVEALED`) and
 `CookRivalry.reverseResult` (decrements correctly for a win and for a draw); an integration
@@ -772,7 +786,7 @@ challenge's `createdBy` account can submit even without being a pre-added guest.
     OPEN`, calls `auth.RegistrationInvites.issue(organizerAccountId, challengeId.value(),
     validFor)` (reuse `SendChallengeInvitationsService`'s existing 30-day `Duration`
     constant). Backs `POST /api/v1/challenges/{id}/registration-invites`
-    (organizer/admin-gated).
+    (organizer/admin-gated) — endpoint built in `openapi-first-api-plan.md`, not here.
   - `cookoff.application.service.PublicRegistrationService.execute(String token, String
     firstName, String lastName, String email)`: calls
     `auth.RegistrationInvites.register(...)`, loads the returned `challengeId` via
@@ -780,29 +794,39 @@ challenge's `createdBy` account can submit even without being a pre-added guest.
     `editParticipants(guestIdsToAdd = [accountId])` (from 7.4) and saves; if it's no longer
     `OPEN` (revealed between QR generation and scan), **skip the guest-add, don't fail the
     registration** — the account already exists at that point and shouldn't be left
-    half-created. Return a result flag the controller uses to pick the response copy
-    ("registered and joined" vs. "registered, but this event has already closed"). Backs
-    the public, unauthenticated `POST /api/v1/public/registrations`.
-- Security config: `POST /api/v1/public/registrations` added to the permit-all list (no
-  JWT, no link token — it's genuinely public, gated only by the QR token in its body);
-  `POST /api/v1/challenges/{id}/registration-invites` follows the same
-  organizer/admin `authorizeHttpRequests` matcher as every other challenge-management
-  endpoint.
+    half-created. Return a result flag the eventual controller uses to pick the response
+    copy ("registered and joined" vs. "registered, but this event has already closed").
+    Backs the public, unauthenticated `POST /api/v1/public/registrations`, again built in
+    `openapi-first-api-plan.md`.
+- Security config note for that later phase (not actioned here): `POST
+  /api/v1/public/registrations` needs to land on the permit-all list (no JWT, no link
+  token — it's genuinely public, gated only by the QR token in its body); `POST
+  /api/v1/challenges/{id}/registration-invites` follows the same organizer/admin
+  `authorizeHttpRequests` matcher as every other challenge-management endpoint.
 
 **Verify 7.8**: `RegistrationInviteServiceTest` (issue→verify happy path, expiry, unknown
 token — same shape as the existing `AccessLinkServiceTest`); `PublicRegistrationServiceTest`
 covers happy path, duplicate-email 409, expired/invalid token, and the
-challenge-no-longer-open degrade path; a `SecurityIntegrationTest` case confirming the
-public registration endpoint needs no `Authorization` header/link token at all.
+challenge-no-longer-open degrade path. The `SecurityIntegrationTest` case confirming the
+public registration endpoint needs no `Authorization` header/link token is a controller-phase
+check (`openapi-first-api-plan.md` Phase 6/Phase 8) — the endpoint doesn't exist yet at the
+end of this phase.
 
-**Verify Phase 7 (whole-phase check)**: full regression (`./gradlew build`); manual smoke
-test extending Phase 6's — create a challenge, generate a registration QR, register a new
-walk-in through it and confirm they land on the guest list, have both cooks pick colors,
-upload/replace the challenge photo, score with the 1–5 UI, reveal, unreveal, re-reveal with
-a changed score and confirm `CookRivalry` still matches a hand-calculated expectation.
+**Verify Phase 7 (whole-phase check, this doc's scope only)**: `./gradlew compileJava
+test` — full domain/application-service/persistence regression, same as every earlier
+phase's verify step. The end-to-end manual smoke test (create a challenge, generate a
+registration QR, register a walk-in, have both cooks pick colors, upload/replace the
+photo, score with the 1–5 UI, reveal, unreveal, re-reveal with a changed score, confirm
+`CookRivalry`) needs real HTTP endpoints and belongs to `openapi-first-api-plan.md`'s own
+Phase 8 (end-to-end verification), once its Phase 5 has built the controllers this phase's
+services are waiting on.
 
 ## Explicitly out of scope for this plan
 
+- REST controllers and `openapi/cookingchallenge-api.yaml` spec authoring for every
+  endpoint mentioned in Phase 7 — that's `openapi-first-api-plan.md`'s Phase 1 (spec) and
+  Phase 5 (controllers), consistent with how this plan's original Phase 4 was already
+  superseded by that doc for the same reason (see its "Supersedes" section).
 - Angular frontend (`docs/cookingChallenge/first-plan.md` Step 4,
   `docs/cookingChallenge/frontend-prd.md`) — separate plan when that work starts.
 - Real email delivery — Phase 1's `NotificationPort` gets a logging/no-op adapter here;

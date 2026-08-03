@@ -250,13 +250,20 @@ implements them yet — that's expected).
 
 **Phase 3 — Domain gap-filling.** Build the new domain methods + repository queries listed
 above, unit-tested in isolation the same way the original plan's Phase 1 did (Mockito
-mocks of repository ports), before any controller depends on them.
+mocks of repository ports), before any controller depends on them. For gaps 7–12 (the
+PRD-driven ones), this is now `backend-persistence-api-security-plan.md`'s Phase 7 — that
+doc owns the actual domain/application-service implementation and stops at that layer;
+Phase 4 below picks up from its finished application services rather than duplicating them.
 
 **Phase 4 — New application services.** One per use case, in
 `{module}.application.service`, taking generated request models (or a thin command mapped
-from one) and returning generated response models. Reuses existing domain orchestration
-logic wherever a service already exists; net-new for `unreveal`, `edit participants`,
-`edit account`, `rivalries list/detail`.
+from one) and returning generated response models. `unreveal`, `edit participants`,
+`color-pick`, `challenge image`, and `registration-invites`/self-registration are **not**
+net-new here — `backend-persistence-api-security-plan.md` Phase 7 already builds those
+application services against plain domain-shaped inputs/outputs; this phase only maps
+generated request/response models onto calls to them, it doesn't duplicate the
+orchestration logic. Still genuinely net-new in this phase: `edit account`,
+`rivalries list/detail` (gaps 3–5 in the list above, unchanged by the PRD).
 
 **Phase 5 — New controllers + deletion.** `@RestController`s implementing the generated
 interfaces, delegating to Phase 4 services. Delete every file listed under "Superseded"

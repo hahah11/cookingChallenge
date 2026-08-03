@@ -120,6 +120,13 @@ event flow).
 
 ## Step 3 — REST API (`/api/v1`, per `docs/shared/04-api-design.md` conventions)
 
+> **Superseded.** This table is the original, pre-OpenAPI-first design and predates
+> `docs/cookingChallenge/frontend-prd.md`'s PRD deltas (self-registration, cook color
+> pick, challenge photo, unreveal, score scale, scoring eligibility). The current,
+> maintained API surface is `docs/cookingChallenge/plans/openapi-first-api-plan.md`'s
+> "Use-case inventory" table — read that instead; this one is kept only for historical
+> context on the original domain/API shape.
+
 | Method | Path | Who | Purpose |
 |---|---|---|---|
 | POST | `/api/v1/auth/login` | organizer/admin | password login, returns JWT (host-side app use) |
