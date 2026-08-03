@@ -175,10 +175,15 @@ public class Challenge {
         return guestAccountIds.contains(accountId);
     }
 
-    /** Either of the two cooks, or a pre-added guest — the full set of people who may score. */
+    /** Either of the two cooks, or a pre-added guest — the full set of people who may view this challenge. */
     public boolean isParticipant(AccountId accountId) {
         return isGuest(accountId)
                 || cookAssignments.stream().anyMatch(assignment -> assignment.accountId().equals(accountId));
+    }
+
+    /** A pre-added guest or the challenge's creator — the narrower set of people who may score it (not the cooks). */
+    public boolean canScore(AccountId accountId) {
+        return isGuest(accountId) || accountId.equals(createdBy);
     }
 
     private void requireOpen() {

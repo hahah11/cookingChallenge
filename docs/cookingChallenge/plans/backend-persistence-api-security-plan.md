@@ -937,7 +937,7 @@ under-counted — this is the scenario the whole mechanism exists for.
   `ChallengeRepositoryImplTest` gains 1 reveal/unreveal round-trip case, plus 1 assertion added
   to the existing reveal test).
 
-### 7.7 Scoring eligibility: guests + creator only, not cooks
+### 7.7 Scoring eligibility: guests + creator only, not cooks — Done
 
 - `Challenge` gains `canScore(AccountId accountId) : boolean` = `isGuest(accountId) ||
   accountId.equals(createdBy)`. Deliberately not reusing `isParticipant` (which still means
@@ -955,6 +955,28 @@ under-counted — this is the scenario the whole mechanism exists for.
 **Verify 7.7**: `SubmitScoreServiceTest` gains a case asserting a cook's submission attempt
 now throws `NotAParticipantException` (previously accepted), and a case asserting the
 challenge's `createdBy` account can submit even without being a pre-added guest.
+
+**Done.** Implementation notes/deviations, per this plan's own instruction to flag them:
+- Implemented exactly as specified: `Challenge.canScore(AccountId)` added alongside
+  `isParticipant` (both kept, distinct semantics — `isParticipant` still gates viewing/
+  results/color-pick via cooks-or-guest); `SubmitScoreService`'s old inline "guest or either
+  cook" check (`challenge.isGuest(...) || isCook`) replaced with `challenge.canScore(...)`.
+  No other call site referenced that inline check, so nothing else needed updating.
+- `GetChallengeStatusService` needed no change — it already only counted the pre-added guest
+  list (never the cooks, and the organizer/creator was never counted either), which stays
+  correct under the new rule without any edit. Not flagging this to the user as a call needed:
+  the organizer's own submission status isn't surfaced by that read model at all, cook or not,
+  so nothing about this phase's behavior change touches it.
+- Old `SubmitScoreServiceTest.should_submitScores_when_accountIsACookRatherThanAGuest`
+  replaced with `should_throw_when_accountIsACookRatherThanAGuestOrTheCreator` (asserts
+  `NotAParticipantException` now, per the plan's own Verify step) and a new
+  `should_submitScores_when_accountIsTheCreatorRatherThanAPreAddedGuest` case. `ChallengeTest`
+  gained `should_allowScoring_when_accountIsAGuestOrTheCreator` and
+  `should_notAllowScoring_when_accountIsACookButNeitherAGuestNorTheCreator`, mirroring the
+  existing `isParticipant` test pair.
+- All 180 backend tests pass (177 prior + 4 new: 2 `ChallengeTest` `canScore` cases, 1 new
+  `SubmitScoreServiceTest` case replacing the old cook-accepted one, 1 additional new
+  `SubmitScoreServiceTest` case for the creator).
 
 ### 7.8 Self-registration via organizer-generated QR
 

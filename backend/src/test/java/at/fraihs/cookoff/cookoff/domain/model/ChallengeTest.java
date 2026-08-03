@@ -239,6 +239,24 @@ class ChallengeTest {
     }
 
     @Test
+    void should_allowScoring_when_accountIsAGuestOrTheCreator() {
+        Challenge challenge = newChallenge();
+        AccountId guest = AccountId.generate();
+        challenge.editParticipants(null, null, List.of(guest), List.of());
+
+        assertTrue(challenge.canScore(guest));
+        assertTrue(challenge.canScore(organizer));
+    }
+
+    @Test
+    void should_notAllowScoring_when_accountIsACookButNeitherAGuestNorTheCreator() {
+        Challenge challenge = newChallenge();
+
+        assertFalse(challenge.canScore(cookA));
+        assertFalse(challenge.canScore(cookB));
+    }
+
+    @Test
     void should_assignBothColorsAtomically_when_cookPicksColor() {
         Challenge challenge = newChallenge();
         PlateColorId red = PlateColorId.generate();

@@ -73,13 +73,22 @@ class SubmitScoreServiceTest {
     }
 
     @Test
-    void should_submitScores_when_accountIsACookRatherThanAGuest() {
+    void should_throw_when_accountIsACookRatherThanAGuestOrTheCreator() {
         Challenge challenge = openChallenge(List.of());
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
-        when(scoreSubmissionRepository.existsByChallengeIdAndGuestAccountId(challenge.getId(), cookAId))
+
+        assertThrows(NotAParticipantException.class, () -> service.execute(
+                new SubmitScoreCommand(challenge.getId().toString(), cookAId.toString(), sixValidScores())));
+    }
+
+    @Test
+    void should_submitScores_when_accountIsTheCreatorRatherThanAPreAddedGuest() {
+        Challenge challenge = openChallenge(List.of());
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(scoreSubmissionRepository.existsByChallengeIdAndGuestAccountId(challenge.getId(), organizerId))
                 .thenReturn(false);
 
-        service.execute(new SubmitScoreCommand(challenge.getId().toString(), cookAId.toString(), sixValidScores()));
+        service.execute(new SubmitScoreCommand(challenge.getId().toString(), organizerId.toString(), sixValidScores()));
 
         verify(scoreSubmissionRepository).save(any(ScoreSubmission.class));
     }

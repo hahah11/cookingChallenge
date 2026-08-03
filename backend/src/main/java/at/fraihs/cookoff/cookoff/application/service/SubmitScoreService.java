@@ -43,9 +43,7 @@ public class SubmitScoreService {
         }
 
         AccountId guestAccountId = AccountId.fromString(command.guestAccountId());
-        boolean isCook = challenge.getCookAssignments().stream()
-                .anyMatch(assignment -> assignment.accountId().equals(guestAccountId));
-        if (!challenge.isGuest(guestAccountId) && !isCook) {
+        if (!challenge.canScore(guestAccountId)) {
             log.warn("Score submission rejected, account {} is not a participant of challenge {}",
                     guestAccountId, challengeId);
             throw new NotAParticipantException(command.guestAccountId(), command.challengeId());
