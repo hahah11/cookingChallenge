@@ -2,6 +2,7 @@ package at.fraihs.cookoff.cookoff.domain.model;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeRevealed;
+import at.fraihs.cookoff.cookoff.domain.event.ChallengeUnrevealed;
 import org.jmolecules.ddd.annotation.AggregateRoot;
 import org.jmolecules.ddd.annotation.Identity;
 
@@ -22,10 +23,12 @@ public class Challenge {
     private ChallengeStatus status;
     private final AccountId createdBy;
     private String imageRef;
+    private RevealResult lastRevealResult;
 
     private Challenge(ChallengeId id, LocalDate date, String title, DishName dishName,
                        List<CookAssignment> cookAssignments, List<AccountId> guestAccountIds,
-                       ChallengeStatus status, AccountId createdBy, String imageRef) {
+                       ChallengeStatus status, AccountId createdBy, String imageRef,
+                       RevealResult lastRevealResult) {
         this.id = id;
         this.date = date;
         this.title = title;
@@ -35,6 +38,7 @@ public class Challenge {
         this.status = status;
         this.createdBy = createdBy;
         this.imageRef = imageRef;
+        this.lastRevealResult = lastRevealResult;
     }
 
     public static Challenge create(LocalDate date, String title, DishName dishName,
@@ -60,13 +64,15 @@ public class Challenge {
                 new CookAssignment(cookBAccountId, DishLabel.B)
         );
         return new Challenge(ChallengeId.generate(), date, title, dishName, assignments,
-                List.copyOf(guestAccountIds), ChallengeStatus.OPEN, createdBy, null);
+                List.copyOf(guestAccountIds), ChallengeStatus.OPEN, createdBy, null, null);
     }
 
     public static Challenge reconstitute(ChallengeId id, LocalDate date, String title, DishName dishName,
                                           List<CookAssignment> cookAssignments, List<AccountId> guestAccountIds,
-                                          ChallengeStatus status, AccountId createdBy, String imageRef) {
-        return new Challenge(id, date, title, dishName, cookAssignments, guestAccountIds, status, createdBy, imageRef);
+                                          ChallengeStatus status, AccountId createdBy, String imageRef,
+                                          RevealResult lastRevealResult) {
+        return new Challenge(id, date, title, dishName, cookAssignments, guestAccountIds, status, createdBy, imageRef,
+                lastRevealResult);
     }
 
     /**
@@ -109,9 +115,26 @@ public class Challenge {
     public ChallengeRevealed reveal(AccountId overallWinnerAccountId) {
         requireOpen();
         this.status = ChallengeStatus.REVEALED;
+        this.lastRevealResult = new RevealResult(overallWinnerAccountId);
         AccountId cookA = cookAssignmentFor(DishLabel.A).accountId();
         AccountId cookB = cookAssignmentFor(DishLabel.B).accountId();
         return new ChallengeRevealed(id, cookA, cookB, overallWinnerAccountId);
+    }
+
+    /**
+     * Reverts a reveal back to OPEN, returning the event to publish so the application layer
+     * can reverse the CookRivalry update {@link #reveal} triggered. Re-revealing afterwards
+     * (possibly with a different result, e.g. after scores were edited) is just a normal
+     * {@link #reveal} call again.
+     */
+    public ChallengeUnrevealed unreveal() {
+        requireRevealed();
+        AccountId previousWinner = lastRevealResult.winnerAccountId();
+        this.status = ChallengeStatus.OPEN;
+        this.lastRevealResult = null;
+        AccountId cookA = cookAssignmentFor(DishLabel.A).accountId();
+        AccountId cookB = cookAssignmentFor(DishLabel.B).accountId();
+        return new ChallengeUnrevealed(id, cookA, cookB, previousWinner);
     }
 
     /**
@@ -164,6 +187,12 @@ public class Challenge {
         }
     }
 
+    private void requireRevealed() {
+        if (status != ChallengeStatus.REVEALED) {
+            throw new IllegalStateException("Challenge is not revealed (status=" + status + ")");
+        }
+    }
+
     public ChallengeId getId() {
         return id;
     }
@@ -198,5 +227,9 @@ public class Challenge {
 
     public String getImageRef() {
         return imageRef;
+    }
+
+    public RevealResult getLastRevealResult() {
+        return lastRevealResult;
     }
 }

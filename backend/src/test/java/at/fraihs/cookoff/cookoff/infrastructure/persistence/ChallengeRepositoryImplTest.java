@@ -136,6 +136,27 @@ class ChallengeRepositoryImplTest {
         assertEquals("image-ref-1", found.getImageRef());
     }
 
+    @Test
+    void should_roundTripRevealResult_when_revealedThenUnrevealedThenFindingById() {
+        AccountId cookA = new AccountId(persistAccount());
+        AccountId cookB = new AccountId(persistAccount());
+        AccountId organizer = new AccountId(persistAccount());
+        Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+                cookA, cookB, List.of(), organizer);
+        challenge.reveal(cookA);
+
+        Challenge savedRevealed = repository.save(challenge);
+        Challenge foundRevealed = repository.findById(savedRevealed.getId()).orElseThrow();
+        assertEquals(ChallengeStatus.REVEALED, foundRevealed.getStatus());
+        assertEquals(cookA, foundRevealed.getLastRevealResult().winnerAccountId());
+
+        foundRevealed.unreveal();
+        Challenge savedUnrevealed = repository.save(foundRevealed);
+        Challenge foundUnrevealed = repository.findById(savedUnrevealed.getId()).orElseThrow();
+        assertEquals(ChallengeStatus.OPEN, foundUnrevealed.getStatus());
+        assertEquals(null, foundUnrevealed.getLastRevealResult());
+    }
+
     private PlateColorId persistPlateColor() {
         PlateColorId id = PlateColorId.generate();
         entityManager.persistAndFlush(new PlateColorJpaEntity(id.value(), "Color " + id, "#000000", 1, true));

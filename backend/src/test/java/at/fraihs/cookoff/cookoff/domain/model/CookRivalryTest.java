@@ -48,4 +48,57 @@ class CookRivalryTest {
 
         assertThrows(IllegalArgumentException.class, () -> rivalry.recordResult(AccountId.generate()));
     }
+
+    @Test
+    void should_decrementWinsForWinner_when_reversingAWin() {
+        CookRivalry rivalry = CookRivalry.start(cookX, cookY);
+        rivalry.recordResult(rivalry.getCookAAccountId());
+
+        rivalry.reverseResult(rivalry.getCookAAccountId());
+
+        assertEquals(0, rivalry.getCookAWins());
+        assertEquals(0, rivalry.getCookBWins());
+        assertEquals(0, rivalry.getDraws());
+        assertEquals(0, rivalry.getTotalChallenges());
+    }
+
+    @Test
+    void should_decrementDraws_when_reversingADraw() {
+        CookRivalry rivalry = CookRivalry.start(cookX, cookY);
+        rivalry.recordResult(null);
+
+        rivalry.reverseResult(null);
+
+        assertEquals(0, rivalry.getDraws());
+        assertEquals(0, rivalry.getTotalChallenges());
+    }
+
+    @Test
+    void should_throw_when_reversingOnAnEmptyRivalry() {
+        CookRivalry rivalry = CookRivalry.start(cookX, cookY);
+
+        assertThrows(IllegalStateException.class, () -> rivalry.reverseResult(rivalry.getCookAAccountId()));
+    }
+
+    @Test
+    void should_throw_when_reversingResultForAWinnerNotPartOfTheRivalry() {
+        CookRivalry rivalry = CookRivalry.start(cookX, cookY);
+        rivalry.recordResult(rivalry.getCookAAccountId());
+
+        assertThrows(IllegalArgumentException.class, () -> rivalry.reverseResult(AccountId.generate()));
+    }
+
+    @Test
+    void should_endUpWithCorrectCounters_when_recordingReversingAndReRecordingADifferentWinner() {
+        CookRivalry rivalry = CookRivalry.start(cookX, cookY);
+        rivalry.recordResult(rivalry.getCookAAccountId());
+
+        rivalry.reverseResult(rivalry.getCookAAccountId());
+        rivalry.recordResult(rivalry.getCookBAccountId());
+
+        assertEquals(0, rivalry.getCookAWins());
+        assertEquals(1, rivalry.getCookBWins());
+        assertEquals(0, rivalry.getDraws());
+        assertEquals(1, rivalry.getTotalChallenges());
+    }
 }

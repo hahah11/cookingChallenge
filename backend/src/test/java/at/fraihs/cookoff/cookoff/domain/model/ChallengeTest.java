@@ -2,6 +2,7 @@ package at.fraihs.cookoff.cookoff.domain.model;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeRevealed;
+import at.fraihs.cookoff.cookoff.domain.event.ChallengeUnrevealed;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -145,6 +146,7 @@ class ChallengeTest {
         assertEquals(cookA, event.cookAAccountId());
         assertEquals(cookB, event.cookBAccountId());
         assertEquals(cookA, event.overallWinnerAccountId());
+        assertEquals(cookA, challenge.getLastRevealResult().winnerAccountId());
     }
 
     @Test
@@ -153,6 +155,60 @@ class ChallengeTest {
         challenge.reveal(cookA);
 
         assertThrows(IllegalStateException.class, () -> challenge.reveal(cookA));
+    }
+
+    @Test
+    void should_transitionBackToOpen_when_unrevealed() {
+        Challenge challenge = newChallenge();
+        challenge.reveal(cookA);
+
+        ChallengeUnrevealed event = challenge.unreveal();
+
+        assertEquals(ChallengeStatus.OPEN, challenge.getStatus());
+        assertEquals(null, challenge.getLastRevealResult());
+        assertEquals(challenge.getId(), event.challengeId());
+        assertEquals(cookA, event.cookAAccountId());
+        assertEquals(cookB, event.cookBAccountId());
+        assertEquals(cookA, event.previousOverallWinnerAccountId());
+    }
+
+    @Test
+    void should_carryNullPreviousWinner_when_unrevealingADraw() {
+        Challenge challenge = newChallenge();
+        challenge.reveal(null);
+
+        ChallengeUnrevealed event = challenge.unreveal();
+
+        assertEquals(null, event.previousOverallWinnerAccountId());
+    }
+
+    @Test
+    void should_throw_when_unrevealingAChallengeThatWasNeverRevealed() {
+        Challenge challenge = newChallenge();
+
+        assertThrows(IllegalStateException.class, challenge::unreveal);
+    }
+
+    @Test
+    void should_throw_when_unrevealingTwice() {
+        Challenge challenge = newChallenge();
+        challenge.reveal(cookA);
+        challenge.unreveal();
+
+        assertThrows(IllegalStateException.class, challenge::unreveal);
+    }
+
+    @Test
+    void should_allowReRevealingWithADifferentWinner_when_unrevealedFirst() {
+        Challenge challenge = newChallenge();
+        challenge.reveal(cookA);
+        challenge.unreveal();
+
+        ChallengeRevealed event = challenge.reveal(cookB);
+
+        assertEquals(ChallengeStatus.REVEALED, challenge.getStatus());
+        assertEquals(cookB, event.overallWinnerAccountId());
+        assertEquals(cookB, challenge.getLastRevealResult().winnerAccountId());
     }
 
     @Test

@@ -58,6 +58,23 @@ public class CookRivalry {
         }
     }
 
+    /** Exact inverse of {@link #recordResult}, for undoing a challenge's reveal. */
+    public void reverseResult(AccountId previousWinnerAccountId) {
+        if (totalChallenges <= 0) {
+            throw new IllegalStateException("No recorded results left to reverse for this rivalry");
+        }
+        totalChallenges--;
+        if (previousWinnerAccountId == null) {
+            draws--;
+        } else if (previousWinnerAccountId.equals(cookAAccountId)) {
+            cookAWins--;
+        } else if (previousWinnerAccountId.equals(cookBAccountId)) {
+            cookBWins--;
+        } else {
+            throw new IllegalArgumentException("Winner is not part of this rivalry: " + previousWinnerAccountId);
+        }
+    }
+
     public CookRivalryId getId() {
         return id;
     }

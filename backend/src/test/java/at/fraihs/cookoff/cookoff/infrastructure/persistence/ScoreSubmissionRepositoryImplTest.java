@@ -114,7 +114,7 @@ class ScoreSubmissionRepositoryImplTest {
         ChallengeId id = ChallengeId.generate();
         entityManager.persistAndFlush(new ChallengeJpaEntity(
                 id.value(), "Test Challenge", LocalDate.now(), "Schnitzel", cookA, cookB, null, null,
-                ChallengeStatus.OPEN, organizer, new ArrayList<>(), null));
+                ChallengeStatus.OPEN, organizer, new ArrayList<>(), null, false, null));
         return id.value();
     }
 

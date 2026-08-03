@@ -74,7 +74,8 @@ class AccessLinkRepositoryImplTest {
         long cookBAccountId = persistAccount();
         entityManager.persistAndFlush(new ChallengeJpaEntity(
                 id, "Test Challenge", LocalDate.now(), "Schnitzel",
-                cookAAccountId, cookBAccountId, null, null, ChallengeStatus.OPEN, cookAAccountId, List.of(), null));
+                cookAAccountId, cookBAccountId, null, null, ChallengeStatus.OPEN, cookAAccountId, List.of(), null,
+                false, null));
         return id;
     }
 }

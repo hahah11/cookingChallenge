@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-01-add-challenge-reveal-result
+      author: fraihs
+      comment: >-
+        Tracks whether a challenge has ever been revealed and, if so, the winner from that
+        reveal (null = draw) — needed to reverse CookRivalry's counters on unreveal.
+        has_been_revealed is a separate flag from status because status flips back to OPEN
+        on unreveal and can no longer distinguish "never revealed" from "revealed, then
+        unrevealed".
+      changes:
+        - addColumn:
+            tableName: challenges
+            columns:
+              - column:
+                  name: has_been_revealed
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_reveal_winner_account_id
+                  type: BIGINT

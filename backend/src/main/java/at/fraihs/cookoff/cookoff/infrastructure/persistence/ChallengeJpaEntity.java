@@ -64,4 +64,14 @@ public class ChallengeJpaEntity {
 
     @Column(name = "image_ref")
     private String imageRef;
+
+    /**
+     * Separate from status because status flips back to OPEN on unreveal and can no longer
+     * distinguish "never revealed" from "revealed, then unrevealed".
+     */
+    @Column(name = "has_been_revealed")
+    private boolean hasBeenRevealed;
+
+    @Column(name = "last_reveal_winner_account_id")
+    private Long lastRevealWinnerAccountId;
 }

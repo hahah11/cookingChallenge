@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/changelog/changes/004-challenge-cook-colors.yaml
   - include:
       file: db/changelog/changes/005-challenge-image.yaml
+  - include:
+      file: db/changelog/changes/006-challenge-unreveal.yaml

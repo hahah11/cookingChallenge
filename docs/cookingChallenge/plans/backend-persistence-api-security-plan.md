@@ -812,7 +812,7 @@ are `@WebMvcTest` concerns for the controller phase, not this one.
   `DatabaseImageStorageAdapterTest` (3 cases, `@DataJpaTest`), `ChallengeRepositoryImplTest`
   gains 1 `imageRef` round-trip case).
 
-### 7.6 Unreveal + `CookRivalry` reversal
+### 7.6 Unreveal + `CookRivalry` reversal — Done
 
 - `Challenge` gains `lastRevealResult : AccountId?` — needs a 3-state encoding (never
   revealed / revealed with a winner / revealed as a draw), not a bare nullable
@@ -849,6 +849,93 @@ are `@WebMvcTest` concerns for the controller phase, not this one.
 test covering reveal → unreveal → re-reveal with a *different* computed result (scores
 edited in between) confirming `CookRivalry`'s counters end up correct, not double- or
 under-counted — this is the scenario the whole mechanism exists for.
+
+**Done.** Implementation notes/deviations, per this plan's own instruction to flag them:
+- **Encoding chosen: a nullable `RevealResult` wrapper**, not a boolean-flag-plus-nullable-id
+  pair on the domain side — `cookoff.domain.model.RevealResult(AccountId winnerAccountId)` is
+  a `@ValueObject` record; `Challenge.lastRevealResult` is `null` when the challenge was never
+  revealed, and a `RevealResult` instance (itself possibly wrapping a `null` winner, for a
+  draw) once it has been. This is exactly the 3-state encoding the plan's own bullet asked
+  for, expressed as "is the field null" rather than a separate boolean on the aggregate.
+  `ChallengeJpaEntity`/`ChallengeMapper` flatten this back to two columns on the entity side
+  (see below) since JPA entities in this codebase are plain flat classes.
+- **`Challenge.reveal(...)` now also sets `lastRevealResult`**, and the new
+  `Challenge.unreveal()` reads it (for the event's `previousOverallWinnerAccountId`), flips
+  `status` back to `OPEN`, and clears it to `null` — guarded by a new `requireRevealed()`
+  (mirrors `requireOpen()`'s style/message exactly, just the inverse condition). Re-revealing
+  afterwards is just a normal `reveal(...)` call again; no special-casing needed since scores
+  aren't deleted and `ResultCalculator` recomputes from `ScoreSubmission`s fresh each time.
+- **`ChallengeUnrevealed` carries `cookAAccountId`/`cookBAccountId`, not just
+  `challengeId`/`previousOverallWinnerAccountId`** as the plan's own bullet listed — a
+  deliberate deviation, needed so `ChallengeUnrevealedRivalryUpdater` can call
+  `cookRivalryRepository.findByPair(cookA, cookB)` the same way
+  `ChallengeRevealedRivalryUpdater` does; the plan's very next bullet says the updater
+  "mirrors `ChallengeRevealedRivalryUpdater` exactly", which isn't possible without the pair
+  on the event. Shape now matches `ChallengeRevealed` exactly, just the last field renamed.
+- **`ChallengeUnrevealedRivalryUpdater` throws `IllegalStateException` if no `CookRivalry` is
+  found for the pair**, rather than silently no-op'ing or creating one (which
+  `ChallengeRevealedRivalryUpdater` does via `orElseGet(CookRivalry::start)`) — an unreveal
+  can only happen after a prior reveal already created/updated that pair's rivalry, so a miss
+  here means corrupted state, not a legitimate "first time" case.
+- **`CookRivalry.reverseResult(AccountId previousWinnerAccountId)`** is the literal inverse of
+  `recordResult`: decrements `totalChallenges` and whichever of `cookAWins`/`cookBWins`/`draws`
+  matches, throwing `IllegalStateException` if `totalChallenges` is already `0` (nothing to
+  reverse) and `IllegalArgumentException` for a winner outside the pair (mirroring
+  `recordResult`'s own guard). No additional per-counter floor checks beyond that — the
+  reveal/unreveal state machine on `Challenge` (`requireOpen`/`requireRevealed`) already makes
+  a mismatched reverse call structurally unreachable through the application services.
+- **`UnrevealChallengeService` is explicitly organizer/admin-gated via `AccountLookup
+  .canOrganize(...)`** (throwing `ForbiddenException`, same pattern as
+  `EditChallengeParticipantsService`/`ChangeChallengeImageService`), unlike
+  `RevealChallengeService`, which has no such in-service check and relies entirely on
+  Phase 5's `SecurityConfig` route matcher for `POST .../reveal`. This follows the plan's own
+  wording for this section ("organizer/admin-gated"), which is more explicit than the
+  Phase 4/5 notes' documented gap for reveal; worth revisiting whether `RevealChallengeService`
+  should gain the same in-service check for defense-in-depth, but that's outside this
+  section's scope.
+- **New `cookoff.application.dto.UnrevealChallengeCommand(challengeId, organizerAccountId)`**
+  — same base32-string-ids-resolved-inside-the-service convention as
+  `PickColorCommand`/`EditChallengeParticipantsCommand`/`ChangeChallengeImageCommand`.
+- **Persistence: two new columns on `challenges`**, not a new table —
+  `has_been_revealed BOOLEAN NOT NULL DEFAULT FALSE` and
+  `last_reveal_winner_account_id BIGINT` (nullable, no FK, consistent with
+  `cook_a_account_id`/`cook_b_account_id`/`created_by_account_id` also being FK-less raw ids
+  in the original schema). `has_been_revealed` is necessarily separate from `status` because
+  `status` flips back to `OPEN` on unreveal and can no longer distinguish "never revealed"
+  from "revealed, then unrevealed" — exactly the gap the plan's own bullet called out. New
+  Liquibase changeset `006-challenge-unreveal.yaml`, registered in `db.changelog-master.yaml`
+  after `005`.
+- **`ChallengeJpaEntity`'s Lombok `@AllArgsConstructor` is positional** (same recurring caveat
+  7.3/7.5 already flagged) — the two new fields were appended at the very end, after
+  `imageRef`, so the two existing direct-construction test call sites
+  (`AccessLinkRepositoryImplTest`, `ScoreSubmissionRepositoryImplTest`) only needed `, false,
+  null` appended, not a full positional re-read; `ChallengeMapper.toEntity` was updated too.
+- **No `@DataJpaTest`-only integration harness was built for the "reveal → unreveal →
+  re-reveal" scenario** — instead, `ChallengeRevealUnrevealRivalryIntegrationTest`
+  (`cookoff.application.service`) wires `RevealChallengeService`/`UnrevealChallengeService`
+  together with real (non-mocked) `ChallengeRevealedRivalryUpdater`/
+  `ChallengeUnrevealedRivalryUpdater` instances, in-memory `Map`-backed fakes for
+  `ChallengeRepository`/`ScoreSubmissionRepository`/`CookRivalryRepository`, and a fake
+  `ApplicationEventPublisher` that dispatches synchronously (standing in for Spring's real
+  `AFTER_COMMIT` firing). This was chosen because `@DataJpaTest`/`@Transactional` tests in
+  this codebase roll back at the end of each test method, so a `TransactionalEventListener`
+  with `phase = AFTER_COMMIT` would never actually fire inside one — matching why the
+  pre-existing `ChallengeRevealedRivalryUpdaterTest` is itself a plain Mockito unit test, not
+  a Spring-context integration test. The scenario asserts `CookRivalry` counters after each
+  step (reveal → 1 win logged; unreveal → back to 0; scores edited, re-reveal with the
+  opposite winner → exactly 1 win logged for the *other* cook, not 2 and not a leftover from
+  the first reveal).
+- Also added: `ChallengeUnrevealedRivalryUpdaterTest` (direct Mockito unit test, mirrors
+  `ChallengeRevealedRivalryUpdaterTest`'s shape) and one new
+  `ChallengeRepositoryImplTest` case round-tripping reveal→unreveal state through
+  `ChallengeMapper`/`ChallengeJpaEntity`, per the same "cover every new mapped field"
+  precedent 7.3/7.5 already established.
+- All 177 backend tests pass (160 prior + 17 new: `ChallengeTest` gains 5 unreveal/re-reveal
+  cases, `CookRivalryTest` gains 5 `reverseResult` cases, new `UnrevealChallengeServiceTest`
+  (3 cases, Mockito), new `ChallengeUnrevealedRivalryUpdaterTest` (2 cases, Mockito), new
+  `ChallengeRevealUnrevealRivalryIntegrationTest` (1 end-to-end case), and
+  `ChallengeRepositoryImplTest` gains 1 reveal/unreveal round-trip case, plus 1 assertion added
+  to the existing reveal test).
 
 ### 7.7 Scoring eligibility: guests + creator only, not cooks
 

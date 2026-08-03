@@ -7,6 +7,7 @@ import at.fraihs.cookoff.cookoff.domain.model.CookAssignment;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.PlateColorId;
+import at.fraihs.cookoff.cookoff.domain.model.RevealResult;
 import org.mapstruct.Mapper;
 
 import java.util.ArrayList;
@@ -39,7 +40,8 @@ public interface ChallengeMapper {
                 guestAccountIds,
                 entity.getStatus(),
                 new AccountId(entity.getCreatedByAccountId()),
-                entity.getImageRef());
+                entity.getImageRef(),
+                toRevealResult(entity.isHasBeenRevealed(), entity.getLastRevealWinnerAccountId()));
     }
 
     default ChallengeJpaEntity toEntity(Challenge challenge) {
@@ -60,7 +62,9 @@ public interface ChallengeMapper {
                 challenge.getStatus(),
                 challenge.getCreatedBy().value(),
                 new ArrayList<>(guestAccountIds),
-                challenge.getImageRef());
+                challenge.getImageRef(),
+                challenge.getLastRevealResult() != null,
+                challenge.getLastRevealResult() == null ? null : toRawId(challenge.getLastRevealResult().winnerAccountId()));
     }
 
     private static PlateColorId toPlateColorId(Long rawId) {
@@ -69,5 +73,16 @@ public interface ChallengeMapper {
 
     private static Long toRawId(PlateColorId colorId) {
         return colorId == null ? null : colorId.value();
+    }
+
+    private static Long toRawId(AccountId accountId) {
+        return accountId == null ? null : accountId.value();
+    }
+
+    private static RevealResult toRevealResult(boolean hasBeenRevealed, Long winnerRawId) {
+        if (!hasBeenRevealed) {
+            return null;
+        }
+        return new RevealResult(winnerRawId == null ? null : new AccountId(winnerRawId));
     }
 }
