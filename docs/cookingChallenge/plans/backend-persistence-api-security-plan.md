@@ -242,6 +242,13 @@
     `HomeControllerTest` no longer apply now that token verification moved to the filter,
     and are superseded by `SecurityIntegrationTest`'s equivalent).
 
+- **Not started** (Phase 7 — see `docs/cookingChallenge/frontend-prd.md`): the domain/API
+  deltas that PRD introduced on top of everything above — self-registration via
+  organizer-generated QR, cook plate-color self-pick, editable cooks/guests/photo on open
+  challenges, unreveal, a 1–5 (not 0–5) score scale, and narrowing who may score to guests
+  + the challenge's creator. `docs/cookingChallenge/domain-model.puml` already reflects the
+  target state; this plan's new Phase 7 section below sequences the implementation.
+
 Read `docs/cookingChallenge/first-plan.md` (the domain/API/data-model design) and
 `docs/cookingChallenge/domain-model.puml` before starting — this plan assumes that
 design and does not re-derive it. Follow `docs/backend/01-architecture.md`,
@@ -557,12 +564,252 @@ Not a new module — a checkpoint. Once Phases 1–5 are done:
 
 ---
 
+## Phase 7 — PRD domain deltas
+
+Source of truth for everything in this phase: `docs/cookingChallenge/frontend-prd.md` §5–§7
+and the corresponding sections of `docs/cookingChallenge/domain-model.puml`. Each
+sub-section below is independently implementable/testable — order within the phase mostly
+doesn't matter except 7.2 before 7.3 (color-pick needs `PlateColor` to exist) and 7.6
+depending on nothing else added here. Follow the same package/testing conventions as
+Phases 1–5 (Mockito unit tests for services, `@DataJpaTest` for repository adapters,
+`@WebMvcTest` for controllers).
+
+### 7.1 Score scale: 0–5 → 1–5
+
+- `cookoff.domain.model.Score`'s constructor guard changes from `points < 0 || points > 5`
+  to `points < 1 || points > 5`.
+- New Liquibase changeset dropping the existing `scores` check constraint and re-adding it
+  as `points between 1 and 5`.
+- `ScoreEntryRequest`'s bean-validation annotation (`@Min`/`@Max` or equivalent) updates to
+  match.
+- Update every existing test that exercises `points = 0` as a valid case — it's now an
+  invalid-input case (400), not a boundary-valid one.
+
+**Verify 7.1**: `ScoreTest` covers `points = 0` now throwing `IllegalArgumentException`,
+`points = 1`/`points = 5` as the new valid boundaries; `@DataJpaTest` confirms the DB
+constraint rejects `0`.
+
+### 7.2 `PlateColor` reference data
+
+- `cookoff.domain.model.PlateColorId` — TSID value object, same pattern as `ChallengeId`.
+- `cookoff.domain.model.PlateColor` — `AggregateRoot`: `id`, `name`, `hexCode`,
+  `sortOrder`, `active`. Only a `create(...)`/`reconstitute(...)` factory pair and getters
+  for now — no rename/deactivate mutation methods yet, since no admin screen consuming them
+  is in scope (per this plan's own "don't retrofit speculatively" precedent); add those
+  when an actual admin-facing color-management screen is requested.
+- `cookoff.domain.repository.PlateColorRepository` port: `findAllActiveOrderedBySortOrder()
+  : List<PlateColor>`, `findById(PlateColorId) : Optional<PlateColor>`.
+- Liquibase: `plate_colors(id BIGINT PK, name VARCHAR(255), hex_code VARCHAR(7), sort_order
+  INT, active BOOLEAN)`, plus a data-seed changeset inserting exactly 2 default rows
+  (`sort_order` 1 and 2, `active = true`). **Placeholder hex values** — cross-check the
+  actual "Modernist" design-system tokens (`design-reference.md`) for the real Red/Yellow
+  hex before this ships; don't invent brand colors here.
+- `cookoff.infrastructure.persistence.PlateColorJpaEntity` / `PlateColorMapper` /
+  `PlateColorRepositoryImpl` — same hand-written-mapper-via-`reconstitute` pattern as every
+  other aggregate in Phase 2.
+
+**Verify 7.2**: `@DataJpaTest` round-trips a `PlateColor`; confirms
+`findAllActiveOrderedBySortOrder()` returns only `active = true` rows, ordered.
+
+### 7.3 Cook plate-color self-pick
+
+- `cookoff.domain.model.CookAssignment` gains `colorId : PlateColorId?` (nullable).
+- Liquibase: `challenges` + `cook_a_color_id` / `cook_b_color_id` (nullable `BIGINT`, FK →
+  `plate_colors(id)`).
+- `ChallengeMapper` extends its existing `CookAssignment` reconstruction (see Phase 2's
+  note on `cook_a_account_id`/`cook_b_account_id` implying the label) to also carry the two
+  nullable color columns into/out of each `CookAssignment`.
+- `Challenge.pickColor(AccountId cookAccountId, PlateColorId chosenColorId, PlateColorId
+  otherColorId)` — `requireOpen()`-gated; throws if `cookAccountId` isn't one of the two
+  `CookAssignment`s, or if both are already color-assigned (irreversible-once-picked).
+  Assigns `chosenColorId` to the picking cook and `otherColorId` to the other, atomically.
+  Synchronous, no domain event (see `frontend-prd.md` §5.2 — deliberately not adding one;
+  `first-plan.md` warns against speculative events and nothing outside `Challenge` needs to
+  react to this today).
+- New `cookoff.application.service.PickColorService`: loads the `Challenge`, calls
+  `plateColorRepository.findAllActiveOrderedBySortOrder()`, takes the first 2, validates
+  the requested `colorId` is one of them, resolves "the other" as whichever of the 2 it
+  isn't, calls `challenge.pickColor(...)`, saves. Rejects with `NotAParticipantException`
+  if the caller isn't one of this challenge's two cooks.
+- New REST: `POST /api/v1/challenges/{id}/color-pick` (link-token gated, cook only).
+
+**Verify 7.3**: unit tests for `Challenge.pickColor` (reject: not open, not a cook, already
+assigned; happy path: both colors set atomically) and `PickColorService` (Mockito); a
+`@WebMvcTest`/`@DataJpaTest` round-trip confirming the FK columns persist.
+
+### 7.4 Edit cooks & guests (+ color reset)
+
+- `Challenge.editParticipants(AccountId? newCookAAccountId, AccountId? newCookBAccountId,
+  List<AccountId> guestIdsToAdd, List<AccountId> guestIdsToRemove)` —
+  `requireOpen()`-gated, replaces the additive-only `addGuest`. **Reassigning either cook
+  clears both `CookAssignment.colorId`s** (a pick is meaningless once the person behind the
+  label changes) — implement this as part of the same method, not a separate call, so it
+  can't be forgotten by a caller.
+- Decide the removed `addGuest` fate now that `editParticipants` supersedes it: delete it
+  and update `CreateChallengeService`/any other caller to the new method, per this repo's
+  "don't leave both versions around" rule from the earlier OpenAPI plan.
+- New `cookoff.application.service.EditChallengeParticipantsService`: organizer/admin-gated
+  (`account.canOrganize()`), loads `Challenge`, calls `editParticipants(...)`, saves.
+- New REST: `PATCH /api/v1/challenges/{id}/participants` (organizer/admin only).
+
+**Verify 7.4**: unit tests for `Challenge.editParticipants` (cook reassignment clears both
+colors; guest add/remove; reject when not open) and the new service's organizer-gate reject
+path.
+
+### 7.5 Challenge photo
+
+- `cookoff.application.port.ImageStoragePort`: `store(byte[] bytes, String contentType) :
+  String (imageRef)` / `resolve(String imageRef) : StoredImage {bytes, contentType}` /
+  `delete(String imageRef)`.
+- `Challenge` gains `imageRef : String?`; new method `changeImage(String newImageRef)` —
+  `requireOpen()`-gated, same guard style as `editParticipants`.
+- Liquibase: `challenges` + `image_ref` (nullable `VARCHAR`); new table
+  `challenge_images(id BIGINT PK, content_type VARCHAR(255), data BYTEA, created_at
+  TIMESTAMP)` — the initial adapter's own storage, not FK'd from `challenges` (the
+  relationship is adapter-interpreted via `imageRef`, per `frontend-prd.md` §6).
+- `cookoff.infrastructure.image.DatabaseImageStorageAdapter implements ImageStoragePort` —
+  writes/reads `challenge_images` directly via a plain Spring Data repository; `imageRef`
+  is that row's id as text. Mirrors the `NotificationPort` →
+  `LoggingNotificationAdapter` port/stub-adapter precedent from Phase 1 — a real
+  object-storage adapter (S3-compatible) is a later, explicitly-requested swap, not built
+  here.
+- New `cookoff.application.service.ChangeChallengeImageService`: organizer/admin-gated,
+  calls `ImageStoragePort.store(...)` then `challenge.changeImage(ref)`; if replacing an
+  existing image, calls `ImageStoragePort.delete(oldRef)` after the new one is persisted,
+  not before (don't orphan the challenge with no image if the new upload fails partway).
+- New REST: `PATCH /api/v1/challenges/{id}/image` (multipart upload, organizer/admin only),
+  `GET /api/v1/challenges/{id}/image` (streams resolved bytes, same visibility as the
+  challenge itself — organizer JWT or a valid link token).
+
+**Verify 7.5**: unit test for `Challenge.changeImage`; `@DataJpaTest` round-trips a blob
+through `DatabaseImageStorageAdapter`; `@WebMvcTest` for the upload/download endpoints
+(content-type handling, 404 when no image set).
+
+### 7.6 Unreveal + `CookRivalry` reversal
+
+- `Challenge` gains `lastRevealResult : AccountId?` — needs a 3-state encoding (never
+  revealed / revealed with a winner / revealed as a draw), not a bare nullable
+  `AccountId?` collapsing the last two. Use a small wrapper, e.g.
+  `Optional<RevealResult>` where `RevealResult` wraps a nullable winner id, or an explicit
+  `hasBeenRevealed : boolean` flag alongside the nullable `AccountId` — pick one and be
+  consistent with how `ChallengeResult.overallWinnerAccountId()` already encodes "draw" as
+  `null`; the gap this closes is only "never revealed" vs. "revealed, drew" collapsing to
+  the same `null`.
+- `Challenge.reveal(AccountId overallWinnerAccountId)` — before publishing
+  `ChallengeRevealed`, also sets `lastRevealResult` from the same value.
+- New `Challenge.unreveal()` — requires `status == REVEALED`; flips back to `OPEN`,
+  publishes a new `cookoff.domain.event.ChallengeUnrevealed { challengeId,
+  previousOverallWinnerAccountId }` built from `lastRevealResult`, then clears
+  `lastRevealResult`.
+- `CookRivalry.reverseResult(AccountId? previousOverallWinnerAccountId)` — exact inverse of
+  `recordResult`: decrements the matching win/draw counter and `totalChallenges`.
+- New `cookoff.application.event.ChallengeUnrevealedRivalryUpdater` — `@Component`,
+  `@TransactionalEventListener(phase = AFTER_COMMIT)` on `ChallengeUnrevealed`, mirrors
+  `ChallengeRevealedRivalryUpdater` exactly: `cookRivalryRepository.findByPair(cookA,
+  cookB)` → `.reverseResult(previousOverallWinnerAccountId)` → save.
+- New `cookoff.application.service.UnrevealChallengeService`: organizer/admin-gated, loads
+  `Challenge`, calls `unreveal()`, publishes the event via `ApplicationEventPublisher` (same
+  pattern as `RevealChallengeService` — **not** a direct `CookRivalry` call), saves.
+- Liquibase: `challenges` + whatever columns the `lastRevealResult` encoding above needs
+  (at minimum a nullable `AccountId`-typed column; add a boolean if that encoding is
+  chosen).
+- New REST: `POST /api/v1/challenges/{id}/unreveal` (organizer/admin only, confirmation is
+  a frontend-only concern — no special backend handling beyond the state-transition guard).
+
+**Verify 7.6**: unit tests for `Challenge.unreveal` (reject if not `REVEALED`) and
+`CookRivalry.reverseResult` (decrements correctly for a win and for a draw); an integration
+test covering reveal → unreveal → re-reveal with a *different* computed result (scores
+edited in between) confirming `CookRivalry`'s counters end up correct, not double- or
+under-counted — this is the scenario the whole mechanism exists for.
+
+### 7.7 Scoring eligibility: guests + creator only, not cooks
+
+- `Challenge` gains `canScore(AccountId accountId) : boolean` = `isGuest(accountId) ||
+  accountId.equals(createdBy)`. Deliberately not reusing `isParticipant` (which still means
+  "guest or either cook" for its existing non-scoring call sites, e.g. viewing a challenge)
+  — a new, narrower predicate for the one call site that needs it.
+- `SubmitScoreService` — replace its existing "guest or either cook" check with
+  `challenge.canScore(accountId)`; the `NotAParticipantException` reject path is unchanged,
+  just the predicate behind it.
+- `GetChallengeStatusService`'s submission-progress count already only counts the pre-added
+  guest list per `first-plan.md`'s original wording — confirm it doesn't need a change now
+  that the organizer can also score (does "submission progress" surface the organizer's own
+  status? Check the mockup's guest-list UI — if the organizer isn't shown there, this is a
+  cosmetic decision, not a domain one; flag to the user if it needs a call).
+
+**Verify 7.7**: `SubmitScoreServiceTest` gains a case asserting a cook's submission attempt
+now throws `NotAParticipantException` (previously accepted), and a case asserting the
+challenge's `createdBy` account can submit even without being a pre-added guest.
+
+### 7.8 Self-registration via organizer-generated QR
+
+- `auth` module, infrastructure-layer like `AccessLink` (not added to `domain-model.puml`,
+  same reasoning as `AccessLink` — see `frontend-prd.md`'s "why isn't this in the puml"
+  discussion):
+  - Liquibase: `registration_invites(id BIGINT PK, issued_by_account_id BIGINT NOT NULL FK →
+    accounts, challenge_id BIGINT NOT NULL FK → challenges ON DELETE CASCADE, token
+    VARCHAR(255) NOT NULL, expires_at TIMESTAMP NOT NULL)` — same shape as `access_links`.
+  - `auth.infrastructure.registrationinvite.RegistrationInviteJpaEntity` /
+    `RegistrationInviteJpaRepository` (`findByToken(String)`) / a repository impl, mirroring
+    `auth.infrastructure.accesslink.*` exactly.
+  - `auth.application.service.RegistrationInviteService`: `issue(AccountId
+    issuedByAccountId, long challengeId, Duration validFor) : String (token)` — same
+    `SecureRandom`/Base64url token generation as `AccessLinkService.issue`; `verify(String
+    token) : long (challengeId)` — throws `InvalidOrExpiredLinkException` if
+    missing/expired. `challengeId` is a raw `long`, **not** `cookoff`'s typed `ChallengeId`
+    — identical module-cycle reasoning already documented for `AccessLinkService.issue` in
+    this plan's Phase 3.
+  - New public contract `auth.RegistrationInvites` (mirrors `auth.AccountLookup`'s existing
+    pattern — keeps `Account`/`RegistrationInviteService` internal): `issue(AccountId,
+    long, Duration) : String` (thin pass-through) and `register(String token, String
+    firstName, String lastName, String email) : RegistrationResult { AccountId accountId,
+    long challengeId }` — verifies the token, checks `accountRepository.existsByEmail(...)`
+    (reuse `CreateAccountService`'s existing `AccountAlreadyExistsException` → 409), then
+    `Account.create(email, name, SystemRole.USER)`, saves, returns both ids.
+- `cookoff` module (allowed to depend on `auth`, not the reverse):
+  - `cookoff.application.service.CreateRegistrationInviteService.execute(AccountId
+    organizerAccountId, ChallengeId challengeId)`: loads the `Challenge`, checks `status ==
+    OPEN`, calls `auth.RegistrationInvites.issue(organizerAccountId, challengeId.value(),
+    validFor)` (reuse `SendChallengeInvitationsService`'s existing 30-day `Duration`
+    constant). Backs `POST /api/v1/challenges/{id}/registration-invites`
+    (organizer/admin-gated).
+  - `cookoff.application.service.PublicRegistrationService.execute(String token, String
+    firstName, String lastName, String email)`: calls
+    `auth.RegistrationInvites.register(...)`, loads the returned `challengeId` via
+    `ChallengeRepository`. If the challenge is still `OPEN`, calls
+    `editParticipants(guestIdsToAdd = [accountId])` (from 7.4) and saves; if it's no longer
+    `OPEN` (revealed between QR generation and scan), **skip the guest-add, don't fail the
+    registration** — the account already exists at that point and shouldn't be left
+    half-created. Return a result flag the controller uses to pick the response copy
+    ("registered and joined" vs. "registered, but this event has already closed"). Backs
+    the public, unauthenticated `POST /api/v1/public/registrations`.
+- Security config: `POST /api/v1/public/registrations` added to the permit-all list (no
+  JWT, no link token — it's genuinely public, gated only by the QR token in its body);
+  `POST /api/v1/challenges/{id}/registration-invites` follows the same
+  organizer/admin `authorizeHttpRequests` matcher as every other challenge-management
+  endpoint.
+
+**Verify 7.8**: `RegistrationInviteServiceTest` (issue→verify happy path, expiry, unknown
+token — same shape as the existing `AccessLinkServiceTest`); `PublicRegistrationServiceTest`
+covers happy path, duplicate-email 409, expired/invalid token, and the
+challenge-no-longer-open degrade path; a `SecurityIntegrationTest` case confirming the
+public registration endpoint needs no `Authorization` header/link token at all.
+
+**Verify Phase 7 (whole-phase check)**: full regression (`./gradlew build`); manual smoke
+test extending Phase 6's — create a challenge, generate a registration QR, register a new
+walk-in through it and confirm they land on the guest list, have both cooks pick colors,
+upload/replace the challenge photo, score with the 1–5 UI, reveal, unreveal, re-reveal with
+a changed score and confirm `CookRivalry` still matches a hand-calculated expectation.
+
 ## Explicitly out of scope for this plan
 
-- Angular frontend (`docs/cookingChallenge/first-plan.md` Step 4) — separate plan when
-  that work starts.
+- Angular frontend (`docs/cookingChallenge/first-plan.md` Step 4,
+  `docs/cookingChallenge/frontend-prd.md`) — separate plan when that work starts.
 - Real email delivery — Phase 1's `NotificationPort` gets a logging/no-op adapter here;
   swapping in a real provider (SES, Postgmark, etc.) is a future, explicitly-requested
   task.
+- Swapping Phase 7.5's `DatabaseImageStorageAdapter` for a real object-storage provider —
+  `ImageStoragePort` is shaped for that swap, but building the adapter itself is a future,
+  explicitly-requested task (see `frontend-prd.md` §9).
 - `CookRivalryController` and any other "optional, can defer" row from the Step 3 API
   table — build only if asked.

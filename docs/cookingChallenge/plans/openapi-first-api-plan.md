@@ -56,6 +56,19 @@ controllers I already have were created with the blue field project as ideas... 
 need to stay with them." Everything else that plan built — the domain model, JPA
 infrastructure, the access-link mechanism, and the security config — stays untouched.
 
+**PRD reconciliation (2026-08-03).** `docs/cookingChallenge/frontend-prd.md` walked the
+actual mockup chat against this repo's DDD modulith and resolved every collision found
+(self-registration scope, cook plate-color self-pick, who may score, challenge photos,
+score scale) — see that document's §3 and §10 for the full resolution log, and
+`backend-persistence-api-security-plan.md`'s new Phase 7 for the concrete backend sequencing.
+It supersedes the "Use-case inventory" and "Domain gaps to fill" sections below wherever
+they conflict; superseded rows/items are left in place with a note rather than deleted, for
+history. Separately: `openapi/cookingchallenge-api.yaml` itself was **deleted** in commit
+`e05bd5e` ("update architectural docs") pending a rewrite against both the PRD and the newer
+page-scoped-query/config-endpoint conventions now documented in
+`docs/shared/04-api-design.md` — **Phase 1 (spec authoring) restarts from scratch**, not
+from the old file's content.
+
 ## Approach
 
 1. Design an OpenAPI spec shaped around what the UI ([`design-reference.md`](../design-reference.md),
@@ -171,10 +184,14 @@ upsert target instead of a hard reject. See gap 6 below.
 | New challenge dialog | `POST /api/v1/challenges` | Existing (`CreateChallengeService`) |
 | Challenge detail: guest list + status | `GET /api/v1/challenges/{id}/status` | Existing (`SubmissionStatusView`) |
 | Send/resend links | `POST /api/v1/challenges/{id}/invitations` | Existing (`SendChallengeInvitationsService`) |
-| Edit cooks & guests | `PATCH /api/v1/challenges/{id}/participants` | **New** — `Challenge` has no cook-reassignment or guest-removal method, only additive `addGuest` |
-| Reveal results | `POST /api/v1/challenges/{id}/reveal` | Existing (`RevealChallengeService`) |
+| Edit cooks & guests | `PATCH /api/v1/challenges/{id}/participants` | **Superseded by PRD** — `frontend-prd.md` §5.2 / Phase 7.4 specifies `Challenge.editParticipants(...)` precisely, including the color-reset rule on cook reassignment |
+| Cook plate-color pick | `POST /api/v1/challenges/{id}/color-pick` | **New, from PRD** — Phase 7.3, needs `PlateColor` (7.2) first |
+| Challenge photo upload/replace/view | `PATCH` + `GET /api/v1/challenges/{id}/image` | **New, from PRD** — Phase 7.5, `ImageStoragePort` + DB-blob adapter |
+| Generate registration QR | `POST /api/v1/challenges/{id}/registration-invites` | **New, from PRD** — Phase 7.8 |
+| Self-registration (walk-in) | `POST /api/v1/public/registrations` | **New, from PRD** — Phase 7.8; public but token-gated, also adds the new account as a guest of the QR's challenge |
+| Reveal results | `POST /api/v1/challenges/{id}/reveal` | Existing (`RevealChallengeService`); Phase 7.6 adds populating `lastRevealResult` for unreveal |
 | Revealed results + rivalry text | `GET /api/v1/challenges/{id}/results` | Existing for results; rivalry summary needs joining in `CookRivalryRepository.findByPair` (repo method already exists — just needs wiring into the response) |
-| Unreveal challenge | `POST /api/v1/challenges/{id}/unreveal` | **New** — `Challenge` has no reverse transition; see the rivalry double-count question below |
+| Unreveal challenge | `POST /api/v1/challenges/{id}/unreveal` | **Superseded by PRD** — the rivalry double-count question below is resolved concretely in `frontend-prd.md` §5.2 / Phase 7.6 (`lastRevealResult` + `CookRivalry.reverseResult` via a `ChallengeUnrevealed` event, mirroring `ChallengeRevealed`) |
 | Accounts list (+ `availableRoles` for the new-account dialog) | `GET /api/v1/accounts` | Existing (`ListAccountsService`), needs `availableRoles` added to the response |
 | New account | `POST /api/v1/accounts` | Existing (`CreateAccountService`) |
 | Edit account: load fresh detail on dialog open | `GET /api/v1/accounts/{id}` | **New** — no single-account fetch exists today |
@@ -183,38 +200,49 @@ upsert target instead of a hard reject. See gap 6 below.
 | Rivalry detail (pair + their challenges) | `GET /api/v1/rivalries/{cookAId}/{cookBId}` | **New** — needs a `ChallengeRepository` query by cook pair; the `CookRivalry` aggregate itself has no challenge references |
 | Guest home (open + past challenges) | `GET /api/v1/me/home` | Existing but scoped to *open, not-yet-submitted* only (`HomeService`) — mockup also needs a "past" bucket (submitted/revealed). Application-layer extension, no domain gap |
 | Guest results view | `GET /api/v1/challenges/{id}/results` | Existing, same endpoint as organizer results, already link-token gated |
-| Blind scoring submit | `POST /api/v1/challenges/{id}/scores` | Existing (`SubmitScoreService`) — **contingent on the edit-until-reveal decision above** |
+| Blind scoring submit | `POST /api/v1/challenges/{id}/scores` | Existing (`SubmitScoreService`) — **contingent on the edit-until-reveal decision above**; Phase 7.1 changes the score range to 1–5 (was 0–5) and Phase 7.7 narrows who may submit to guests + the challenge's `createdBy` account, excluding cooks |
 
 ## Domain gaps to fill (Phase 3)
 
-1. `Challenge.unreveal()` — reverse `REVEALED → OPEN`. Open question: does it reverse the
-   `CookRivalry.recordResult(...)` call from the original reveal, and does a later re-reveal
-   recompute the same result without double-counting the rivalry? Needs a decision, not an
-   assumption — results aren't stored separately from `ScoreSubmission`s today (recomputed
-   via `ResultCalculator` on every `/results` call), so re-reveal *should* be deterministic
-   as long as submissions aren't mutated in between — but the rivalry counter update is a
-   one-time side effect tied to the `ChallengeRevealed` event, and firing it twice for the
-   same reveal would corrupt the running record.
-2. `Challenge` cook reassignment + guest removal — only `addGuest` (additive, OPEN-only)
-   exists. New domain methods, same `requireOpen()` guard style.
-3. `CookRivalryRepository.findAll()` for the rivalries list screen.
+1. ~~`Challenge.unreveal()`~~ — **resolved**, see `frontend-prd.md` §5.2 and
+   `backend-persistence-api-security-plan.md` Phase 7.6.
+2. ~~`Challenge` cook reassignment + guest removal~~ — **resolved**, see `frontend-prd.md`
+   §5.2 and Phase 7.4 (`editParticipants`, including the color-reset rule).
+3. `CookRivalryRepository.findAll()` for the rivalries list screen. *(still open, unchanged
+   by the PRD)*
 4. A `ChallengeRepository` query for "challenges between this cook pair" for the rivalry
    detail screen (not a `CookRivalry` responsibility — that aggregate has no challenge
-   references, only running counters).
+   references, only running counters). *(still open, unchanged by the PRD)*
 5. `Account` update — check whether `Account` has any mutation method today (name/email/roles);
    if not, add one plus a corresponding `AccountRepository` update path. Email changes need
    the same uniqueness check `CreateAccountService` already does, surfaced as the new `409`.
+   *(still open, unchanged by the PRD — `Account.rename()`/`changePasswordHash()` already
+   exist per the current domain source; a role add/remove + email-change path is what's
+   still missing)*
 6. `ScoreSubmission` update path — confirmed needed now that edit-until-reveal is decided
    (see "Resolved" section above): an `update(...)` domain method (or delete-and-recreate),
    and the repo's unique-constraint path becomes an upsert instead of a hard reject.
+   *(still open, unchanged by the PRD)*
+7. `PlateColor` aggregate + repository + reference data — new, see `frontend-prd.md` §5.2
+   and Phase 7.2.
+8. `Challenge.pickColor(...)` — new, Phase 7.3.
+9. `ImageStoragePort` + `Challenge.imageRef`/`changeImage(...)` — new, Phase 7.5.
+10. `Score`'s invariant narrows from `0 <= points <= 5` to `1 <= points <= 5` — Phase 7.1.
+11. `Challenge.canScore(...)` narrowing scoring eligibility to guests + `createdBy`,
+    excluding cooks — new, Phase 7.7.
+12. `RegistrationInvite` mechanism (`auth` module, infrastructure-layer like `AccessLink`)
+    + `auth.RegistrationInvites` public contract + `cookoff`'s
+    `CreateRegistrationInviteService`/`PublicRegistrationService` orchestration — new,
+    Phase 7.8.
 
 ## Phased execution
 
-**Phase 1 — Author the spec.** No code. Write `openapi/cookingchallenge-api.yaml` covering
-every row in the use-case inventory, using the domain's existing vocabulary
-(`ChallengeStatus`, `Category`, `DishLabel`, `SystemRole`) for enums so generated models
-line up with domain enum names. Resolve the edit-until-reveal conflict with the user before
-finalizing the scoring paths.
+**Phase 1 — Author the spec.** No code — restarts from scratch since the prior spec file
+was deleted (see the PRD-reconciliation note above). Write `openapi/cookingchallenge-api.yaml`
+covering every row in the use-case inventory, now including the PRD-driven rows (color
+pick, image upload/view, registration invites/self-registration), using the domain's
+existing vocabulary (`ChallengeStatus`, `Category`, `DishLabel`, `SystemRole`, `PlateColor`)
+for enums/schemas so generated models line up with domain names.
 
 **Phase 2 — Backend codegen wiring.** Add the Gradle plugin, configure input spec path +
 output package, verify `./gradlew build` generates interfaces/models that compile (nothing

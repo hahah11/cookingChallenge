@@ -6,8 +6,8 @@ hide circle
 
 note as N0
   Every aggregate root ID (AccountId, ChallengeId,
-  ScoreSubmissionId, CookRivalryId) is a TSID:
-  BIGINT storage, Base32-encoded at the API boundary.
+  ScoreSubmissionId, CookRivalryId, PlateColorId) is a
+  TSID: BIGINT storage, Base32-encoded at the API boundary.
   See docs/backend/03-code-style.md#id-generation-tsid.
 end note
 
@@ -23,8 +23,16 @@ package "auth" {
     +revokeRole(role : SystemRole)
   }
   note bottom of Account
-    No self-registration: the host creates an
-    Account (email + name) for each person.
+    Two ways an Account comes to exist: the host
+    creates one directly (email + name, any
+    SystemRole), or a person self-registers by
+    scanning a QR an ORGANIZER/ADMIN generated for one
+    specific Challenge (gated by a RegistrationInvite
+    token — infrastructure-layer, like AccessLink, not
+    modeled here) -> create(..., USER), no password,
+    then added as a guest of that Challenge. Same
+    factory either way; only the entry point and the
+    guest side-effect differ. See frontend-prd.md §5.1.
     roles are *system permissions*, unrelated to
     whether this account is cooking or a guest
     in any particular Challenge (see below).
@@ -55,19 +63,45 @@ package "cookoff" {
     dishName : DishName
     status : ChallengeStatus
     createdBy : AccountId
+    imageRef : String?
+    lastRevealResult : AccountId?
     --
-    +assignCooks(cookAAccountId, cookBAccountId)
-    +addGuest(guestAccountId)
+    +editParticipants(newCookAAccountId?, newCookBAccountId?, guestIdsToAdd[], guestIdsToRemove[])
+    +pickColor(cookAccountId, chosenColorId, otherColorId)
+    +changeImage(newImageRef)
+    +canScore(accountId) : boolean
     +reveal() : ChallengeRevealed
+    +unreveal() : ChallengeUnrevealed
   }
   note bottom of Challenge
     "Cook" and "Guest" are not separate entities —
     they're the roles an Account plays *within this
     one Challenge*: cookAssignments picks the two
-    cooking accounts (+ their blind label A/B),
-    guestAccountIds lists the tasting/scoring accounts.
-    The same Account could appear as a cook in one
-    Challenge and a guest in another.
+    cooking accounts (+ their blind label A/B + a
+    PlateColor once picked), guestAccountIds lists the
+    tasting accounts. The same Account could appear as
+    a cook in one Challenge and a guest in another.
+
+    canScore = guestAccountIds ∪ {createdBy} — the
+    organizing account may score, cooks never can.
+
+    editParticipants reassigning either cook clears
+    BOTH cooks' picked colors (a pick is meaningless
+    once the person behind label A/B changes) — the
+    pair must pickColor again from scratch.
+
+    pickColor is once-per-challenge-per-side: the
+    first cook to pick assigns their own PlateColor
+    AND the other cook's remaining one atomically, then
+    locks — irreversible until editParticipants resets
+    it. Every Challenge reserves the first 2 active
+    PlateColors (by sortOrder) as its pickable pair.
+
+    lastRevealResult mirrors what reveal() last
+    published, so unreveal() knows exactly what to
+    tell CookRivalry to undo (see ChallengeUnrevealed
+    below) — cleared once reversed, repopulated by the
+    next reveal().
   end note
 
   class ScoreSubmission << (A,orange) AggregateRoot >> {
@@ -95,13 +129,37 @@ package "cookoff" {
     totalChallenges : int
     --
     +recordResult(overallWinnerAccountId : AccountId?)
+    +reverseResult(previousOverallWinnerAccountId : AccountId?)
   }
+  note bottom of CookRivalry
+    reverseResult is the exact inverse of recordResult
+    (decrements the matching win/draw counter and
+    totalChallenges) — consumed by ChallengeUnrevealed,
+    the same way recordResult is consumed by
+    ChallengeRevealed.
+  end note
+
+  class PlateColor << (A,orange) AggregateRoot >> {
+    id : PlateColorId
+    name : String
+    hexCode : String
+    sortOrder : int
+    active : boolean
+  }
+  note bottom of PlateColor
+    Admin-managed reference data, not a hardcoded
+    enum — restyling the palette (or renaming a color)
+    is a data change, not a code change. A Challenge
+    always reserves the first 2 active PlateColors by
+    sortOrder as the pair its two cooks pick between.
+  end note
 
   ' ---------- Value Objects ----------
 
   class CookAssignment << (V,lightblue) ValueObject >> {
     accountId : AccountId
     label : DishLabel
+    colorId : PlateColorId?
   }
 
   class DishName << (V,lightblue) ValueObject >> {
@@ -114,7 +172,7 @@ package "cookoff" {
     points : int
   }
   note bottom of Score
-    invariant: 0 <= points <= 5
+    invariant: 1 <= points <= 5 (star rating, no 0)
   end note
 
   class ChallengeResult << (V,lightblue) ValueObject >> {
@@ -146,7 +204,7 @@ package "cookoff" {
     +calculate(challenge : Challenge, submissions : List<ScoreSubmission>) : ChallengeResult
   }
 
-  ' ---------- Domain Event ----------
+  ' ---------- Domain Events ----------
 
   class ChallengeRevealed << (E,pink) DomainEvent >> {
     challengeId : ChallengeId
@@ -155,11 +213,25 @@ package "cookoff" {
     overallWinnerAccountId : AccountId?
   }
 
+  class ChallengeUnrevealed << (E,pink) DomainEvent >> {
+    challengeId : ChallengeId
+    previousOverallWinnerAccountId : AccountId?
+  }
+  note bottom of ChallengeUnrevealed
+    Mirrors ChallengeRevealed's event-listener pattern
+    (ChallengeRevealedRivalryUpdater) rather than
+    Challenge calling CookRivalry directly — keeps
+    "cross-aggregate updates go through an event +
+    @TransactionalEventListener" as the one consistent
+    mechanism in this module.
+  end note
+
   ' ---------- Relationships ----------
 
   Challenge "1" *-- "2" CookAssignment
   Challenge "1" --> "1" DishName
   CookAssignment --> DishLabel
+  CookAssignment --> PlateColor
 
   ScoreSubmission "*" --> "1" Challenge : challengeId >
   ScoreSubmission "1" *-- "6" Score
@@ -173,6 +245,9 @@ package "cookoff" {
 
   Challenge ..> ChallengeRevealed : emits on reveal()
   ChallengeRevealed ..> CookRivalry : updates (recordResult)
+
+  Challenge ..> ChallengeUnrevealed : emits on unreveal()
+  ChallengeUnrevealed ..> CookRivalry : updates (reverseResult)
 
   Challenge --> ChallengeStatus
 }
