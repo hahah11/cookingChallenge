@@ -103,4 +103,54 @@ class ChallengeTest {
 
         assertFalse(challenge.isParticipant(AccountId.generate()));
     }
+
+    @Test
+    void should_assignBothColorsAtomically_when_cookPicksColor() {
+        Challenge challenge = newChallenge();
+        PlateColorId red = PlateColorId.generate();
+        PlateColorId yellow = PlateColorId.generate();
+
+        challenge.pickColor(cookA, red, yellow);
+
+        assertEquals(red, challenge.cookAssignmentFor(DishLabel.A).colorId());
+        assertEquals(yellow, challenge.cookAssignmentFor(DishLabel.B).colorId());
+    }
+
+    @Test
+    void should_assignChosenColorToPickingCook_when_cookBPicks() {
+        Challenge challenge = newChallenge();
+        PlateColorId red = PlateColorId.generate();
+        PlateColorId yellow = PlateColorId.generate();
+
+        challenge.pickColor(cookB, red, yellow);
+
+        assertEquals(yellow, challenge.cookAssignmentFor(DishLabel.A).colorId());
+        assertEquals(red, challenge.cookAssignmentFor(DishLabel.B).colorId());
+    }
+
+    @Test
+    void should_throw_when_pickingColorAsNonCook() {
+        Challenge challenge = newChallenge();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> challenge.pickColor(AccountId.generate(), PlateColorId.generate(), PlateColorId.generate()));
+    }
+
+    @Test
+    void should_throw_when_pickingColorTwice() {
+        Challenge challenge = newChallenge();
+        challenge.pickColor(cookA, PlateColorId.generate(), PlateColorId.generate());
+
+        assertThrows(IllegalStateException.class,
+                () -> challenge.pickColor(cookB, PlateColorId.generate(), PlateColorId.generate()));
+    }
+
+    @Test
+    void should_throw_when_pickingColorAfterReveal() {
+        Challenge challenge = newChallenge();
+        challenge.reveal(cookA);
+
+        assertThrows(IllegalStateException.class,
+                () -> challenge.pickColor(cookA, PlateColorId.generate(), PlateColorId.generate()));
+    }
 }

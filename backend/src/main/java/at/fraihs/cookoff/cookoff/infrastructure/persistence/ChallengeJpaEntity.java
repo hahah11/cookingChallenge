@@ -44,6 +44,12 @@ public class ChallengeJpaEntity {
     @Column(name = "cook_b_account_id")
     private Long cookBAccountId;
 
+    @Column(name = "cook_a_color_id")
+    private Long cookAColorId;
+
+    @Column(name = "cook_b_color_id")
+    private Long cookBColorId;
+
     @Enumerated(EnumType.STRING)
     private ChallengeStatus status;
 

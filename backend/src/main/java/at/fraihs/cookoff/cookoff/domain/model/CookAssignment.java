@@ -5,7 +5,7 @@ import org.jmolecules.ddd.annotation.ValueObject;
 
 /** Which Account cooks under which blind label, within one Challenge. Not a global identity — see docs/cookingChallenge/first-plan.md. */
 @ValueObject
-public record CookAssignment(AccountId accountId, DishLabel label) {
+public record CookAssignment(AccountId accountId, DishLabel label, PlateColorId colorId) {
 
     public CookAssignment {
         if (accountId == null) {
@@ -14,5 +14,17 @@ public record CookAssignment(AccountId accountId, DishLabel label) {
         if (label == null) {
             throw new IllegalArgumentException("label must not be null");
         }
+    }
+
+    public CookAssignment(AccountId accountId, DishLabel label) {
+        this(accountId, label, null);
+    }
+
+    public boolean hasColor() {
+        return colorId != null;
+    }
+
+    public CookAssignment withColor(PlateColorId colorId) {
+        return new CookAssignment(accountId, label, colorId);
     }
 }

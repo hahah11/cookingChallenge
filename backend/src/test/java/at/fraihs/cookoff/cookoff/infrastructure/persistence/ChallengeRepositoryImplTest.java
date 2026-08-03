@@ -6,6 +6,7 @@ import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
+import at.fraihs.cookoff.cookoff.domain.model.PlateColorId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +101,30 @@ class ChallengeRepositoryImplTest {
         assertEquals(List.of(openAsCook.getId()), cookResult.stream().map(Challenge::getId).toList());
 
         assertTrue(repository.findOpenByParticipant(stranger).isEmpty());
+    }
+
+    @Test
+    void should_roundTripPickedColors_when_savingThenFindingById() {
+        AccountId cookA = new AccountId(persistAccount());
+        AccountId cookB = new AccountId(persistAccount());
+        AccountId organizer = new AccountId(persistAccount());
+        PlateColorId red = persistPlateColor();
+        PlateColorId yellow = persistPlateColor();
+        Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+                cookA, cookB, List.of(), organizer);
+        challenge.pickColor(cookA, red, yellow);
+
+        Challenge saved = repository.save(challenge);
+        Challenge found = repository.findById(saved.getId()).orElseThrow();
+
+        assertEquals(red, found.cookAssignmentFor(DishLabel.A).colorId());
+        assertEquals(yellow, found.cookAssignmentFor(DishLabel.B).colorId());
+    }
+
+    private PlateColorId persistPlateColor() {
+        PlateColorId id = PlateColorId.generate();
+        entityManager.persistAndFlush(new PlateColorJpaEntity(id.value(), "Color " + id, "#000000", 1, true));
+        return id;
     }
 
     private long persistAccount() {

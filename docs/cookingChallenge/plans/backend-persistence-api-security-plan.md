@@ -621,7 +621,7 @@ constraint rejects `0`.
 **Verify 7.2**: `@DataJpaTest` round-trips a `PlateColor`; confirms
 `findAllActiveOrderedBySortOrder()` returns only `active = true` rows, ordered.
 
-### 7.3 Cook plate-color self-pick
+### 7.3 Cook plate-color self-pick — Done
 
 - `cookoff.domain.model.CookAssignment` gains `colorId : PlateColorId?` (nullable).
 - Liquibase: `challenges` + `cook_a_color_id` / `cook_b_color_id` (nullable `BIGINT`, FK →
@@ -647,6 +647,49 @@ constraint rejects `0`.
 **Verify 7.3**: unit tests for `Challenge.pickColor` (reject: not open, not a cook, already
 assigned; happy path: both colors set atomically) and `PickColorService` (Mockito); a
 `@DataJpaTest` round-trip confirming the FK columns persist.
+
+**Done.** Implementation notes/deviations, per this plan's own instruction to flag them:
+- `CookAssignment` is a record; since records can't have mutable fields, `colorId` was added
+  as a third canonical-constructor component with an overloaded 2-arg constructor
+  (`this(accountId, label, null)`) preserving every existing call site
+  (`Challenge.create`, `ChallengeMapper.toDomain`, tests). A `withColor(PlateColorId)` method
+  returns a new instance rather than mutating in place; `Challenge.pickColor` replaces the two
+  list entries via `List.set(indexOf(...), ...)`.
+- `Challenge.pickColor(AccountId, PlateColorId chosenColorId, PlateColorId otherColorId)`
+  throws `IllegalArgumentException` for "not a cook of this challenge" (matches this
+  codebase's existing convention of `IllegalArgumentException` for bad-argument guards, e.g.
+  `Challenge.create`'s checks) and `IllegalStateException` for "already picked" and
+  "not open" (`requireOpen()`, matching the existing double-reveal `IllegalStateException`
+  convention) — `requireOpen()` runs first, so picking after reveal fails with the "not open"
+  message, not "already picked".
+- New `cookoff.application.dto.PickColorCommand(challengeId, cookAccountId, colorId)` — all
+  `String`, following the `SubmitScoreCommand`/`CreateChallengeCommand` convention of
+  base32-string IDs converted via `fromString(...)` inside the service, rather than typed IDs
+  on the command itself.
+- `PickColorService` resolves "the other color" itself: loads
+  `plateColorRepository.findAllActiveOrderedBySortOrder()`, takes the first two, and matches
+  the request's `colorId` against them — an unrecognized `colorId` (not one of the two active
+  colors) throws `IllegalArgumentException`; fewer than 2 active colors configured throws
+  `IllegalStateException` (a misconfiguration, not a user-facing 4xx case in today's UI
+  since there's no admin color-management screen yet, per 7.2's own note).
+- **`ChallengeJpaEntity`'s Lombok `@AllArgsConstructor` is positional** — inserting
+  `cookAColorId`/`cookBColorId` between `cookBAccountId` and `status` changed that
+  constructor's signature. Updated the two existing direct-construction call sites
+  (`AccessLinkRepositoryImplTest`, `ScoreSubmissionRepositoryImplTest`) to pass `null, null`
+  for the two new positions, in addition to `ChallengeMapper.toEntity`. No behavior change for
+  those tests — they don't exercise plate colors.
+- New Liquibase changeset `004-challenge-cook-colors.yaml` (`challenges` +
+  `cook_a_color_id`/`cook_b_color_id`, nullable `BIGINT`, FK → `plate_colors(id)`, no
+  `ON DELETE` action — a plate color is reference data that's never deleted once a challenge
+  references it) — registered in `db.changelog-master.yaml` after 003.
+- `ChallengeView`/`ChallengeParticipantView`/`ChallengeResultView` (the Phase 4 read models)
+  were **not** updated to surface `colorId` — out of scope per this phase's own "stops at the
+  application.service layer" boundary; `openapi-first-api-plan.md`'s controller phase should
+  decide whether/how the picked color surfaces in a response DTO.
+- All 138 backend tests pass (128 prior, from 7.1/7.2 already having landed ahead of this
+  plan file's "Not started" status line + 10 new: `ChallengeTest` gains 5 `pickColor` cases,
+  new `PickColorServiceTest` (4 cases, Mockito), `ChallengeRepositoryImplTest` gains one
+  round-trip case for the two FK columns).
 
 ### 7.4 Edit cooks & guests (+ color reset)
 

@@ -88,6 +88,27 @@ public class Challenge {
         return new ChallengeRevealed(id, cookA, cookB, overallWinnerAccountId);
     }
 
+    /**
+     * A cook picks their plate color; the other cook is atomically assigned whichever color is
+     * left. Irreversible once either cook has a color — first pick wins for the pair.
+     */
+    public void pickColor(AccountId cookAccountId, PlateColorId chosenColorId, PlateColorId otherColorId) {
+        requireOpen();
+        if (cookAssignments.stream().anyMatch(CookAssignment::hasColor)) {
+            throw new IllegalStateException("Plate colors have already been picked for this challenge");
+        }
+        CookAssignment pickingAssignment = cookAssignments.stream()
+                .filter(assignment -> assignment.accountId().equals(cookAccountId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Account is not a cook of this challenge: " + cookAccountId));
+        DishLabel otherLabel = pickingAssignment.label() == DishLabel.A ? DishLabel.B : DishLabel.A;
+        CookAssignment otherAssignment = cookAssignmentFor(otherLabel);
+
+        cookAssignments.set(cookAssignments.indexOf(pickingAssignment), pickingAssignment.withColor(chosenColorId));
+        cookAssignments.set(cookAssignments.indexOf(otherAssignment), otherAssignment.withColor(otherColorId));
+    }
+
     public CookAssignment cookAssignmentFor(DishLabel label) {
         return cookAssignments.stream()
                 .filter(assignment -> assignment.label() == label)

@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-01-add-challenge-cook-colors
+      author: fraihs
+      changes:
+        - addColumn:
+            tableName: challenges
+            columns:
+              - column:
+                  name: cook_a_color_id
+                  type: BIGINT
+              - column:
+                  name: cook_b_color_id
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: challenges
+            baseColumnNames: cook_a_color_id
+            referencedTableName: plate_colors
+            referencedColumnNames: id
+            constraintName: fk_challenges_cook_a_color
+        - addForeignKeyConstraint:
+            baseTableName: challenges
+            baseColumnNames: cook_b_color_id
+            referencedTableName: plate_colors
+            referencedColumnNames: id
+            constraintName: fk_challenges_cook_b_color

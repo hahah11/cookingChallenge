@@ -6,6 +6,7 @@ import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.CookAssignment;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
+import at.fraihs.cookoff.cookoff.domain.model.PlateColorId;
 import org.mapstruct.Mapper;
 
 import java.util.ArrayList;
@@ -22,8 +23,10 @@ public interface ChallengeMapper {
 
     default Challenge toDomain(ChallengeJpaEntity entity) {
         List<CookAssignment> cookAssignments = List.of(
-                new CookAssignment(new AccountId(entity.getCookAAccountId()), DishLabel.A),
-                new CookAssignment(new AccountId(entity.getCookBAccountId()), DishLabel.B));
+                new CookAssignment(new AccountId(entity.getCookAAccountId()), DishLabel.A,
+                        toPlateColorId(entity.getCookAColorId())),
+                new CookAssignment(new AccountId(entity.getCookBAccountId()), DishLabel.B,
+                        toPlateColorId(entity.getCookBColorId())));
         List<AccountId> guestAccountIds = entity.getGuestAccountIds().stream()
                 .map(AccountId::new)
                 .toList();
@@ -42,15 +45,27 @@ public interface ChallengeMapper {
         List<Long> guestAccountIds = challenge.getGuestAccountIds().stream()
                 .map(AccountId::value)
                 .toList();
+        CookAssignment cookA = challenge.cookAssignmentFor(DishLabel.A);
+        CookAssignment cookB = challenge.cookAssignmentFor(DishLabel.B);
         return new ChallengeJpaEntity(
                 challenge.getId().value(),
                 challenge.getTitle(),
                 challenge.getDate(),
                 challenge.getDishName().value(),
-                challenge.cookAssignmentFor(DishLabel.A).accountId().value(),
-                challenge.cookAssignmentFor(DishLabel.B).accountId().value(),
+                cookA.accountId().value(),
+                cookB.accountId().value(),
+                toRawId(cookA.colorId()),
+                toRawId(cookB.colorId()),
                 challenge.getStatus(),
                 challenge.getCreatedBy().value(),
                 new ArrayList<>(guestAccountIds));
+    }
+
+    private static PlateColorId toPlateColorId(Long rawId) {
+        return rawId == null ? null : new PlateColorId(rawId);
+    }
+
+    private static Long toRawId(PlateColorId colorId) {
+        return colorId == null ? null : colorId.value();
     }
 }
