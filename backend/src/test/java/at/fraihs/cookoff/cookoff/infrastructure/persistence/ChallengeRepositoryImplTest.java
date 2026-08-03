@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -101,6 +102,25 @@ class ChallengeRepositoryImplTest {
         assertEquals(List.of(openAsCook.getId()), cookResult.stream().map(Challenge::getId).toList());
 
         assertTrue(repository.findOpenByParticipant(stranger).isEmpty());
+    }
+
+    @Test
+    void should_returnChallengesBetweenCookPair_regardlessOfWhichCookWasAOrB_when_findingByCookPair() {
+        AccountId organizer = new AccountId(persistAccount());
+        AccountId cookX = new AccountId(persistAccount());
+        AccountId cookY = new AccountId(persistAccount());
+        AccountId stranger = new AccountId(persistAccount());
+
+        Challenge xThenY = repository.save(Challenge.create(LocalDate.now(), null, new DishName("Goulash"),
+                cookX, cookY, List.of(), organizer));
+        Challenge yThenX = repository.save(Challenge.create(LocalDate.now(), null, new DishName("Kaiserschmarrn"),
+                cookY, cookX, List.of(), organizer));
+        repository.save(Challenge.create(LocalDate.now(), null, new DishName("Palatschinken"),
+                cookX, stranger, List.of(), organizer));
+
+        List<Challenge> found = repository.findByCookPair(cookX, cookY);
+
+        assertEquals(Set.of(xThenY.getId(), yThenX.getId()), found.stream().map(Challenge::getId).collect(Collectors.toSet()));
     }
 
     @Test

@@ -16,6 +16,9 @@ public interface ScoreSubmissionRepository {
 
     List<ScoreSubmission> findByChallengeId(ChallengeId challengeId);
 
+    /** Looked up before an edit-until-reveal resubmission, to call ScoreSubmission#update on the existing aggregate. */
+    Optional<ScoreSubmission> findByChallengeIdAndGuestAccountId(ChallengeId challengeId, AccountId guestAccountId);
+
     boolean existsByChallengeIdAndGuestAccountId(ChallengeId challengeId, AccountId guestAccountId);
 
     ScoreSubmission save(ScoreSubmission submission);

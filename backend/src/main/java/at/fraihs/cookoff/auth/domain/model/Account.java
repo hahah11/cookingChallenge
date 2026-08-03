@@ -11,7 +11,7 @@ public class Account {
 
     @Identity
     private final AccountId id;
-    private final Email email;
+    private Email email;
     private String name;
     private String passwordHash;
     private final Set<SystemRole> roles;
@@ -69,6 +69,14 @@ public class Account {
             throw new IllegalArgumentException("Account name must not be blank");
         }
         this.name = newName;
+    }
+
+    /** Email uniqueness is a repository-level concern (see AccountRepository#existsByEmail), not checked here. */
+    public void changeEmail(Email newEmail) {
+        if (newEmail == null) {
+            throw new IllegalArgumentException("Email must not be null");
+        }
+        this.email = newEmail;
     }
 
     public void changePasswordHash(String newPasswordHash) {

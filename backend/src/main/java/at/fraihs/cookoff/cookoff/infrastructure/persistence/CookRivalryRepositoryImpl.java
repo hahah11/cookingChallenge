@@ -6,6 +6,7 @@ import at.fraihs.cookoff.cookoff.domain.repository.CookRivalryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -25,6 +26,11 @@ class CookRivalryRepositoryImpl implements CookRivalryRepository {
         AccountId[] ordered = CookRivalry.orderPair(firstAccountId, secondAccountId);
         return jpaRepository.findByCookAAccountIdAndCookBAccountId(ordered[0].value(), ordered[1].value())
                 .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<CookRivalry> findAll() {
+        return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
     }
 
     @Override

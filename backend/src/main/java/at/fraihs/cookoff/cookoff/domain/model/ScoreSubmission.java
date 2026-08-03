@@ -21,8 +21,8 @@ public class ScoreSubmission {
     private final ScoreSubmissionId id;
     private final ChallengeId challengeId;
     private final AccountId guestAccountId;
-    private final List<Score> scores;
-    private final Instant submittedAt;
+    private List<Score> scores;
+    private Instant submittedAt;
 
     private ScoreSubmission(ScoreSubmissionId id, ChallengeId challengeId, AccountId guestAccountId,
                              List<Score> scores, Instant submittedAt) {
@@ -42,6 +42,13 @@ public class ScoreSubmission {
     public static ScoreSubmission reconstitute(ScoreSubmissionId id, ChallengeId challengeId,
                                                 AccountId guestAccountId, List<Score> scores, Instant submittedAt) {
         return new ScoreSubmission(id, challengeId, guestAccountId, scores, submittedAt);
+    }
+
+    /** Resubmission before reveal (edit-until-reveal, see openapi-first-api-plan.md), replacing the prior scores. */
+    public void update(List<Score> newScores, Instant updatedAt) {
+        validateScores(newScores);
+        this.scores = List.copyOf(newScores);
+        this.submittedAt = updatedAt;
     }
 
     private static void validateScores(List<Score> scores) {

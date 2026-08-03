@@ -31,6 +31,12 @@ class ScoreSubmissionRepositoryImpl implements ScoreSubmissionRepository {
     }
 
     @Override
+    public Optional<ScoreSubmission> findByChallengeIdAndGuestAccountId(ChallengeId challengeId, AccountId guestAccountId) {
+        return jpaRepository.findByChallengeIdAndGuestAccountId(challengeId.value(), guestAccountId.value())
+                .map(mapper::toDomain);
+    }
+
+    @Override
     public boolean existsByChallengeIdAndGuestAccountId(ChallengeId challengeId, AccountId guestAccountId) {
         return jpaRepository.existsByChallengeIdAndGuestAccountId(challengeId.value(), guestAccountId.value());
     }

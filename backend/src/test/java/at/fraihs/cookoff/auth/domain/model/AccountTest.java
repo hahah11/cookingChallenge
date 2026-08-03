@@ -48,4 +48,20 @@ class AccountTest {
     void should_throw_when_nameIsBlank() {
         assertThrows(IllegalArgumentException.class, () -> Account.create(EMAIL, "  "));
     }
+
+    @Test
+    void should_replaceEmail_when_changingEmail() {
+        Account account = Account.create(EMAIL, "Alex");
+
+        account.changeEmail(new Email("newmail@example.com"));
+
+        assertEquals(new Email("newmail@example.com"), account.getEmail());
+    }
+
+    @Test
+    void should_throw_when_changingEmailToNull() {
+        Account account = Account.create(EMAIL, "Alex");
+
+        assertThrows(IllegalArgumentException.class, () -> account.changeEmail(null));
+    }
 }

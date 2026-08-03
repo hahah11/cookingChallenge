@@ -36,6 +36,13 @@ class ChallengeRepositoryImpl implements ChallengeRepository {
     }
 
     @Override
+    public List<Challenge> findByCookPair(AccountId firstAccountId, AccountId secondAccountId) {
+        return jpaRepository.findByCookPair(firstAccountId.value(), secondAccountId.value()).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public Challenge save(Challenge challenge) {
         ChallengeJpaEntity saved = jpaRepository.save(mapper.toEntity(challenge));
         return mapper.toDomain(saved);

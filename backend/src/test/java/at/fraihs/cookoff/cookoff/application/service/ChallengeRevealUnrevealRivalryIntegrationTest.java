@@ -157,6 +157,11 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         }
 
         @Override
+        public List<Challenge> findByCookPair(AccountId firstAccountId, AccountId secondAccountId) {
+            return List.of();
+        }
+
+        @Override
         public Challenge save(Challenge challenge) {
             store.put(challenge.getId(), challenge);
             return challenge;
@@ -176,6 +181,13 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         @Override
         public List<ScoreSubmission> findByChallengeId(ChallengeId challengeId) {
             return List.copyOf(byChallenge.getOrDefault(challengeId, List.of()));
+        }
+
+        @Override
+        public Optional<ScoreSubmission> findByChallengeIdAndGuestAccountId(ChallengeId challengeId, AccountId guestAccountId) {
+            return findByChallengeId(challengeId).stream()
+                    .filter(submission -> submission.getGuestAccountId().equals(guestAccountId))
+                    .findFirst();
         }
 
         @Override
@@ -202,6 +214,11 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         public Optional<CookRivalry> findByPair(AccountId firstAccountId, AccountId secondAccountId) {
             AccountId[] ordered = CookRivalry.orderPair(firstAccountId, secondAccountId);
             return Optional.ofNullable(store.get(key(ordered[0], ordered[1])));
+        }
+
+        @Override
+        public List<CookRivalry> findAll() {
+            return List.copyOf(store.values());
         }
 
         @Override

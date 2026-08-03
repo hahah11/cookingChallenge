@@ -12,6 +12,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -61,6 +62,19 @@ class CookRivalryRepositoryImplTest {
         Optional<CookRivalry> found = repository.findByPair(ordered[1], ordered[0]);
 
         assertTrue(found.isPresent());
+    }
+
+    @Test
+    void should_returnAllRivalries_when_findingAll() {
+        AccountId a = new AccountId(persistAccount());
+        AccountId b = new AccountId(persistAccount());
+        AccountId c = new AccountId(persistAccount());
+        repository.save(CookRivalry.start(a, b));
+        repository.save(CookRivalry.start(a, c));
+
+        List<CookRivalry> found = repository.findAll();
+
+        assertEquals(2, found.size());
     }
 
     @Test

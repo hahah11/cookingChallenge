@@ -11,6 +11,8 @@ info:
 servers:
   - url: /
 tags:
+  - name: Config
+    description: Cross-cutting bootstrap data (roles, plate colors, feature flags) - fetched once at app start.
   - name: Auth
     description: Organizer/admin login.
   - name: Accounts
@@ -21,6 +23,8 @@ tags:
     description: Head-to-head cook rivalry records.
   - name: Home
     description: Guest-facing personalized home (link-token access, no login).
+  - name: Public
+    description: Unauthenticated, token-gated actions (QR self-registration).
 
 paths:
   /api/v1/auth/login:
@@ -46,6 +50,24 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/config:
+    get:
+      tags: [Config]
+      operationId: getConfig
+      summary: Bootstrap config - available roles, active plate-color palette, feature flags
+      description: >
+        Fetched once at app start, not per page. Roles/permissions/lookup data are never
+        hardcoded or derived client-side - the UI always reflects what this endpoint
+        returned. Supersedes the per-response `availableRoles` field.
+      security: []
+      responses:
+        '200':
+          description: Application config.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigResponse'
 
   /api/v1/accounts:
     get:
@@ -104,7 +126,7 @@ paths:
         - $ref: '#/components/parameters/AccountIdPathParam'
       responses:
         '200':
-          description: Account detail, including the roles selectable when editing.
+          description: Account detail. Selectable roles come from GET /api/v1/config, not this response.
           content:
             application/json:
               schema:
@@ -268,6 +290,149 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v1/challenges/{challengeId}/color-pick:
+    post:
+      tags: [Challenges]
+      operationId: pickChallengeColor
+      summary: A cook picks their plate color; the other cook is auto-assigned the remainder
+      description: >
+        OPEN challenges only, and only by one of this challenge's two cooks. Irreversible
+        once either cook has picked - both colors are assigned atomically in this call.
+      security: [{ accessLinkToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChallengeIdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PickColorRequest'
+      responses:
+        '200':
+          description: Color picked; both cooks now have a color assigned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParticipantChallengeResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Caller is not a cook of this challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Challenge is not OPEN, or a color has already been picked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/challenges/{challengeId}/image:
+    patch:
+      tags: [Challenges]
+      operationId: updateChallengeImage
+      summary: Upload or replace the challenge photo (OPEN challenges only)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChallengeIdPathParam'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Photo stored; the challenge now has an image.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChallengeResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Challenge is not OPEN.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags: [Challenges]
+      operationId: getChallengeImage
+      summary: Stream the challenge photo's bytes
+      description: Same visibility as the challenge itself - organizer bearer token or a valid access-link token.
+      security:
+        - bearerAuth: []
+        - accessLinkToken: []
+      parameters:
+        - $ref: '#/components/parameters/ChallengeIdPathParam'
+      responses:
+        '200':
+          description: The photo's raw bytes.
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Challenge does not exist, or has no photo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/challenges/{challengeId}/registration-invites:
+    post:
+      tags: [Challenges]
+      operationId: createRegistrationInvite
+      summary: Generate a self-registration QR token for a walk-in to join this open challenge
+      description: >
+        Reusable until expiry - one QR can be scanned and used to register many different
+        walk-ins, not just the first. The frontend renders `registrationUrl` as a QR code.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChallengeIdPathParam'
+      responses:
+        '201':
+          description: Registration invite created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationInviteResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Challenge is not OPEN.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/challenges/{challengeId}/invitations:
     post:
       tags: [Challenges]
@@ -388,7 +553,9 @@ paths:
         Scores are editable until the challenge is revealed: the first
         submission returns 201, a later resubmission by the same guest returns
         200 and replaces the prior scores. Once REVEALED, further submissions
-        are rejected.
+        are rejected. Callers must have `canScore = true` on the participant
+        challenge view (a guest, or the challenge's creator) - cooks hold a valid
+        access-link token but are rejected with 403 here.
       security: [{ accessLinkToken: [] }]
       parameters:
         - $ref: '#/components/parameters/ChallengeIdPathParam'
@@ -471,12 +638,13 @@ paths:
     get:
       tags: [Home]
       operationId: getMyHome
-      summary: Guest-facing personalized home - challenges needing action vs. already handled
+      summary: Personalized home for a guest or cook - challenges needing action vs. already handled
       description: >
-        `open` holds OPEN challenges the requester has not yet submitted scores
-        for (needs action). `past` holds everything else the requester is a
-        participant in: OPEN-but-already-submitted (still editable until
-        reveal) and REVEALED challenges (view results).
+        `open` holds challenges the requester still has a pending action on: an
+        unsubmitted score for a guest/creator (`canScore`), or an unpicked color for a
+        cook (`canPickColor`). `past` holds everything else the requester is a
+        participant in: already actioned but still OPEN (editable/re-pickable until
+        reveal, per each flag) and REVEALED challenges (view results).
       security: [{ accessLinkToken: [] }]
       responses:
         '200':
@@ -487,6 +655,42 @@ paths:
                 $ref: '#/components/schemas/GuestHomeResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/public/registrations:
+    post:
+      tags: [Public]
+      operationId: registerPublicly
+      summary: Self-register via a scanned QR token, joining that token's challenge if still open
+      description: >
+        Unauthenticated but gated by the QR `token` in the body. Always creates the
+        account (role USER, no password) if the email isn't already taken, even if the
+        challenge closed between QR generation and scan - `joined` tells the frontend
+        whether to show "registered and joined" or "registered, but this event has
+        already closed".
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicRegistrationRequest'
+      responses:
+        '201':
+          description: Account created (and joined the challenge, if still open).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicRegistrationResultResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Registration token is missing, invalid, or expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
 
 components:
   securitySchemes:
@@ -665,6 +869,51 @@ components:
       type: string
       enum: [ADMIN, ORGANIZER, USER]
 
+    PlateColor:
+      type: object
+      required: [id, name, hexCode, sortOrder]
+      properties:
+        id:
+          $ref: '#/components/schemas/Tsid'
+        name:
+          type: string
+        hexCode:
+          type: string
+          example: "#E63946"
+        sortOrder:
+          type: integer
+
+    # --- Config ---
+
+    Config:
+      type: object
+      required: [availableRoles, plateColors, featureFlags]
+      properties:
+        availableRoles:
+          type: array
+          items:
+            $ref: '#/components/schemas/SystemRole'
+          description: Roles selectable when creating/editing an account.
+        plateColors:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlateColor'
+          description: Active plate colors, ordered by sortOrder - the first 2 are every challenge's cook-pick pair.
+        featureFlags:
+          type: object
+          additionalProperties:
+            type: boolean
+          description: Reserved for future use; empty today.
+
+    ConfigResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: '#/components/schemas/Config'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
     # --- Auth ---
 
     LoginRequest:
@@ -758,21 +1007,16 @@ components:
 
     AccountDetailResponse:
       type: object
-      required: [data, availableRoles, meta]
+      required: [data, meta]
       properties:
         data:
           $ref: '#/components/schemas/Account'
-        availableRoles:
-          type: array
-          items:
-            $ref: '#/components/schemas/SystemRole'
-          description: Roles selectable when editing this account, for the edit dialog's role picker.
         meta:
           $ref: '#/components/schemas/ApiMeta'
 
     AccountListResponse:
       type: object
-      required: [data, pagination, availableRoles, meta]
+      required: [data, pagination, meta]
       properties:
         data:
           type: array
@@ -780,11 +1024,6 @@ components:
             $ref: '#/components/schemas/Account'
         pagination:
           $ref: '#/components/schemas/Pagination'
-        availableRoles:
-          type: array
-          items:
-            $ref: '#/components/schemas/SystemRole'
-          description: Roles selectable when creating an account, loaded upfront for the "new account" dialog.
         meta:
           $ref: '#/components/schemas/ApiMeta'
 
@@ -792,12 +1031,16 @@ components:
 
     CookAssignment:
       type: object
-      required: [accountId, label]
+      required: [accountId, label, colorId]
       properties:
         accountId:
           $ref: '#/components/schemas/Tsid'
         label:
           $ref: '#/components/schemas/DishLabel'
+        colorId:
+          type: string
+          nullable: true
+          description: Aggregate id, Crockford Base32-encoded TSID. Null until the cook has picked (or been auto-assigned) a plate color.
 
     Challenge:
       type: object
@@ -812,6 +1055,8 @@ components:
         - createdByAccountId
         - submittedGuestCount
         - totalGuestCount
+        - hasImage
+        - overallWinnerAccountId
       properties:
         id:
           $ref: '#/components/schemas/Tsid'
@@ -840,6 +1085,13 @@ components:
           type: integer
         totalGuestCount:
           type: integer
+        hasImage:
+          type: boolean
+          description: Whether GET /api/v1/challenges/{id}/image resolves to a photo.
+        overallWinnerAccountId:
+          type: string
+          nullable: true
+          description: Aggregate id, Crockford Base32-encoded TSID. Set once REVEALED (null while OPEN, or if the revealed result was a draw) - lets the history grid tint the winner's name without a separate results call.
 
     CreateChallengeRequest:
       type: object
@@ -878,6 +1130,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tsid'
+
+    PickColorRequest:
+      type: object
+      required: [colorId]
+      properties:
+        colorId:
+          $ref: '#/components/schemas/Tsid'
+          description: Must be one of the 2 active plate colors reserved for this challenge (see GET /api/v1/config).
 
     ChallengeResponse:
       type: object
@@ -990,9 +1250,32 @@ components:
           type: string
           description: Server-rendered display text, e.g. "Alice leads Bob 3-1 (1 draw)".
 
+    DishScoreTotal:
+      type: object
+      required: [label, total]
+      properties:
+        label:
+          $ref: '#/components/schemas/DishLabel'
+        total:
+          type: integer
+          description: Sum of every guest's points for this dish in the parent category.
+
+    CategoryScoreTotal:
+      type: object
+      required: [category, dishTotals]
+      properties:
+        category:
+          $ref: '#/components/schemas/Category'
+        dishTotals:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/DishScoreTotal'
+
     ChallengeResult:
       type: object
-      required: [challengeId, categoryWinners, overallWinnerAccountId, cookAssignments, rivalry]
+      required: [challengeId, categoryWinners, categoryTotals, overallWinnerAccountId, cookAssignments, rivalry]
       properties:
         challengeId:
           $ref: '#/components/schemas/Tsid'
@@ -1003,6 +1286,13 @@ components:
             accountId, or null if that category was a draw.
           additionalProperties:
             $ref: '#/components/schemas/Tsid'
+        categoryTotals:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/CategoryScoreTotal'
+          description: The score table's raw per-category, per-dish point totals - the frontend sums the 3 categories itself for the Total row.
         overallWinnerAccountId:
           type: string
           nullable: true
@@ -1037,7 +1327,7 @@ components:
           $ref: '#/components/schemas/Category'
         points:
           type: integer
-          minimum: 0
+          minimum: 1
           maximum: 5
 
     MyScoreSubmission:
@@ -1054,6 +1344,24 @@ components:
           type: string
           format: date-time
 
+    ParticipantCookAssignment:
+      type: object
+      required: [label, accountId, colorId]
+      properties:
+        label:
+          $ref: '#/components/schemas/DishLabel'
+        accountId:
+          type: string
+          nullable: true
+          description: Aggregate id, Crockford Base32-encoded TSID. Null until the challenge is REVEALED, so guests can't infer blind assignments early.
+        colorId:
+          type: string
+          nullable: true
+          description: >
+            Aggregate id, Crockford Base32-encoded TSID. Visible before reveal (unlike
+            accountId) - blind scoring is done by plate color, so guests need
+            dish-to-color without dish-to-cook. Null until picked.
+
     ParticipantChallenge:
       type: object
       required:
@@ -1064,8 +1372,13 @@ components:
         - status
         - labels
         - categories
+        - participantCookAssignments
+        - hasImage
         - submitted
         - mySubmission
+        - myCookLabel
+        - canScore
+        - canPickColor
       properties:
         id:
           $ref: '#/components/schemas/Tsid'
@@ -1086,14 +1399,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Category'
-        cookAssignments:
+        participantCookAssignments:
           type: array
-          nullable: true
           minItems: 2
           maxItems: 2
           items:
-            $ref: '#/components/schemas/CookAssignment'
-          description: Null until the challenge is REVEALED.
+            $ref: '#/components/schemas/ParticipantCookAssignment'
+          description: Always present (2 entries) - each entry's own accountId is null until REVEALED; colorId is visible from the moment it's picked.
+        hasImage:
+          type: boolean
+          description: Whether GET /api/v1/challenges/{id}/image resolves to a photo.
         submitted:
           type: boolean
           description: Whether the requester has an existing score submission for this challenge.
@@ -1103,6 +1418,17 @@ components:
           description: The requester's own prior submission, for edit-until-reveal pre-fill. Null if not yet submitted.
           allOf:
             - $ref: '#/components/schemas/MyScoreSubmission'
+        myCookLabel:
+          type: string
+          enum: [A, B]
+          nullable: true
+          description: Set to the requester's own label (matches DishLabel) if they are one of this challenge's two cooks; null for a guest/organizer.
+        canScore:
+          type: boolean
+          description: Whether the requester may submit scores (a guest, or the challenge's creator) - cooks may not.
+        canPickColor:
+          type: boolean
+          description: True only if the requester is a cook (myCookLabel set) and neither cook has picked a color yet.
 
     ParticipantChallengeResponse:
       type: object
@@ -1123,7 +1449,7 @@ components:
           $ref: '#/components/schemas/Category'
         points:
           type: integer
-          minimum: 0
+          minimum: 1
           maximum: 5
 
     SubmitScoresRequest:
@@ -1184,6 +1510,64 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/GuestHome'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # --- Self-registration ---
+
+    RegistrationInvite:
+      type: object
+      required: [token, registrationUrl]
+      properties:
+        token:
+          type: string
+        registrationUrl:
+          type: string
+          format: uri
+          description: Full frontend URL to render as a QR code - includes the token.
+
+    RegistrationInviteResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: '#/components/schemas/RegistrationInvite'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    PublicRegistrationRequest:
+      type: object
+      required: [token, firstName, lastName, email]
+      properties:
+        token:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+
+    PublicRegistrationResult:
+      type: object
+      required: [accountId, joined, message]
+      properties:
+        accountId:
+          $ref: '#/components/schemas/Tsid'
+        joined:
+          type: boolean
+          description: False if the challenge closed between QR generation and scan - the account still exists, it just wasn't added as a guest.
+        message:
+          type: string
+          description: Server-rendered display text for the landing page, e.g. "You're registered and joined!" or "You're registered, but this event has already closed."
+
+    PublicRegistrationResultResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: '#/components/schemas/PublicRegistrationResult'
         meta:
           $ref: '#/components/schemas/ApiMeta'
 

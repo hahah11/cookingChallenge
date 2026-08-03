@@ -69,6 +69,112 @@ page-scoped-query/config-endpoint conventions now documented in
 `docs/shared/04-api-design.md` — **Phase 1 (spec authoring) restarts from scratch**, not
 from the old file's content.
 
+**Phase 1 re-done (2026-08-03).** Correction to the note above: the file wasn't actually
+gone — a separate commit (`b7bf0a2`, "revert openapi specs") had reverted `e05bd5e`'s
+deletion and restored the **pre-PRD** spec content (the original Phase 1 from 2026-08-02,
+already covering edit-until-reveal but none of the PRD deltas). This session's work started
+from that restored file, not a blank one, and layered the PRD deltas on top of it rather
+than re-authoring from scratch — same end state either way, less churn. Changes made:
+- **New `GET /api/v1/config`** (`Config` tag) — `{availableRoles, plateColors,
+  featureFlags}`, per `docs/shared/04-api-design.md`'s Configuration Endpoint convention.
+  `availableRoles` **removed** from `AccountListResponse`/`AccountDetailResponse` — this
+  spec's own Phase-1-revised note above is now superseded on that one point; the frontend
+  fetches roles from `/config` at bootstrap instead. `featureFlags` is an empty
+  `additionalProperties: boolean` map for now — no actual flags exist yet, kept only
+  because the shared doc's convention names it as part of this endpoint's shape.
+- **`Score`/`ScoreEntry.points` minimum**: `0` → `1`, per Phase 7.1.
+- **`CookAssignment` gains nullable `colorId`** (organizer-facing; always resolvable once
+  picked, never hidden — the organizer sees identity + color unconditionally).
+- **`Challenge` gains `hasImage: boolean` and nullable `overallWinnerAccountId`** — the
+  history grid needs to tint a revealed winner's name in one list call, without an N+1
+  fetch to `/results` per card; `overallWinnerAccountId` is backed directly by the existing
+  `Challenge.lastRevealResult` from Phase 7.6, no new computation needed.
+- **`ParticipantChallenge` restructured** for the cook/color-pick flow: the old nullable
+  `cookAssignments: CookAssignment[] | null` (all-or-nothing pre-reveal hiding) is replaced
+  by an always-present `participantCookAssignments: ParticipantCookAssignment[]` (new
+  schema) where only **`accountId`** is null pre-reveal — `colorId` is visible from the
+  moment it's picked, because blind scoring is done by plate color ("columns colored solid
+  per cook's color"), which requires dish-to-color without dish-to-cook. Also gains
+  `hasImage`, `myCookLabel` (the requester's own label if they're a cook, else null),
+  `canScore` (backed by `Challenge.canScore`, Phase 7.7), and `canPickColor` (true iff
+  `myCookLabel` is set and neither cook has picked yet) — so the frontend picks
+  score-vs-pick-color-vs-view-only UI from flags instead of inferring a role.
+- **`GET /me/home`'s description reframed** as generically "personalized home for a guest
+  or cook," not guest-only — `open`/`past` now key off `canScore`/`canPickColor` rather
+  than literally "submitted," since a cook's pending action is picking a color, not
+  scoring. The actual bucketing logic is Phase 4's job (`HomeService` rewrite); this is a
+  spec-language change only.
+- **`ChallengeResult` gains `categoryTotals`** (`CategoryScoreTotal[]`/`DishScoreTotal[]`,
+  new schemas) — the mockup's results screen wants a raw per-category, per-dish score
+  table with a Total row, not just `categoryWinners`. `ResultCalculator` already computes
+  these sums internally today and discards them (see
+  `cookoff.domain.service.ResultCalculator`) — Phase 4 either exposes them from there or
+  re-sums from `ScoreSubmission`s at the application layer; deliberately left as a Phase 4
+  implementation choice, not decided here. The frontend sums the 3 category totals itself
+  for the Total row — a plain arithmetic sum, not business logic, so it's fine to leave
+  off the server.
+- **New endpoints, per `frontend-prd.md` §7**: `POST
+  /api/v1/challenges/{id}/color-pick` (link-token gated, cook-only, returns the updated
+  `ParticipantChallengeResponse`), `PATCH`/`GET /api/v1/challenges/{id}/image`
+  (multipart upload / raw-bytes stream), `POST
+  /api/v1/challenges/{id}/registration-invites` (organizer/admin, returns `{token,
+  registrationUrl}` — the controller builds the full URL the same way
+  `SendChallengeInvitationsService` already does for access links), and `POST
+  /api/v1/public/registrations` (new `Public` tag, unauthenticated, gated only by the QR
+  token in the body).
+- **Deferred to Phase 4/controller time, not decided here**: whether the create-challenge
+  dialog's photo upload happens as part of `POST /api/v1/challenges` or as a same-dialog
+  follow-up `PATCH .../image` call — `Challenge.create(...)` doesn't accept an image (Phase
+  7.5 hard-codes `imageRef = null` at creation, only `changeImage(...)` sets it), so
+  `CreateChallengeRequest` was **not** given an image field; the frontend does two calls,
+  UX-sequenced as one dialog.
+- Validated clean with `redocly lint` (0 errors; the 2 pre-existing warnings —
+  missing `info.license`, `/config`'s GET having no 4xx response — are both expected: no
+  license has been chosen for this project, and `/config` genuinely has no failure mode).
+  Re-ran the Phase 2 Gradle codegen smoke test against the updated spec: 7 interfaces now
+  (`AuthApi`/`AccountsApi`/`ChallengesApi`/`RivalriesApi`/`HomeApi` +
+  new `ConfigApi`/`PublicApi`) and 60 model classes (up from 47), `compileJava` succeeds,
+  all 198 backend tests still pass untouched. Phase 3 (domain gap-filling) not started.
+
+**Phase 3 done (2026-08-03).** Gaps 7–12 in the "Domain gaps to fill" list below were
+already built under `backend-persistence-api-security-plan.md`'s Phase 7 (commits `23e5ed1`
+through `cc014e1`) before this session started, so the only work actually left in this
+plan's own Phase 3 was gaps 3–6 — confirmed by re-reading both plans side by side rather
+than assumed. Built, each with unit/integration test coverage in the same style as the
+existing suite (Mockito-free domain tests + `@DataJpaTest` repository round-trips, no
+application-service or controller work — that's still Phase 4/5):
+- **Gap 3** — `CookRivalryRepository.findAll()`, backed by `CookRivalryJpaRepository`'s
+  inherited `findAll()` (already present via `JpaRepository`, no new query needed).
+- **Gap 4** — `ChallengeRepository.findByCookPair(AccountId, AccountId)`, matching either
+  cook-A/B ordering via a new `@Query` on `ChallengeJpaRepository` (the same
+  order-independence `CookRivalry.orderPair` already established for gap 3's aggregate,
+  applied here as a query predicate instead of a canonicalized storage order, since
+  `Challenge` has no equivalent pair-normalization step to reuse).
+- **Gap 5** — `Account.changeEmail(Email)`. Turned out to be the only missing piece per the
+  gap's own note: `grantRole`/`revokeRole` already existed, and `AccountRepository.save()`
+  already upserts by TSID, so no new repository method was needed here — just the domain
+  mutator (`email` field changed from `final` to mutable) plus a null guard, uniqueness
+  staying a repository/application-layer concern per the existing `existsByEmail` pattern.
+- **Gap 6** — `ScoreSubmission.update(List<Score>, Instant)` (scores/`submittedAt` fields
+  changed from `final` to mutable) plus
+  `ScoreSubmissionRepository.findByChallengeIdAndGuestAccountId(...)`, so a future
+  `SubmitScoreService` rewrite (Phase 4) can look up an existing submission and call
+  `update(...)` on it before `save()`, instead of hitting the `score_submissions` unique
+  constraint `ScoreSubmissionRepositoryImpl.save()` currently turns into
+  `DuplicateSubmissionException`. Verified with a repository-level round-trip test
+  (`should_updateInPlace_when_savingAResubmittedScoreSubmission`) that saving the same
+  aggregate twice after `update()` updates the row in place rather than violating the
+  constraint — confirms the upsert path gap 6 called for actually works end-to-end at the
+  persistence layer, not just at the domain-model level.
+- Three existing test doubles (`InMemoryChallengeRepository`/`InMemoryScoreSubmissionRepository`/
+  `InMemoryCookRivalryRepository` in `ChallengeRevealUnrevealRivalryIntegrationTest`) needed
+  the three new interface methods stubbed to keep compiling — trivial no-op/pass-through
+  implementations, no behavior change to that test.
+- `./gradlew build` passes end to end: 207 tests (up from 198; 9 new), including the
+  ArchUnit/jMolecules layering suite, all green. No controller or application-service work
+  done here — that's still Phase 4/5, now unblocked for gaps 3–6 the same way Phase 7 already
+  unblocked it for gaps 7–12.
+
 ## Approach
 
 1. Design an OpenAPI spec shaped around what the UI ([`design-reference.md`](../design-reference.md),
@@ -208,21 +314,16 @@ upsert target instead of a hard reject. See gap 6 below.
    `backend-persistence-api-security-plan.md` Phase 7.6.
 2. ~~`Challenge` cook reassignment + guest removal~~ — **resolved**, see `frontend-prd.md`
    §5.2 and Phase 7.4 (`editParticipants`, including the color-reset rule).
-3. `CookRivalryRepository.findAll()` for the rivalries list screen. *(still open, unchanged
-   by the PRD)*
-4. A `ChallengeRepository` query for "challenges between this cook pair" for the rivalry
-   detail screen (not a `CookRivalry` responsibility — that aggregate has no challenge
-   references, only running counters). *(still open, unchanged by the PRD)*
-5. `Account` update — check whether `Account` has any mutation method today (name/email/roles);
-   if not, add one plus a corresponding `AccountRepository` update path. Email changes need
-   the same uniqueness check `CreateAccountService` already does, surfaced as the new `409`.
-   *(still open, unchanged by the PRD — `Account.rename()`/`changePasswordHash()` already
-   exist per the current domain source; a role add/remove + email-change path is what's
-   still missing)*
-6. `ScoreSubmission` update path — confirmed needed now that edit-until-reveal is decided
-   (see "Resolved" section above): an `update(...)` domain method (or delete-and-recreate),
-   and the repo's unique-constraint path becomes an upsert instead of a hard reject.
-   *(still open, unchanged by the PRD)*
+3. ~~`CookRivalryRepository.findAll()`~~ — **resolved**, backed by the JPA repo's inherited
+   `findAll()`.
+4. ~~A `ChallengeRepository` query for "challenges between this cook pair"~~ — **resolved**,
+   `findByCookPair(AccountId, AccountId)`, order-independent via an `OR`-matched `@Query`.
+5. ~~`Account` update~~ — **resolved**: `grantRole`/`revokeRole` already existed;
+   `changeEmail(Email)` was the only new mutator needed, `AccountRepository.save()` already
+   upserts by id.
+6. ~~`ScoreSubmission` update path~~ — **resolved**: `ScoreSubmission.update(List<Score>,
+   Instant)` plus `ScoreSubmissionRepository.findByChallengeIdAndGuestAccountId(...)` for a
+   future `SubmitScoreService` to look up-then-update instead of insert-and-catch-conflict.
 7. `PlateColor` aggregate + repository + reference data — new, see `frontend-prd.md` §5.2
    and Phase 7.2.
 8. `Challenge.pickColor(...)` — new, Phase 7.3.

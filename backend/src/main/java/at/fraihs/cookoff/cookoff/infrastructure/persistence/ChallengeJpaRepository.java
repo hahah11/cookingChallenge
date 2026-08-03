@@ -13,4 +13,9 @@ interface ChallengeJpaRepository extends JpaRepository<ChallengeJpaEntity, Long>
             + "WHERE c.status = :status AND (c.cookAAccountId = :accountId OR c.cookBAccountId = :accountId OR g = :accountId)")
     List<ChallengeJpaEntity> findByStatusAndParticipant(@Param("status") ChallengeStatus status,
                                                          @Param("accountId") Long accountId);
+
+    @Query("SELECT c FROM ChallengeJpaEntity c WHERE "
+            + "(c.cookAAccountId = :first AND c.cookBAccountId = :second) "
+            + "OR (c.cookAAccountId = :second AND c.cookBAccountId = :first)")
+    List<ChallengeJpaEntity> findByCookPair(@Param("first") Long firstAccountId, @Param("second") Long secondAccountId);
 }

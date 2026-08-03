@@ -22,10 +22,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -71,6 +73,55 @@ class ScoreSubmissionRepositoryImplTest {
                 new ChallengeId(challengeId), new AccountId(guestId));
 
         assertEquals(true, exists);
+    }
+
+    @Test
+    void should_findSubmission_when_queriedByChallengeIdAndGuestAccountId() {
+        long guestId = persistAccount();
+        long challengeId = persistChallenge();
+        repository.save(ScoreSubmission.submit(
+                new ChallengeId(challengeId), new AccountId(guestId), buildScores(), Instant.now()));
+
+        Optional<ScoreSubmission> found = repository.findByChallengeIdAndGuestAccountId(
+                new ChallengeId(challengeId), new AccountId(guestId));
+
+        assertTrue(found.isPresent());
+        assertEquals(new AccountId(guestId), found.get().getGuestAccountId());
+    }
+
+    @Test
+    void should_returnEmpty_when_noSubmissionExistsForChallengeAndGuestAccountId() {
+        long guestId = persistAccount();
+        long challengeId = persistChallenge();
+
+        Optional<ScoreSubmission> found = repository.findByChallengeIdAndGuestAccountId(
+                new ChallengeId(challengeId), new AccountId(guestId));
+
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void should_updateInPlace_when_savingAResubmittedScoreSubmission() {
+        long guestId = persistAccount();
+        long challengeId = persistChallenge();
+        ChallengeId cId = new ChallengeId(challengeId);
+        AccountId guestAccountId = new AccountId(guestId);
+        ScoreSubmission submission = ScoreSubmission.submit(cId, guestAccountId, buildScores(), Instant.now());
+        repository.save(submission);
+
+        ScoreSubmission existing = repository.findByChallengeIdAndGuestAccountId(cId, guestAccountId).orElseThrow();
+        List<Score> revisedScores = new ArrayList<>();
+        for (DishLabel label : DishLabel.values()) {
+            for (Category category : Category.values()) {
+                revisedScores.add(new Score(label, category, 5));
+            }
+        }
+        existing.update(revisedScores, Instant.now());
+        repository.save(existing);
+
+        List<ScoreSubmission> allForChallenge = repository.findByChallengeId(cId);
+        assertEquals(1, allForChallenge.size());
+        assertEquals(revisedScores, allForChallenge.get(0).getScores());
     }
 
     @Test
