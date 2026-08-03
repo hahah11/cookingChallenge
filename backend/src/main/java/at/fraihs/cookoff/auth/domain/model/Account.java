@@ -24,7 +24,11 @@ public class Account {
         this.roles = roles.isEmpty() ? EnumSet.noneOf(SystemRole.class) : EnumSet.copyOf(roles);
     }
 
-    /** No self-registration: an organizer/admin creates every Account (email + name) up front. */
+    /**
+     * Most accounts are created by an organizer/admin up front; the one exception is
+     * self-registration via a QR registration invite (auth.RegistrationInvites), which also
+     * calls this factory with no explicit roles, defaulting to USER.
+     */
     public static Account create(Email email, String name, SystemRole... initialRoles) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Account name must not be blank");

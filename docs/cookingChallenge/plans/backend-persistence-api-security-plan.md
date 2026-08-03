@@ -242,12 +242,16 @@
     `HomeControllerTest` no longer apply now that token verification moved to the filter,
     and are superseded by `SecurityIntegrationTest`'s equivalent).
 
-- **Not started** (Phase 7 — see `docs/cookingChallenge/frontend-prd.md`): the domain/API
-  deltas that PRD introduced on top of everything above — self-registration via
-  organizer-generated QR, cook plate-color self-pick, editable cooks/guests/photo on open
-  challenges, unreveal, a 1–5 (not 0–5) score scale, and narrowing who may score to guests
-  + the challenge's creator. `docs/cookingChallenge/domain-model.puml` already reflects the
-  target state; this plan's new Phase 7 section below sequences the implementation.
+- **Done** (Phase 7 — see `docs/cookingChallenge/frontend-prd.md` and this plan's own Phase 7
+  section below): all eight sub-sections (7.1–7.8) complete — 0–5 → 1–5 score scale,
+  `PlateColor` reference data, cook plate-color self-pick, editable cooks/guests (+ color
+  reset), challenge photo, unreveal + `CookRivalry` reversal, scoring eligibility narrowed to
+  guests + the challenge's creator, and self-registration via organizer-generated QR. Each
+  sub-section's own "Done" block below records its specific deviations from this plan's
+  original text. All 198 backend tests pass. Per this phase's own scope boundary, none of
+  this built REST controllers or touched `openapi/cookingchallenge-api.yaml` — every
+  endpoint named in Phase 7 is a forward reference for `openapi-first-api-plan.md`'s job
+  (see "Explicitly out of scope for this plan" below), which is the next work to pick up.
 
 Read `docs/cookingChallenge/first-plan.md` (the domain/API/data-model design) and
 `docs/cookingChallenge/domain-model.puml` before starting — this plan assumes that
@@ -978,7 +982,7 @@ challenge's `createdBy` account can submit even without being a pre-added guest.
   `SubmitScoreServiceTest` case replacing the old cook-accepted one, 1 additional new
   `SubmitScoreServiceTest` case for the creator).
 
-### 7.8 Self-registration via organizer-generated QR
+### 7.8 Self-registration via organizer-generated QR — Done
 
 - `auth` module, infrastructure-layer like `AccessLink` (not added to `domain-model.puml`,
   same reasoning as `AccessLink` — see `frontend-prd.md`'s "why isn't this in the puml"
@@ -1034,6 +1038,83 @@ challenge-no-longer-open degrade path. The `SecurityIntegrationTest` case confir
 public registration endpoint needs no `Authorization` header/link token is a controller-phase
 check (`openapi-first-api-plan.md` Phase 6/Phase 8) — the endpoint doesn't exist yet at the
 end of this phase.
+
+**Done.** Implementation notes/deviations, per this plan's own instruction to flag them:
+- Built exactly as specified: `registration_invites` table (Liquibase
+  `007-registration-invites.yaml`, registered after `006` in `db.changelog-master.yaml`) has
+  no `used_at`/`created_at` columns, unlike `access_links` — the plan's own literal column
+  list for this table omits them, and nothing here needs either (verification never marks a
+  row used, since one QR must serve many different walk-ins, not just one).
+  `auth.infrastructure.registrationinvite.{RegistrationInviteJpaEntity,
+  RegistrationInviteJpaRepository, RegistrationInviteRepositoryImpl}` mirror
+  `auth.infrastructure.accesslink.*` field-for-field minus those two columns.
+  `auth.application.port.{RegistrationInvite, RegistrationInviteRepository}` and
+  `auth.application.service.RegistrationInviteService` (`issue`/`verify`) mirror
+  `AccessLink`/`AccessLinkRepository`/`AccessLinkService` exactly, including the identical
+  `SecureRandom`/256-bit/Base64url token generation — `verify(String) : long` returns the
+  raw `challengeId`, not an `AccountId`, since (unlike an access link) the token doesn't
+  identify a caller who already has an account.
+- **New `auth.RegistrationInvites` public contract + `auth.RegistrationResult` record**,
+  mirroring `AccountLookup`/`AccountSummary` exactly (interface stays at the module root,
+  keeps `RegistrationInviteService` and `Account` internal). Implemented by
+  `auth.application.service.RegistrationInvitesService`, which wraps
+  `RegistrationInviteService` for `issue`/token-verification and owns the actual account
+  -creation logic for `register(...)`: verify token → reject on
+  `accountRepository.existsByEmail(...)` (same `AccountAlreadyExistsException` `CreateAccountService`
+  already throws, reused rather than adding a new type) → `Account.create(email, fullName)`
+  (no explicit roles passed, so it defaults to `SystemRole.USER` — matches the plan's own
+  wording) → save → return `RegistrationResult(accountId, challengeId)`.
+- **`firstName`/`lastName` are combined into `Account`'s single `name` field** as
+  `(firstName + " " + lastName).trim()` — `Account` has no separate given/family name
+  fields anywhere else in the domain, and this phase's own scope boundary says it stops at
+  the application-service layer, not a `Account` model change; splitting the name into two
+  domain-level fields would be a much larger, unrequested change.
+- **`Account.create(...)`'s Javadoc updated** — it previously stated "No self-registration:
+  an organizer/admin creates every Account up front," which `RegistrationInvitesService`
+  now directly contradicts by calling the same factory. Reworded to note the one exception
+  rather than leaving a now-false comment in place.
+- **`cookoff.application.service.CreateRegistrationInviteService.execute(AccountId,
+  ChallengeId)`** takes typed ids directly rather than a `Command` DTO of base32 strings
+  (deviating from the `PickColorCommand`/`EditChallengeParticipantsCommand`/
+  `UnrevealChallengeCommand` convention every other organizer-action service in this phase
+  uses) — this matches the plan's own literal signature for this one method, and is
+  reasonable here since the eventual controller resolves both a JWT `AccountId` principal
+  and a path-variable `ChallengeId` before calling in, with no other primitive fields to
+  bundle into a DTO. Organizer/admin-gated via `accountLookup.canOrganize(...)` →
+  `ForbiddenException`, same explicit in-service check `EditChallengeParticipantsService`/
+  `ChangeChallengeImageService`/`UnrevealChallengeService` already established for Phase 7's
+  mutation services (not just relying on the security layer, per that established
+  precedent). Rejects with `ChallengeNotOpenException` if the challenge isn't `OPEN`.
+  30-day validity duplicated as its own `private static final Duration INVITE_VALIDITY`
+  constant (the same value as `SendChallengeInvitationsService.LINK_VALIDITY`, which is
+  `private` in a different class and can't actually be referenced/reused across classes —
+  "reuse" here means "same value," not "same field").
+- **`ChallengeNotOpenException`'s message generalized** from "Challenge is not open for
+  scoring: …" to "Challenge is not open: …" — the exception now has two call sites
+  (`SubmitScoreService`, `CreateRegistrationInviteService`) and the old scoring-specific
+  wording would have been actively wrong for the new one. No test asserted the literal
+  message text, so this is a safe, non-breaking generalization rather than a new exception
+  type.
+- **`cookoff.application.service.PublicRegistrationService.execute(String token, String
+  firstName, String lastName, String email) : PublicRegistrationResult`** — new
+  `cookoff.application.dto.PublicRegistrationResult(AccountId accountId, ChallengeId
+  challengeId, boolean joined)` record is the "result flag" the plan's own bullet calls
+  for. Calls `auth.RegistrationInvites.register(...)`, loads the returned challenge, and
+  — if still `OPEN` — calls `challenge.editParticipants(null, null,
+  List.of(result.accountId()), List.of())` (from 7.4) and saves; otherwise leaves `joined =
+  false` and skips the save entirely, exactly per the plan's degrade-path instruction. No
+  new exception types: `AccountAlreadyExistsException`/`InvalidOrExpiredLinkException`
+  propagate straight from `RegistrationInvites.register(...)`, already mapped to 409/401 by
+  the existing `GlobalExceptionHandler`.
+- Both new cookoff-module services additionally got their own Mockito unit test classes
+  (`CreateRegistrationInviteServiceTest`, `PublicRegistrationServiceTest`) beyond what the
+  Verify step named for them, plus `RegistrationInvitesServiceTest` for the new
+  `auth.RegistrationInvites` implementation and a `RegistrationInviteRepositoryImplTest`
+  (`@DataJpaTest`) round-trip — consistent with every earlier 7.x subsection's practice of
+  covering every new service/adapter, not just the ones the Verify bullet named by name.
+- All 198 backend tests pass (180 prior + 18 new: 4 `RegistrationInviteServiceTest`, 2
+  `RegistrationInviteRepositoryImplTest`, 4 `RegistrationInvitesServiceTest`, 4
+  `CreateRegistrationInviteServiceTest`, 4 `PublicRegistrationServiceTest`).
 
 **Verify Phase 7 (whole-phase check, this doc's scope only)**: `./gradlew compileJava
 test` — full domain/application-service/persistence regression, same as every earlier

@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/changelog/changes/005-challenge-image.yaml
   - include:
       file: db/changelog/changes/006-challenge-unreveal.yaml
+  - include:
+      file: db/changelog/changes/007-registration-invites.yaml
