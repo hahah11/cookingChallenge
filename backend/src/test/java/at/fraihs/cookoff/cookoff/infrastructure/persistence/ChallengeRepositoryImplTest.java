@@ -121,6 +121,21 @@ class ChallengeRepositoryImplTest {
         assertEquals(yellow, found.cookAssignmentFor(DishLabel.B).colorId());
     }
 
+    @Test
+    void should_roundTripImageRef_when_savingThenFindingById() {
+        AccountId cookA = new AccountId(persistAccount());
+        AccountId cookB = new AccountId(persistAccount());
+        AccountId organizer = new AccountId(persistAccount());
+        Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+                cookA, cookB, List.of(), organizer);
+        challenge.changeImage("image-ref-1");
+
+        Challenge saved = repository.save(challenge);
+        Challenge found = repository.findById(saved.getId()).orElseThrow();
+
+        assertEquals("image-ref-1", found.getImageRef());
+    }
+
     private PlateColorId persistPlateColor() {
         PlateColorId id = PlateColorId.generate();
         entityManager.persistAndFlush(new PlateColorJpaEntity(id.value(), "Color " + id, "#000000", 1, true));

@@ -21,10 +21,11 @@ public class Challenge {
     private final List<AccountId> guestAccountIds;
     private ChallengeStatus status;
     private final AccountId createdBy;
+    private String imageRef;
 
     private Challenge(ChallengeId id, LocalDate date, String title, DishName dishName,
                        List<CookAssignment> cookAssignments, List<AccountId> guestAccountIds,
-                       ChallengeStatus status, AccountId createdBy) {
+                       ChallengeStatus status, AccountId createdBy, String imageRef) {
         this.id = id;
         this.date = date;
         this.title = title;
@@ -33,6 +34,7 @@ public class Challenge {
         this.guestAccountIds = new ArrayList<>(guestAccountIds);
         this.status = status;
         this.createdBy = createdBy;
+        this.imageRef = imageRef;
     }
 
     public static Challenge create(LocalDate date, String title, DishName dishName,
@@ -58,21 +60,45 @@ public class Challenge {
                 new CookAssignment(cookBAccountId, DishLabel.B)
         );
         return new Challenge(ChallengeId.generate(), date, title, dishName, assignments,
-                List.copyOf(guestAccountIds), ChallengeStatus.OPEN, createdBy);
+                List.copyOf(guestAccountIds), ChallengeStatus.OPEN, createdBy, null);
     }
 
     public static Challenge reconstitute(ChallengeId id, LocalDate date, String title, DishName dishName,
                                           List<CookAssignment> cookAssignments, List<AccountId> guestAccountIds,
-                                          ChallengeStatus status, AccountId createdBy) {
-        return new Challenge(id, date, title, dishName, cookAssignments, guestAccountIds, status, createdBy);
+                                          ChallengeStatus status, AccountId createdBy, String imageRef) {
+        return new Challenge(id, date, title, dishName, cookAssignments, guestAccountIds, status, createdBy, imageRef);
     }
 
-    public void addGuest(AccountId guestAccountId) {
+    /**
+     * Reassigns either/both cooks and adds/removes guests in one atomic edit. Reassigning
+     * either cook clears both cooks' picked plate colors, since a color pick is meaningless
+     * once the person behind the label changes. A {@code null} cook id means "keep the
+     * current cook for that label". Adding an already-present guest or removing an absent
+     * one is a no-op, not an error.
+     */
+    public void editParticipants(AccountId newCookAAccountId, AccountId newCookBAccountId,
+                                  List<AccountId> guestIdsToAdd, List<AccountId> guestIdsToRemove) {
         requireOpen();
-        if (guestAccountIds.contains(guestAccountId)) {
-            throw new IllegalStateException("Account is already a guest of this challenge");
+        CookAssignment currentA = cookAssignmentFor(DishLabel.A);
+        CookAssignment currentB = cookAssignmentFor(DishLabel.B);
+        AccountId resolvedCookA = newCookAAccountId != null ? newCookAAccountId : currentA.accountId();
+        AccountId resolvedCookB = newCookBAccountId != null ? newCookBAccountId : currentB.accountId();
+        if (resolvedCookA.equals(resolvedCookB)) {
+            throw new IllegalArgumentException("The two cooks must be different accounts");
         }
-        guestAccountIds.add(guestAccountId);
+
+        boolean cooksChanged = !resolvedCookA.equals(currentA.accountId()) || !resolvedCookB.equals(currentB.accountId());
+        if (cooksChanged) {
+            cookAssignments.set(cookAssignments.indexOf(currentA), new CookAssignment(resolvedCookA, DishLabel.A));
+            cookAssignments.set(cookAssignments.indexOf(currentB), new CookAssignment(resolvedCookB, DishLabel.B));
+        }
+
+        for (AccountId guestId : guestIdsToAdd) {
+            if (!guestAccountIds.contains(guestId)) {
+                guestAccountIds.add(guestId);
+            }
+        }
+        guestAccountIds.removeAll(guestIdsToRemove);
     }
 
     /**
@@ -107,6 +133,12 @@ public class Challenge {
 
         cookAssignments.set(cookAssignments.indexOf(pickingAssignment), pickingAssignment.withColor(chosenColorId));
         cookAssignments.set(cookAssignments.indexOf(otherAssignment), otherAssignment.withColor(otherColorId));
+    }
+
+    /** Replaces the challenge's photo reference; the old blob's lifecycle is the caller's concern. */
+    public void changeImage(String newImageRef) {
+        requireOpen();
+        this.imageRef = newImageRef;
     }
 
     public CookAssignment cookAssignmentFor(DishLabel label) {
@@ -162,5 +194,9 @@ public class Challenge {
 
     public AccountId getCreatedBy() {
         return createdBy;
+    }
+
+    public String getImageRef() {
+        return imageRef;
     }
 }

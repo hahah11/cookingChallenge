@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-01-add-challenge-image-ref
+      author: fraihs
+      changes:
+        - addColumn:
+            tableName: challenges
+            columns:
+              - column:
+                  name: image_ref
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: 005-02-create-challenge-images
+      author: fraihs
+      comment: >-
+        Adapter-owned storage for challenge photos; not FK'd from challenges — the
+        relationship is adapter-interpreted via challenges.image_ref, per
+        docs/cookingChallenge/frontend-prd.md §6.
+      changes:
+        - createTable:
+            tableName: challenge_images
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: content_type
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data
+                  type: BLOB
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false

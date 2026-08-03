@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/changes/003-create-plate-colors.yaml
   - include:
       file: db/changelog/changes/004-challenge-cook-colors.yaml
+  - include:
+      file: db/changelog/changes/005-challenge-image.yaml

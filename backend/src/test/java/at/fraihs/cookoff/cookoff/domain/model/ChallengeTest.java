@@ -43,18 +43,95 @@ class ChallengeTest {
         Challenge challenge = newChallenge();
         AccountId guest = AccountId.generate();
 
-        challenge.addGuest(guest);
+        challenge.editParticipants(null, null, List.of(guest), List.of());
 
         assertTrue(challenge.isGuest(guest));
     }
 
     @Test
-    void should_throw_when_addingTheSameGuestTwice() {
+    void should_beNoOp_when_addingTheSameGuestTwice() {
         Challenge challenge = newChallenge();
         AccountId guest = AccountId.generate();
-        challenge.addGuest(guest);
+        challenge.editParticipants(null, null, List.of(guest), List.of());
 
-        assertThrows(IllegalStateException.class, () -> challenge.addGuest(guest));
+        challenge.editParticipants(null, null, List.of(guest), List.of());
+
+        assertEquals(1, challenge.getGuestAccountIds().size());
+    }
+
+    @Test
+    void should_removeGuest_when_requested() {
+        Challenge challenge = newChallenge();
+        AccountId guest = AccountId.generate();
+        challenge.editParticipants(null, null, List.of(guest), List.of());
+
+        challenge.editParticipants(null, null, List.of(), List.of(guest));
+
+        assertFalse(challenge.isGuest(guest));
+    }
+
+    @Test
+    void should_beNoOp_when_removingAnAbsentGuest() {
+        Challenge challenge = newChallenge();
+
+        challenge.editParticipants(null, null, List.of(), List.of(AccountId.generate()));
+
+        assertTrue(challenge.getGuestAccountIds().isEmpty());
+    }
+
+    @Test
+    void should_reassignCook_when_newCookProvided() {
+        Challenge challenge = newChallenge();
+        AccountId newCookA = AccountId.generate();
+
+        challenge.editParticipants(newCookA, null, List.of(), List.of());
+
+        assertEquals(newCookA, challenge.cookAssignmentFor(DishLabel.A).accountId());
+        assertEquals(cookB, challenge.cookAssignmentFor(DishLabel.B).accountId());
+    }
+
+    @Test
+    void should_keepCurrentCook_when_cookArgumentIsNull() {
+        Challenge challenge = newChallenge();
+
+        challenge.editParticipants(null, null, List.of(), List.of());
+
+        assertEquals(cookA, challenge.cookAssignmentFor(DishLabel.A).accountId());
+        assertEquals(cookB, challenge.cookAssignmentFor(DishLabel.B).accountId());
+    }
+
+    @Test
+    void should_throw_when_reassigningCooksToTheSameAccount() {
+        Challenge challenge = newChallenge();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> challenge.editParticipants(cookB, null, List.of(), List.of()));
+    }
+
+    @Test
+    void should_clearBothPickedColors_when_eitherCookIsReassigned() {
+        Challenge challenge = newChallenge();
+        challenge.pickColor(cookA, PlateColorId.generate(), PlateColorId.generate());
+        AccountId newCookB = AccountId.generate();
+
+        challenge.editParticipants(null, newCookB, List.of(), List.of());
+
+        assertEquals(null, challenge.cookAssignmentFor(DishLabel.A).colorId());
+        assertEquals(null, challenge.cookAssignmentFor(DishLabel.B).colorId());
+        assertEquals(newCookB, challenge.cookAssignmentFor(DishLabel.B).accountId());
+    }
+
+    @Test
+    void should_keepPickedColors_when_noCookIsReassigned() {
+        Challenge challenge = newChallenge();
+        PlateColorId red = PlateColorId.generate();
+        PlateColorId yellow = PlateColorId.generate();
+        challenge.pickColor(cookA, red, yellow);
+
+        challenge.editParticipants(null, null, List.of(AccountId.generate()), List.of());
+
+        assertEquals(red, challenge.cookAssignmentFor(DishLabel.A).colorId());
+        assertEquals(yellow, challenge.cookAssignmentFor(DishLabel.B).colorId());
     }
 
     @Test
@@ -79,18 +156,19 @@ class ChallengeTest {
     }
 
     @Test
-    void should_throw_when_addingGuestAfterReveal() {
+    void should_throw_when_editingParticipantsAfterReveal() {
         Challenge challenge = newChallenge();
         challenge.reveal(null);
 
-        assertThrows(IllegalStateException.class, () -> challenge.addGuest(AccountId.generate()));
+        assertThrows(IllegalStateException.class,
+                () -> challenge.editParticipants(null, null, List.of(AccountId.generate()), List.of()));
     }
 
     @Test
     void should_beParticipant_when_accountIsACookOrGuest() {
         Challenge challenge = newChallenge();
         AccountId guest = AccountId.generate();
-        challenge.addGuest(guest);
+        challenge.editParticipants(null, null, List.of(guest), List.of());
 
         assertTrue(challenge.isParticipant(cookA));
         assertTrue(challenge.isParticipant(cookB));
@@ -152,5 +230,32 @@ class ChallengeTest {
 
         assertThrows(IllegalStateException.class,
                 () -> challenge.pickColor(cookA, PlateColorId.generate(), PlateColorId.generate()));
+    }
+
+    @Test
+    void should_setImageRef_when_open() {
+        Challenge challenge = newChallenge();
+
+        challenge.changeImage("image-ref-1");
+
+        assertEquals("image-ref-1", challenge.getImageRef());
+    }
+
+    @Test
+    void should_replaceImageRef_when_changedAgain() {
+        Challenge challenge = newChallenge();
+        challenge.changeImage("image-ref-1");
+
+        challenge.changeImage("image-ref-2");
+
+        assertEquals("image-ref-2", challenge.getImageRef());
+    }
+
+    @Test
+    void should_throw_when_changingImageAfterReveal() {
+        Challenge challenge = newChallenge();
+        challenge.reveal(cookA);
+
+        assertThrows(IllegalStateException.class, () -> challenge.changeImage("image-ref-1"));
     }
 }

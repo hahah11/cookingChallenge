@@ -61,4 +61,7 @@ public class ChallengeJpaEntity {
     @CollectionTable(name = "challenge_guests", joinColumns = @JoinColumn(name = "challenge_id"))
     @Column(name = "guest_account_id")
     private List<Long> guestAccountIds = new ArrayList<>();
+
+    @Column(name = "image_ref")
+    private String imageRef;
 }

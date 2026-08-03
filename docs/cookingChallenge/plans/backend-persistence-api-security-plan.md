@@ -691,7 +691,7 @@ assigned; happy path: both colors set atomically) and `PickColorService` (Mockit
   new `PickColorServiceTest` (4 cases, Mockito), `ChallengeRepositoryImplTest` gains one
   round-trip case for the two FK columns).
 
-### 7.4 Edit cooks & guests (+ color reset)
+### 7.4 Edit cooks & guests (+ color reset) — Done
 
 - `Challenge.editParticipants(AccountId? newCookAAccountId, AccountId? newCookBAccountId,
   List<AccountId> guestIdsToAdd, List<AccountId> guestIdsToRemove)` —
@@ -711,7 +711,34 @@ assigned; happy path: both colors set atomically) and `PickColorService` (Mockit
 colors; guest add/remove; reject when not open) and the new service's organizer-gate reject
 path.
 
-### 7.5 Challenge photo
+**Done.** Implementation notes/deviations, per this plan's own instruction to flag them:
+- `addGuest` had exactly zero production callers (`CreateChallengeService` builds the guest
+  list directly via `Challenge.create(...)`, never calls it after the fact) — deleted
+  outright with no caller migration needed; only its own domain tests referenced it, updated
+  to call `editParticipants` instead.
+- **Null cook id means "keep the current cook for that label"**, per the plan's own `?`
+  signature — resolves both labels first, then rejects with `IllegalArgumentException` if the
+  resolved pair would end up equal (mirrors `Challenge.create`'s existing "cooks must be
+  different accounts" guard). Colors are only cleared (via `new CookAssignment(id, label)`'s
+  2-arg constructor, which sets `colorId = null`) when the resolved pair actually differs from
+  the current one — reassigning a cook to the same account it already is, or passing `null`
+  for both, leaves existing picked colors untouched.
+- **Guest add/remove is idempotent, not strict** — a deliberate deviation from the old
+  `addGuest`'s `IllegalStateException` on duplicate add. `editParticipants` is a batch
+  "desired changes" call, not a single fire-once action, so re-adding an already-present guest
+  or removing one that isn't there is a no-op rather than an error; a caller resubmitting the
+  same edit (e.g. a retried PATCH) shouldn't fail on the second attempt.
+- New `cookoff.application.dto.EditChallengeParticipantsCommand(challengeId,
+  organizerAccountId, newCookAAccountId, newCookBAccountId, guestIdsToAdd, guestIdsToRemove)`
+  — all `String`s (base32 ids, nullable cook fields), following the `PickColorCommand`
+  convention of string ids resolved via `fromString(...)` inside the service.
+- `EditChallengeParticipantsService` reuses `ChallengeNotFoundException`/`ForbiddenException`
+  exactly as `CreateChallengeService`/`PickColorService` do — no new exception types needed.
+- All 149 backend tests pass (138 prior + 11 new: `ChallengeTest` gains 7 `editParticipants`
+  cases replacing/extending the 2 old `addGuest` ones, new
+  `EditChallengeParticipantsServiceTest` (4 cases, Mockito)).
+
+### 7.5 Challenge photo — Done
 
 - `cookoff.application.port.ImageStoragePort`: `store(byte[] bytes, String contentType) :
   String (imageRef)` / `resolve(String imageRef) : StoredImage {bytes, contentType}` /
@@ -740,6 +767,50 @@ path.
 **Verify 7.5**: unit test for `Challenge.changeImage`; `@DataJpaTest` round-trips a blob
 through `DatabaseImageStorageAdapter`. Content-type handling and the 404-when-no-image case
 are `@WebMvcTest` concerns for the controller phase, not this one.
+
+**Done.** Implementation notes/deviations, per this plan's own instruction to flag them:
+- **`imageRef` added to `Challenge` only via the private constructor and `reconstitute(...)`,
+  not `create(...)`** — a brand-new challenge has no photo yet, so `create(...)` hard-codes
+  `null` the same way it hard-codes `status = OPEN`; only `ChallengeMapper.toDomain` needed
+  updating for the new `reconstitute(...)` parameter, avoiding a ripple through every
+  `Challenge.create(...)` call site across the test suite.
+- **`challenge_images.data` uses Liquibase's generic `BLOB` type, not the literal `BYTEA`
+  the plan's own bullet names** — `BYTEA` is Postgres-specific syntax; Liquibase's `BLOB`
+  translates per-database (Postgres `bytea`, H2 `BLOB`/`VARBINARY`), which is what actually
+  makes the `@DataJpaTest` below runnable against H2 without a Postgres-compatibility-mode
+  workaround. No behavior change on the Postgres side.
+- **`ChallengeJpaEntity`'s Lombok `@AllArgsConstructor` is positional** (same caveat 7.3
+  already flagged for `cookAColorId`/`cookBColorId`) — `imageRef` was appended as the
+  *last* constructor argument rather than inserted mid-list, specifically so the two
+  existing direct-construction test call sites (`AccessLinkRepositoryImplTest`,
+  `ScoreSubmissionRepositoryImplTest`) only needed one `null` appended, not a full
+  positional re-read.
+- **`imageRef` is a TSID, base32-encoded** (`TsidSupport.generate()`/`toBase32`/
+  `fromBase32`), matching every other id the codebase ever exposes past its own layer,
+  rather than a raw `challenge_images.id` long — `DatabaseImageStorageAdapter.resolve`/
+  `delete` decode it back with `TsidSupport.fromBase32`. There's no `ChallengeImageId`
+  value object, though — this table isn't a domain aggregate (same "adapter storage, not
+  in `domain-model.puml`" reasoning as `AccessLink`), so a bare `String` ref is enough.
+- **`ChangeChallengeImageCommand` holds `contentType` but not the image bytes** — a
+  command record with a `byte[]` field would inherit `record`'s array-identity
+  `equals`/`hashCode`, which is a known footgun; `ChangeChallengeImageService.execute`
+  instead takes `(ChangeChallengeImageCommand command, byte[] imageBytes)` as two
+  parameters. Same reasoning applied to `StoredImage`/`ImageStoragePort.resolve`'s
+  return type, which the plan itself specifies as a `{bytes, contentType}` record — kept
+  as specified since nothing in this phase needs to compare two `StoredImage`s for
+  equality.
+- `ChallengeImageNotFoundException` added to `cookoff.application.exception` for
+  `ImageStoragePort.resolve`'s not-found case — not wired into `GlobalExceptionHandler`
+  yet, per this phase's own "controller-phase concern" scope boundary; the 404 mapping is
+  `openapi-first-api-plan.md`'s job once `GET .../image` exists.
+- Added one extra `@DataJpaTest` case to the pre-existing `ChallengeRepositoryImplTest`
+  round-tripping `imageRef` through `ChallengeMapper`/`ChallengeJpaEntity`, beyond what
+  Verify 7.5 asked for — consistent with 7.3's own precedent of covering every new mapped
+  field, not just the adapter this section names.
+- All 160 backend tests pass (149 prior + 11 new: `ChallengeTest` gains 3 `changeImage`
+  cases, new `ChangeChallengeImageServiceTest` (4 cases, Mockito), new
+  `DatabaseImageStorageAdapterTest` (3 cases, `@DataJpaTest`), `ChallengeRepositoryImplTest`
+  gains 1 `imageRef` round-trip case).
 
 ### 7.6 Unreveal + `CookRivalry` reversal
 

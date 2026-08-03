@@ -38,7 +38,8 @@ public interface ChallengeMapper {
                 cookAssignments,
                 guestAccountIds,
                 entity.getStatus(),
-                new AccountId(entity.getCreatedByAccountId()));
+                new AccountId(entity.getCreatedByAccountId()),
+                entity.getImageRef());
     }
 
     default ChallengeJpaEntity toEntity(Challenge challenge) {
@@ -58,7 +59,8 @@ public interface ChallengeMapper {
                 toRawId(cookB.colorId()),
                 challenge.getStatus(),
                 challenge.getCreatedBy().value(),
-                new ArrayList<>(guestAccountIds));
+                new ArrayList<>(guestAccountIds),
+                challenge.getImageRef());
     }
 
     private static PlateColorId toPlateColorId(Long rawId) {
