@@ -9,5 +9,5 @@ import jakarta.validation.constraints.NotNull;
 public record ScoreEntryRequest(
         @NotBlank(message = "dish is required") String dish,
         @NotBlank(message = "category is required") String category,
-        @NotNull(message = "points is required") @Min(0) @Max(5) Integer points) {
+        @NotNull(message = "points is required") @Min(1) @Max(5) Integer points) {
 }

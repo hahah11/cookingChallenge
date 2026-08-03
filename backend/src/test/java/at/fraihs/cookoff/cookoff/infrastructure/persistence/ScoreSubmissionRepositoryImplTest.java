@@ -9,6 +9,8 @@ import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
+import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
+import jakarta.persistence.PersistenceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +84,20 @@ class ScoreSubmissionRepositoryImplTest {
         ScoreSubmission secondSubmission = ScoreSubmission.submit(cId, guestAccountId, buildScores(), Instant.now());
 
         assertThrows(DuplicateSubmissionException.class, () -> repository.save(secondSubmission));
+    }
+
+    @Test
+    void should_rejectZeroPoints_when_insertedDirectlyBypassingDomainGuard() {
+        long guestId = persistAccount();
+        long challengeId = persistChallenge();
+        ScoreSubmissionJpaEntity entity = new ScoreSubmissionJpaEntity();
+        entity.setId(ScoreSubmissionId.generate().value());
+        entity.setChallengeId(challengeId);
+        entity.setGuestAccountId(guestId);
+        entity.setSubmittedAt(Instant.now());
+        entity.setScores(List.of(new ScoreEmbeddable(DishLabel.A, Category.GESCHMACK, 0)));
+
+        assertThrows(PersistenceException.class, () -> entityManager.persistAndFlush(entity));
     }
 
     private long persistAccount() {

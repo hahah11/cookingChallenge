@@ -9,13 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ScoreTest {
 
     @ParameterizedTest
-    @ValueSource(ints = {0, 1, 2, 3, 4, 5})
+    @ValueSource(ints = {1, 2, 3, 4, 5})
     void should_accept_when_pointsInRange(int points) {
         new Score(DishLabel.A, Category.GESCHMACK, points);
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {-1, 6, 100})
+    @ValueSource(ints = {-1, 0, 6, 100})
     void should_throw_when_pointsOutOfRange(int points) {
         assertThrows(IllegalArgumentException.class, () -> new Score(DishLabel.A, Category.GESCHMACK, points));
     }

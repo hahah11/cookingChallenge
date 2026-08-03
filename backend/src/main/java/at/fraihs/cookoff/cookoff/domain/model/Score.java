@@ -12,8 +12,8 @@ public record Score(DishLabel dishLabel, Category category, int points) {
         if (category == null) {
             throw new IllegalArgumentException("category must not be null");
         }
-        if (points < 0 || points > 5) {
-            throw new IllegalArgumentException("points must be between 0 and 5, was " + points);
+        if (points < 1 || points > 5) {
+            throw new IllegalArgumentException("points must be between 1 and 5, was " + points);
         }
     }
 }
