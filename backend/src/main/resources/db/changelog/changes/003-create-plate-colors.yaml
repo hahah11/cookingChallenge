@@ -1,0 +1,79 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-01-create-plate-colors
+      author: fraihs
+      changes:
+        - createTable:
+            tableName: plate_colors
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: hex_code
+                  type: VARCHAR(7)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sort_order
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 003-02-seed-plate-colors
+      author: fraihs
+      comment: >-
+        Placeholder hex values (standard web red/yellow) — replace with the real
+        "Modernist" design-system tokens from design-reference.md before this ships.
+      changes:
+        - insert:
+            tableName: plate_colors
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 872066897071997742
+              - column:
+                  name: name
+                  value: Red
+              - column:
+                  name: hex_code
+                  value: "#E63946"
+              - column:
+                  name: sort_order
+                  valueNumeric: 1
+              - column:
+                  name: active
+                  valueBoolean: true
+        - insert:
+            tableName: plate_colors
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 872066897294297700
+              - column:
+                  name: name
+                  value: Yellow
+              - column:
+                  name: hex_code
+                  value: "#F4D35E"
+              - column:
+                  name: sort_order
+                  valueNumeric: 2
+              - column:
+                  name: active
+                  valueBoolean: true

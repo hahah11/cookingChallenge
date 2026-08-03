@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-01-widen-scores-points-range-to-1-5
+      author: fraihs
+      changes:
+        - sql:
+            sql: >-
+              ALTER TABLE scores
+              DROP CONSTRAINT chk_scores_points_range
+        - sql:
+            sql: >-
+              ALTER TABLE scores
+              ADD CONSTRAINT chk_scores_points_range CHECK (points BETWEEN 1 AND 5)
