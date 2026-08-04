@@ -56,6 +56,6 @@ public class ResultCalculator {
             overallWinner = challenge.cookAssignmentFor(DishLabel.B).accountId();
         }
 
-        return new ChallengeResult(categoryWinners, overallWinner);
+        return new ChallengeResult(categoryWinners, totals, overallWinner);
     }
 }

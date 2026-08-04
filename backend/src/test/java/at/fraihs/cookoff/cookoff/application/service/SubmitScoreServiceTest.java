@@ -1,29 +1,35 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.ScoreInput;
-import at.fraihs.cookoff.cookoff.application.dto.SubmitScoreCommand;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotOpenException;
-import at.fraihs.cookoff.cookoff.application.exception.DuplicateSubmissionException;
-import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
+import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
+import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.Category;
+import at.fraihs.cookoff.shared.web.openapi.model.DishLabel;
+import at.fraihs.cookoff.shared.web.openapi.model.ScoreEntry;
+import at.fraihs.cookoff.shared.web.openapi.model.SubmitScoresRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,11 +56,21 @@ class SubmitScoreServiceTest {
                 cookAId, cookBId, guests, organizerId);
     }
 
-    private List<ScoreInput> sixValidScores() {
-        List<ScoreInput> scores = new java.util.ArrayList<>();
-        for (String label : List.of("A", "B")) {
-            for (String category : List.of("MUNDGEFUEHL", "TELLERSPRACHE", "GESCHMACK")) {
-                scores.add(new ScoreInput(label, category, 3));
+    private SubmitScoresRequest sixValidScores() {
+        List<ScoreEntry> scores = new ArrayList<>();
+        for (DishLabel label : DishLabel.values()) {
+            for (Category category : Category.values()) {
+                scores.add(new ScoreEntry(label, category, 3));
+            }
+        }
+        return new SubmitScoresRequest(scores);
+    }
+
+    private List<Score> sixDomainScores() {
+        List<Score> scores = new ArrayList<>();
+        for (at.fraihs.cookoff.cookoff.domain.model.DishLabel label : at.fraihs.cookoff.cookoff.domain.model.DishLabel.values()) {
+            for (at.fraihs.cookoff.cookoff.domain.model.Category category : at.fraihs.cookoff.cookoff.domain.model.Category.values()) {
+                scores.add(new Score(label, category, 3));
             }
         }
         return scores;
@@ -64,12 +80,27 @@ class SubmitScoreServiceTest {
     void should_submitScores_when_guestIsAParticipantAndHasNotSubmittedYet() {
         Challenge challenge = openChallenge(List.of(guestId));
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
-        when(scoreSubmissionRepository.existsByChallengeIdAndGuestAccountId(challenge.getId(), guestId))
-                .thenReturn(false);
+        when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), guestId))
+                .thenReturn(Optional.empty());
 
-        service.execute(new SubmitScoreCommand(challenge.getId().toString(), guestId.toString(), sixValidScores()));
+        SubmitScoreService.Result result = service.execute(challenge.getId().toString(), guestId, sixValidScores());
 
+        assertTrue(result.created());
         verify(scoreSubmissionRepository).save(any(ScoreSubmission.class));
+    }
+
+    @Test
+    void should_updateExistingSubmission_when_guestResubmitsBeforeReveal() {
+        Challenge challenge = openChallenge(List.of(guestId));
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        ScoreSubmission existing = ScoreSubmission.submit(challenge.getId(), guestId, sixDomainScores(), Instant.now());
+        when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), guestId))
+                .thenReturn(Optional.of(existing));
+
+        SubmitScoreService.Result result = service.execute(challenge.getId().toString(), guestId, sixValidScores());
+
+        assertFalse(result.created());
+        verify(scoreSubmissionRepository).save(existing);
     }
 
     @Test
@@ -77,18 +108,18 @@ class SubmitScoreServiceTest {
         Challenge challenge = openChallenge(List.of());
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
-        assertThrows(NotAParticipantException.class, () -> service.execute(
-                new SubmitScoreCommand(challenge.getId().toString(), cookAId.toString(), sixValidScores())));
+        assertThrows(ForbiddenException.class, () -> service.execute(
+                challenge.getId().toString(), cookAId, sixValidScores()));
     }
 
     @Test
     void should_submitScores_when_accountIsTheCreatorRatherThanAPreAddedGuest() {
         Challenge challenge = openChallenge(List.of());
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
-        when(scoreSubmissionRepository.existsByChallengeIdAndGuestAccountId(challenge.getId(), organizerId))
-                .thenReturn(false);
+        when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), organizerId))
+                .thenReturn(Optional.empty());
 
-        service.execute(new SubmitScoreCommand(challenge.getId().toString(), organizerId.toString(), sixValidScores()));
+        service.execute(challenge.getId().toString(), organizerId, sixValidScores());
 
         verify(scoreSubmissionRepository).save(any(ScoreSubmission.class));
     }
@@ -99,7 +130,7 @@ class SubmitScoreServiceTest {
         when(challengeRepository.findById(missingId)).thenReturn(Optional.empty());
 
         assertThrows(ChallengeNotFoundException.class, () -> service.execute(
-                new SubmitScoreCommand(missingId.toString(), guestId.toString(), sixValidScores())));
+                missingId.toString(), guestId, sixValidScores()));
     }
 
     @Test
@@ -109,7 +140,7 @@ class SubmitScoreServiceTest {
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
         assertThrows(ChallengeNotOpenException.class, () -> service.execute(
-                new SubmitScoreCommand(challenge.getId().toString(), guestId.toString(), sixValidScores())));
+                challenge.getId().toString(), guestId, sixValidScores()));
     }
 
     @Test
@@ -117,18 +148,7 @@ class SubmitScoreServiceTest {
         Challenge challenge = openChallenge(List.of());
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
-        assertThrows(NotAParticipantException.class, () -> service.execute(
-                new SubmitScoreCommand(challenge.getId().toString(), guestId.toString(), sixValidScores())));
-    }
-
-    @Test
-    void should_throw_when_guestHasAlreadySubmitted() {
-        Challenge challenge = openChallenge(List.of(guestId));
-        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
-        when(scoreSubmissionRepository.existsByChallengeIdAndGuestAccountId(challenge.getId(), guestId))
-                .thenReturn(true);
-
-        assertThrows(DuplicateSubmissionException.class, () -> service.execute(
-                new SubmitScoreCommand(challenge.getId().toString(), guestId.toString(), sixValidScores())));
+        assertThrows(ForbiddenException.class, () -> service.execute(
+                challenge.getId().toString(), guestId, sixValidScores()));
     }
 }

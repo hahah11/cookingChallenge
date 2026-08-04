@@ -1,12 +1,13 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.ChallengeParticipantView;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,8 +19,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +29,9 @@ class GetChallengeForParticipantServiceTest {
 
     @Mock
     private ChallengeRepository challengeRepository;
+
+    @Mock
+    private ScoreSubmissionRepository scoreSubmissionRepository;
 
     @InjectMocks
     private GetChallengeForParticipantService service;
@@ -46,10 +50,12 @@ class GetChallengeForParticipantServiceTest {
     void should_hideCookMapping_when_notYetRevealed() {
         Challenge challenge = challenge();
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), guest))
+                .thenReturn(Optional.empty());
 
-        ChallengeParticipantView view = service.execute(challenge.getId().toString(), guest);
+        ParticipantChallenge view = service.execute(challenge.getId().toString(), guest);
 
-        assertNull(view.cookAssignments());
+        assertTrue(view.getParticipantCookAssignments().stream().allMatch(a -> a.getAccountId().get() == null));
     }
 
     @Test
@@ -74,9 +80,12 @@ class GetChallengeForParticipantServiceTest {
         Challenge challenge = challenge();
         challenge.reveal(cookA);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), guest))
+                .thenReturn(Optional.empty());
 
-        ChallengeParticipantView view = service.execute(challenge.getId().toString(), guest);
+        ParticipantChallenge view = service.execute(challenge.getId().toString(), guest);
 
-        assertEquals(2, view.cookAssignments().size());
+        assertEquals(2, view.getParticipantCookAssignments().size());
+        assertTrue(view.getParticipantCookAssignments().stream().allMatch(a -> a.getAccountId().get() != null));
     }
 }

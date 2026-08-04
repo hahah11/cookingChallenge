@@ -8,9 +8,12 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.port.NotificationPort;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.InvitationsSent;
+import at.fraihs.cookoff.shared.web.openapi.model.SendInvitationsRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,6 +40,9 @@ class SendChallengeInvitationsServiceTest {
 
     @Mock
     private ChallengeRepository challengeRepository;
+
+    @Mock
+    private ScoreSubmissionRepository scoreSubmissionRepository;
 
     @Mock
     private AccountLookup accountLookup;
@@ -64,34 +71,48 @@ class SendChallengeInvitationsServiceTest {
     }
 
     @Test
-    void should_issueLinkAndNotify_forEachDistinctParticipant_when_challengeExists() {
+    void should_issueLinkAndNotify_forEveryGuestWhoHasNotSubmitted_when_requestOmitted() {
         Challenge challenge = challenge();
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
-        when(accountLookup.getById(any(AccountId.class)))
-                .thenAnswer(invocation -> accountFor(invocation.getArgument(0)));
-        when(accessLinkService.issue(any(AccountId.class), anyLong(), any(Duration.class))).thenReturn("token");
+        when(scoreSubmissionRepository.findByChallengeId(challenge.getId())).thenReturn(List.of());
+        when(accountLookup.getById(guestId)).thenReturn(accountFor(guestId));
+        when(accessLinkService.issue(eq(guestId), anyLong(), any(Duration.class))).thenReturn("token");
 
-        int sent = service.execute(challenge.getId().toString());
+        InvitationsSent sent = service.execute(challenge.getId().toString(), null);
 
-        assertEquals(3, sent);
-        verify(accessLinkService, times(3)).issue(any(AccountId.class), anyLong(), any(Duration.class));
-        verify(notificationPort, times(3)).sendAccessLink(any(Email.class), anyString());
+        assertEquals(1, sent.getCount());
+        verify(accessLinkService, times(1)).issue(eq(guestId), anyLong(), any(Duration.class));
+        verify(notificationPort, times(1)).sendAccessLink(any(Email.class), anyString());
+    }
+
+    @Test
+    void should_targetExactGuests_when_requestProvidesIds() {
+        Challenge challenge = challenge();
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(accountLookup.getById(guestId)).thenReturn(accountFor(guestId));
+        when(accessLinkService.issue(eq(guestId), anyLong(), any(Duration.class))).thenReturn("token");
+
+        InvitationsSent sent = service.execute(challenge.getId().toString(),
+                new SendInvitationsRequest().guestAccountIds(List.of(guestId.toString())));
+
+        assertEquals(1, sent.getCount());
     }
 
     @Test
     void should_throw_when_challengeDoesNotExist() {
         when(challengeRepository.findById(any())).thenReturn(Optional.empty());
 
-        assertThrows(ChallengeNotFoundException.class, () -> service.execute(cookAId.toString()));
+        assertThrows(ChallengeNotFoundException.class, () -> service.execute(cookAId.toString(), null));
     }
 
     @Test
     void should_throw_when_participantAccountMissing() {
         Challenge challenge = challenge();
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(scoreSubmissionRepository.findByChallengeId(challenge.getId())).thenReturn(List.of());
         when(accountLookup.getById(any(AccountId.class)))
                 .thenThrow(new AccountNotFoundException("missing"));
 
-        assertThrows(AccountNotFoundException.class, () -> service.execute(challenge.getId().toString()));
+        assertThrows(AccountNotFoundException.class, () -> service.execute(challenge.getId().toString(), null));
     }
 }

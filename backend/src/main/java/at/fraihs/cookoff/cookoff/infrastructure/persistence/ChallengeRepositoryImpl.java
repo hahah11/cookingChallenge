@@ -3,9 +3,10 @@ package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
-import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,13 +25,13 @@ class ChallengeRepositoryImpl implements ChallengeRepository {
     }
 
     @Override
-    public List<Challenge> findAll() {
-        return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    public Page<Challenge> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(mapper::toDomain);
     }
 
     @Override
-    public List<Challenge> findOpenByParticipant(AccountId accountId) {
-        return jpaRepository.findByStatusAndParticipant(ChallengeStatus.OPEN, accountId.value()).stream()
+    public List<Challenge> findByParticipant(AccountId accountId) {
+        return jpaRepository.findByParticipant(accountId.value()).stream()
                 .map(mapper::toDomain)
                 .toList();
     }

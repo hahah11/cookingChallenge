@@ -1,8 +1,9 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.UnrevealChallengeCommand;
+import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.event.ChallengeRevealedRivalryUpdater;
 import at.fraihs.cookoff.cookoff.application.event.ChallengeUnrevealedRivalryUpdater;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeRevealed;
@@ -24,6 +25,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -59,36 +63,62 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
     private final InMemoryScoreSubmissionRepository scoreSubmissionRepository = new InMemoryScoreSubmissionRepository();
     private final InMemoryCookRivalryRepository cookRivalryRepository = new InMemoryCookRivalryRepository();
 
+    private final List<Object> pendingEvents = new ArrayList<>();
+    private ChallengeRevealedRivalryUpdater revealedUpdater;
+    private ChallengeUnrevealedRivalryUpdater unrevealedUpdater;
+
     private RevealChallengeService revealChallengeService;
     private UnrevealChallengeService unrevealChallengeService;
 
     @BeforeEach
     void setUp() {
-        ChallengeRevealedRivalryUpdater revealedUpdater = new ChallengeRevealedRivalryUpdater(cookRivalryRepository);
-        ChallengeUnrevealedRivalryUpdater unrevealedUpdater = new ChallengeUnrevealedRivalryUpdater(cookRivalryRepository);
-        var synchronousPublisher = new org.springframework.context.ApplicationEventPublisher() {
+        revealedUpdater = new ChallengeRevealedRivalryUpdater(cookRivalryRepository);
+        unrevealedUpdater = new ChallengeUnrevealedRivalryUpdater(cookRivalryRepository);
+        // Queues events instead of dispatching inline, standing in for
+        // @TransactionalEventListener(phase = AFTER_COMMIT) - which does NOT run while
+        // RevealChallengeService/UnrevealChallengeService are still executing (see their own
+        // in-memory CookRivalry projection, needed precisely because the real listener hasn't
+        // run yet at that point). Tests call commit() to simulate the transaction committing.
+        var deferredPublisher = new org.springframework.context.ApplicationEventPublisher() {
             @Override
             public void publishEvent(Object event) {
-                if (event instanceof ChallengeRevealed revealed) {
-                    revealedUpdater.on(revealed);
-                } else if (event instanceof ChallengeUnrevealed unrevealed) {
-                    unrevealedUpdater.on(unrevealed);
-                }
+                pendingEvents.add(event);
             }
         };
-        revealChallengeService = new RevealChallengeService(challengeRepository, scoreSubmissionRepository, synchronousPublisher);
-        unrevealChallengeService = new UnrevealChallengeService(accountLookup, challengeRepository, synchronousPublisher);
+        revealChallengeService = new RevealChallengeService(
+                challengeRepository, scoreSubmissionRepository, cookRivalryRepository, accountLookup, deferredPublisher);
+        unrevealChallengeService = new UnrevealChallengeService(
+                accountLookup, challengeRepository, scoreSubmissionRepository, deferredPublisher);
+    }
+
+    private void commit() {
+        for (Object event : pendingEvents) {
+            if (event instanceof ChallengeRevealed revealed) {
+                revealedUpdater.on(revealed);
+            } else if (event instanceof ChallengeUnrevealed unrevealed) {
+                unrevealedUpdater.on(unrevealed);
+            }
+        }
+        pendingEvents.clear();
     }
 
     @Test
     void should_endUpWithCorrectRivalryCounters_when_revealingUnrevealingAndReRevealingWithADifferentResult() {
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
+        when(accountLookup.getById(cookAId)).thenReturn(new AccountSummary(cookAId, new Email("a@x.com"), "Cook A"));
+        when(accountLookup.getById(cookBId)).thenReturn(new AccountSummary(cookBId, new Email("b@x.com"), "Cook B"));
         Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(guestId), organizerId);
         challengeRepository.save(challenge);
         scoreSubmissionRepository.replace(challenge.getId(), cookAWinsSubmission(challenge.getId()));
 
-        revealChallengeService.execute(challenge.getId().toString());
+        at.fraihs.cookoff.shared.web.openapi.model.ChallengeResult firstRevealResponse =
+                revealChallengeService.execute(challenge.getId().toString());
+        // The response must already reflect this reveal's own rivalry update, even though
+        // ChallengeRevealedRivalryUpdater (AFTER_COMMIT) hasn't run yet - commit() below is
+        // still pending. This is the specific bug this test guards against.
+        assertEquals("Cook A leads Cook B 1-0", firstRevealResponse.getRivalry().getHeadline());
+        commit();
 
         CookRivalry afterFirstReveal = cookRivalryRepository.findByPair(cookAId, cookBId).orElseThrow();
         assertEquals(1, afterFirstReveal.getCookAWins());
@@ -96,7 +126,8 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         assertEquals(0, afterFirstReveal.getDraws());
         assertEquals(1, afterFirstReveal.getTotalChallenges());
 
-        unrevealChallengeService.execute(new UnrevealChallengeCommand(challenge.getId().toString(), organizerId.toString()));
+        unrevealChallengeService.execute(challenge.getId().toString(), organizerId);
+        commit();
 
         CookRivalry afterUnreveal = cookRivalryRepository.findByPair(cookAId, cookBId).orElseThrow();
         assertEquals(0, afterUnreveal.getCookAWins());
@@ -108,6 +139,7 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         scoreSubmissionRepository.replace(challenge.getId(), cookBWinsSubmission(challenge.getId()));
 
         revealChallengeService.execute(challenge.getId().toString());
+        commit();
 
         CookRivalry afterSecondReveal = cookRivalryRepository.findByPair(cookAId, cookBId).orElseThrow();
         assertEquals(0, afterSecondReveal.getCookAWins());
@@ -147,12 +179,12 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         }
 
         @Override
-        public List<Challenge> findAll() {
-            return List.copyOf(store.values());
+        public Page<Challenge> findAll(Pageable pageable) {
+            return new PageImpl<>(List.copyOf(store.values()), pageable, store.size());
         }
 
         @Override
-        public List<Challenge> findOpenByParticipant(AccountId accountId) {
+        public List<Challenge> findByParticipant(AccountId accountId) {
             return List.of();
         }
 
@@ -213,12 +245,20 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         @Override
         public Optional<CookRivalry> findByPair(AccountId firstAccountId, AccountId secondAccountId) {
             AccountId[] ordered = CookRivalry.orderPair(firstAccountId, secondAccountId);
-            return Optional.ofNullable(store.get(key(ordered[0], ordered[1])));
+            // Reconstructs a detached copy, like a real JPA-backed repository mapping a fresh
+            // domain object per call - returning the live stored reference would let
+            // RevealChallengeService's in-memory (unsaved) recordResult() mutate persisted
+            // state as a side effect, double-counting once ChallengeRevealedRivalryUpdater's
+            // own recordResult() runs on commit().
+            return Optional.ofNullable(store.get(key(ordered[0], ordered[1])))
+                    .map(rivalry -> CookRivalry.reconstitute(rivalry.getId(), rivalry.getCookAAccountId(),
+                            rivalry.getCookBAccountId(), rivalry.getCookAWins(), rivalry.getCookBWins(),
+                            rivalry.getDraws(), rivalry.getTotalChallenges()));
         }
 
         @Override
-        public org.springframework.data.domain.Page<CookRivalry> findAll(org.springframework.data.domain.Pageable pageable) {
-            return new org.springframework.data.domain.PageImpl<>(List.copyOf(store.values()), pageable, store.size());
+        public Page<CookRivalry> findAll(Pageable pageable) {
+            return new PageImpl<>(List.copyOf(store.values()), pageable, store.size());
         }
 
         @Override

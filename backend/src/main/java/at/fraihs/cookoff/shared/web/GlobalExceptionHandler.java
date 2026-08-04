@@ -4,6 +4,7 @@ import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsExceptio
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
 import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
 import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkException;
+import at.fraihs.cookoff.cookoff.application.exception.ChallengeImageNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotOpenException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotRevealedException;
@@ -66,7 +67,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({AccountNotFoundException.class, ChallengeNotFoundException.class,
-            ChallengeNotRevealedException.class, RivalryNotFoundException.class})
+            ChallengeNotRevealedException.class, RivalryNotFoundException.class, ChallengeImageNotFoundException.class})
     public ResponseEntity<ApiErrorResponse> handleNotFound(RuntimeException ex) {
         return error(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage());
     }

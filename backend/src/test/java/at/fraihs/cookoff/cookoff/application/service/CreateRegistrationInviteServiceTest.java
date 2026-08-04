@@ -10,6 +10,7 @@ import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.RegistrationInvite;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -58,16 +59,17 @@ class CreateRegistrationInviteServiceTest {
         when(registrationInvites.issue(organizerId, challenge.getId().value(), Duration.ofDays(30)))
                 .thenReturn("tok");
 
-        String token = service.execute(organizerId, challenge.getId());
+        RegistrationInvite invite = service.execute(challenge.getId().toString(), organizerId);
 
-        assertEquals("tok", token);
+        assertEquals("tok", invite.getToken());
     }
 
     @Test
     void should_throw_when_accountCannotOrganize() {
         when(accountLookup.canOrganize(organizerId)).thenReturn(false);
 
-        assertThrows(ForbiddenException.class, () -> service.execute(organizerId, ChallengeId.generate()));
+        assertThrows(ForbiddenException.class,
+                () -> service.execute(ChallengeId.generate().toString(), organizerId));
         verify(challengeRepository, never()).findById(any());
     }
 
@@ -77,7 +79,7 @@ class CreateRegistrationInviteServiceTest {
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
         when(challengeRepository.findById(missingId)).thenReturn(Optional.empty());
 
-        assertThrows(ChallengeNotFoundException.class, () -> service.execute(organizerId, missingId));
+        assertThrows(ChallengeNotFoundException.class, () -> service.execute(missingId.toString(), organizerId));
     }
 
     @Test
@@ -87,7 +89,8 @@ class CreateRegistrationInviteServiceTest {
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
-        assertThrows(ChallengeNotOpenException.class, () -> service.execute(organizerId, challenge.getId()));
+        assertThrows(ChallengeNotOpenException.class,
+                () -> service.execute(challenge.getId().toString(), organizerId));
         verify(registrationInvites, never()).issue(any(), org.mockito.ArgumentMatchers.anyLong(), any());
     }
 }

@@ -3,12 +3,12 @@ package at.fraihs.cookoff.shared.security;
 import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.application.service.CreateAccountService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.ChallengeView;
-import at.fraihs.cookoff.cookoff.application.dto.CreateChallengeCommand;
 import at.fraihs.cookoff.cookoff.application.service.CreateChallengeService;
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
 import at.fraihs.cookoff.shared.web.openapi.model.Account;
+import at.fraihs.cookoff.shared.web.openapi.model.Challenge;
 import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequest;
+import at.fraihs.cookoff.shared.web.openapi.model.CreateChallengeRequest;
 import at.fraihs.cookoff.shared.web.openapi.model.SystemRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -154,7 +154,7 @@ class SecurityIntegrationTest {
     void should_return401_when_linkTokenExpired() throws Exception {
         AccountId guest = AccountId.fromString(createAccountService.execute(
                 new CreateAccountRequest("expired-guest@example.com", "Guest").roles(List.of(SystemRole.USER))).getId());
-        long challengeId = TsidSupport.fromBase32(createSampleChallenge().id());
+        long challengeId = TsidSupport.fromBase32(createSampleChallenge().getId());
         String expiredToken = accessLinkService.issue(guest, challengeId, Duration.ofSeconds(-1));
 
         mockMvc.perform(get("/api/v1/me/home").param("token", expiredToken))
@@ -165,19 +165,20 @@ class SecurityIntegrationTest {
     private String issueLinkTokenForNewGuest() {
         Account guest = createAccountService.execute(
                 new CreateAccountRequest("guest@example.com", "Guest").roles(List.of(SystemRole.USER)));
-        long challengeId = TsidSupport.fromBase32(createSampleChallenge().id());
+        long challengeId = TsidSupport.fromBase32(createSampleChallenge().getId());
         return accessLinkService.issue(AccountId.fromString(guest.getId()), challengeId, Duration.ofDays(1));
     }
 
-    private ChallengeView createSampleChallenge() {
+    private Challenge createSampleChallenge() {
         Account cookA = createAccountService.execute(
                 new CreateAccountRequest("cook-a@example.com", "Cook A").roles(List.of(SystemRole.USER)));
         Account cookB = createAccountService.execute(
                 new CreateAccountRequest("cook-b@example.com", "Cook B").roles(List.of(SystemRole.USER)));
         Account organizer = createAccountService.execute(
                 new CreateAccountRequest("challenge-organizer@example.com", "Organizer").roles(List.of(SystemRole.ORGANIZER)));
-        return createChallengeService.execute(new CreateChallengeCommand(
-                LocalDate.now(), "Title", "Schnitzel", cookA.getId(), cookB.getId(), List.of(), organizer.getId()));
+        CreateChallengeRequest request = new CreateChallengeRequest(
+                LocalDate.now(), "Title", "Schnitzel", cookA.getId(), cookB.getId());
+        return createChallengeService.execute(request, AccountId.fromString(organizer.getId()));
     }
 
     @SuppressWarnings("unchecked")

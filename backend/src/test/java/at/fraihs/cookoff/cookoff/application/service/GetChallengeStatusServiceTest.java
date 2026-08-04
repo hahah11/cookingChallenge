@@ -1,7 +1,9 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.SubmissionStatusView;
+import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.domain.model.Category;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
@@ -12,6 +14,8 @@ import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.GuestSubmissionStatus;
+import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,6 +41,9 @@ class GetChallengeStatusServiceTest {
     @Mock
     private ScoreSubmissionRepository scoreSubmissionRepository;
 
+    @Mock
+    private AccountLookup accountLookup;
+
     @InjectMocks
     private GetChallengeStatusService service;
 
@@ -50,6 +57,8 @@ class GetChallengeStatusServiceTest {
         Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
                 cookA, cookB, List.of(guest1, guest2), organizer);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(accountLookup.getById(guest1)).thenReturn(new AccountSummary(guest1, new Email("g1@x.com"), "Guest One"));
+        when(accountLookup.getById(guest2)).thenReturn(new AccountSummary(guest2, new Email("g2@x.com"), "Guest Two"));
 
         List<Score> scores = List.of(new Score(DishLabel.A, Category.GESCHMACK, 5));
         ScoreSubmission guestSubmission = ScoreSubmission.reconstitute(
@@ -59,11 +68,13 @@ class GetChallengeStatusServiceTest {
         when(scoreSubmissionRepository.findByChallengeId(challenge.getId()))
                 .thenReturn(List.of(guestSubmission, cookSubmission));
 
-        SubmissionStatusView view = service.execute(challenge.getId().toString());
+        SubmissionStatus status = service.execute(challenge.getId().toString());
 
-        assertEquals(2, view.totalGuestCount());
-        assertEquals(1, view.submittedGuestCount());
-        assertEquals(List.of(guest1.toString()), view.submittedGuestAccountIds());
+        assertEquals(2, status.getTotalGuestCount());
+        assertEquals(1, status.getSubmittedGuestCount());
+        assertEquals(guest1.toString(), status.getGuests().stream()
+                .filter(GuestSubmissionStatus::getSubmitted)
+                .findFirst().orElseThrow().getAccountId());
     }
 
     @Test

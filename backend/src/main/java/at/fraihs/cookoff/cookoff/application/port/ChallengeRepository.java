@@ -4,6 +4,8 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import org.jmolecules.ddd.annotation.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,10 +19,11 @@ public interface ChallengeRepository {
 
     Optional<Challenge> findById(ChallengeId id);
 
-    List<Challenge> findAll();
+    /** See docs/cookingChallenge/adr/0003-spring-data-pageable-in-repository-ports.md. */
+    Page<Challenge> findAll(Pageable pageable);
 
-    /** OPEN challenges where the account is a cook or a pre-added guest — backs GET /me/home. */
-    List<Challenge> findOpenByParticipant(AccountId accountId);
+    /** Every challenge, any status, where the account is a cook or a pre-added guest — backs GET /me/home. */
+    List<Challenge> findByParticipant(AccountId accountId);
 
     /**
      * Every challenge where these two accounts cooked against each other, regardless of

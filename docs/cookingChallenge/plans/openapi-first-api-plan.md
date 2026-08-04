@@ -421,6 +421,98 @@ mapping needed no changes. `SecurityConfig` needed no changes, confirmed unchang
   needs its own sequencing note before starting, given it spans 9 services and both the
   organizer and guest/cook-facing controllers.
 
+**Phase 4/5 — Challenges group (2026-08-04).** The largest remaining slice: all 9
+`cookoff`-module services, plus `HomeService`/`PublicRegistrationService`, rewritten against
+generated types, and 3 new/replaced controllers (`ChallengesController`, `HomeController`,
+new `PublicController`). Unlike every prior group, `ChallengesApi` bundles all 14 operations
+into one generated interface — the whole group had to land in a single increment, since a
+controller can't partially implement it and still compile; there was no way to slice this
+into separate sessions the way Accounts/Rivalries/Auth were.
+
+- **New `ChallengeMapping`** (package-private helper, `cookoff.application.service`) — the
+  shared domain-`Challenge` → generated-model mapping every service needed: the organizer
+  `Challenge` model (with `submittedGuestCount`/`hasImage`/`overallWinnerAccountId`), the
+  guest/cook-facing `ParticipantChallenge` (blind cook mapping, `myCookLabel`, `canScore`,
+  `canPickColor`, `mySubmission`), and `ChallengeResult` (`categoryTotals`, `rivalry`).
+- **`ChallengeResult` domain service gained `categoryTotals`** (raw per-category, per-dish
+  point sums) — `ResultCalculator` already computed these internally and discarded them, per
+  this plan's own earlier note; now threaded through to the generated response.
+- **New `RivalrySummary` on `ChallengeResult`** — reuses `RivalryHeadline` (already
+  package-private in the same package). Reconciling `CookRivalry`'s canonical cookA/cookB
+  order (id-sorted) against *this* challenge's own DishLabel A/B order needed explicit
+  swap-if-disagreeing logic — `RivalryDetailService` sidesteps this by always querying in
+  canonical order, but `ChallengeResult.rivalry` must report using the challenge's own
+  labeling.
+- **Bug found and fixed, not a pre-existing production bug but a real ordering hazard this
+  change surfaced**: `ChallengeRevealedRivalryUpdater` persists `CookRivalry` only
+  `AFTER_COMMIT`, so `RevealChallengeService` can't just read the repository for its own
+  response's `rivalry` field — at that point in the same transaction, the update hasn't
+  happened yet. Fixed by projecting the update in memory (fetch-or-start, `recordResult(...)`,
+  **not saved** — the listener remains the sole writer) purely to shape this one response.
+  `ChallengeRevealUnrevealRivalryIntegrationTest`'s fake publisher previously dispatched
+  inline (synchronously), which happened to make the bug invisible in that test; fixed the
+  fake to queue events and only dispatch on an explicit `commit()`, matching real
+  `AFTER_COMMIT` timing, and added an assertion that the reveal response's rivalry headline
+  is correct *before* `commit()` runs. A related latent bug in that same test double
+  surfaced during the fix: `InMemoryCookRivalryRepository.findByPair` returned the live
+  stored object rather than a detached copy, so the in-memory `recordResult()` projection
+  silently mutated persisted state — fixed by reconstituting a fresh copy per read, matching
+  what a real JPA-backed repository does.
+- **`AccessLinkAuthenticationFilter` fixed for dual-secured endpoints** —
+  `getChallengeResults`/`getChallengeImage` are reachable by *either* a bearer JWT or a link
+  token per the spec, but the filter previously 401'd any request to its 4 whitelisted paths
+  that lacked a `token` query param, before the JWT chain ever got a chance to authenticate
+  organizer requests. Split the whitelist into `LINK_ONLY_ENDPOINTS` (still hard-fail on a
+  missing token — the spec never offers a bearer alternative there) and
+  `DUAL_AUTH_ENDPOINTS` (pass through to the JWT chain when no token is present). Also added
+  the two new link-token endpoints (`color-pick`, `image` GET) to the matcher lists and
+  `SecurityConfig`'s `authorizeHttpRequests` (6 new matcher lines total, including
+  `POST /api/v1/public/registrations` as `permitAll()`).
+- **New `shared.security.CurrentAccount`** — every generated request DTO in this group
+  (`CreateChallengeRequest`, `UpdateParticipantsRequest`, etc.) dropped the old hand-written
+  `organizerAccountId`/`cookAccountId` body field the pre-OpenAPI commands used to take
+  explicitly, so the caller's identity now has to come from the security principal. Spring's
+  built-in `@AuthenticationPrincipal AccountId` only ever worked for the link-token filter
+  (which sets the principal directly to an `AccountId`); bearer/JWT auth's principal is a
+  `Jwt`, whose subject claim holds the id (see `LoginService`). `CurrentAccount.id()` branches
+  on principal type so every controller method can resolve the caller uniformly.
+- **`SendChallengeInvitationsService` narrowed to guests only**, per the generated
+  `SendInvitationsRequest.guestAccountIds` field and the spec's "Send (or resend) *guest*
+  access-link invitations" summary — previously sent to both cooks and guests unconditionally.
+  An explicit id list now targets exactly those guests; omitting it targets every guest who
+  hasn't submitted yet (previously: always every participant, regardless of submission status).
+- **`HomeService` rewritten for real bucketing**, not just a rename — `open` is challenges
+  with a pending action (unsubmitted score for a guest/creator, or an unpicked color for a
+  cook); `past` is everything else the requester participates in (already-actioned-but-OPEN,
+  or REVEALED). Needed a broader repository query: `ChallengeRepository.findOpenByParticipant`
+  (OPEN-only) replaced by `findByParticipant` (any status) — the only caller, so a rename
+  rather than an added overload.
+- **`ChallengeRepository.findAll()` gained `Pageable`**, same ADR 0003 pattern as
+  Account/CookRivalry, for `listChallenges`'s pagination.
+- **`SubmitScoreService`** now upserts via `ScoreSubmission.update(...)` (edit-until-reveal,
+  Phase 3 gap 6) instead of throwing `DuplicateSubmissionException` on a second submission;
+  returns whether a submission was created vs. updated so the controller can pick 201 vs. 200.
+- **New `GetChallengeImageService`** (didn't exist before) streams a challenge's photo via
+  `ImageStoragePort.resolve(...)`; no requester-specific gating beyond the security filter
+  chain, since (unlike `ParticipantChallenge`) there's no per-requester field to hide in raw
+  image bytes.
+- **Deleted** (superseded, per the plan's own list): every `application.dto` class the
+  `cookoff` module had (`ChallengeView`, `ChallengeParticipantView`, `ChallengeResultView`,
+  `SubmissionStatusView`, and every `*Command`/`ScoreInput`/`PublicRegistrationResult`), the
+  old `ChallengeController`, and its hand-written `CreateChallengeRequest`/
+  `InvitationsSentResponse`/`ScoreEntryRequest`/`SubmitScoresRequest`.
+- Test suite: every existing service/controller test adapted to the generated types
+  (mechanical for most; `SendChallengeInvitationsServiceTest`/`ChallengeRepositoryImplTest`
+  updated for the actual behavior changes above, not just signatures). New
+  `ChallengesControllerTest` (replaces the deleted `ChallengeControllerTest`, covers all 14
+  operations at least once). `./gradlew build` passes end to end: 255 tests, all green,
+  including `ModularityTests`/`JMoleculesArchitectureTests`.
+- **Not done in this increment**: Phase 6 (security config path updates) is now folded into
+  this entry rather than a separate pass, since the new matchers were needed for the group to
+  work at all. Phase 7 (frontend client codegen) is still deferred until
+  `cookingChallenge-angular` is scaffolded. Phase 8 (final end-to-end regression pass) is
+  effectively continuous at this point — every phase's own build has been green throughout.
+
 ## Approach
 
 1. Design an OpenAPI spec shaped around what the UI ([`design-reference.md`](../design-reference.md),

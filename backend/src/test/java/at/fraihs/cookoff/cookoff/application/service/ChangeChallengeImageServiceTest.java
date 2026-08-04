@@ -2,10 +2,10 @@ package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.ChangeChallengeImageCommand;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.port.ImageStoragePort;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
@@ -39,6 +39,9 @@ class ChangeChallengeImageServiceTest {
     @Mock
     private ImageStoragePort imageStoragePort;
 
+    @Mock
+    private ScoreSubmissionRepository scoreSubmissionRepository;
+
     @InjectMocks
     private ChangeChallengeImageService service;
 
@@ -57,8 +60,7 @@ class ChangeChallengeImageServiceTest {
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(imageStoragePort.store(imageBytes, "image/png")).thenReturn("new-ref");
 
-        service.execute(new ChangeChallengeImageCommand(challenge.getId().toString(), organizerId.toString(), "image/png"),
-                imageBytes);
+        service.execute(challenge.getId().toString(), organizerId, imageBytes, "image/png");
 
         assertEquals("new-ref", challenge.getImageRef());
         verify(challengeRepository).save(challenge);
@@ -73,8 +75,7 @@ class ChangeChallengeImageServiceTest {
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(imageStoragePort.store(imageBytes, "image/png")).thenReturn("new-ref");
 
-        service.execute(new ChangeChallengeImageCommand(challenge.getId().toString(), organizerId.toString(), "image/png"),
-                imageBytes);
+        service.execute(challenge.getId().toString(), organizerId, imageBytes, "image/png");
 
         assertEquals("new-ref", challenge.getImageRef());
         var inOrder = org.mockito.Mockito.inOrder(challengeRepository, imageStoragePort);
@@ -89,7 +90,7 @@ class ChangeChallengeImageServiceTest {
         when(challengeRepository.findById(missingId)).thenReturn(Optional.empty());
 
         assertThrows(ChallengeNotFoundException.class, () -> service.execute(
-                new ChangeChallengeImageCommand(missingId.toString(), organizerId.toString(), "image/png"), imageBytes));
+                missingId.toString(), organizerId, imageBytes, "image/png"));
     }
 
     @Test
@@ -97,8 +98,7 @@ class ChangeChallengeImageServiceTest {
         when(accountLookup.canOrganize(organizerId)).thenReturn(false);
 
         assertThrows(ForbiddenException.class, () -> service.execute(
-                new ChangeChallengeImageCommand(ChallengeId.generate().toString(), organizerId.toString(), "image/png"),
-                imageBytes));
+                ChallengeId.generate().toString(), organizerId, imageBytes, "image/png"));
         verify(challengeRepository, never()).findById(any());
     }
 }

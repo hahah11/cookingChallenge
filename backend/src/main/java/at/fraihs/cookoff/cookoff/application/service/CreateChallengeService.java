@@ -2,12 +2,11 @@ package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.ChallengeView;
-import at.fraihs.cookoff.cookoff.application.dto.CreateChallengeCommand;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.CreateChallengeRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,29 +23,29 @@ public class CreateChallengeService {
     private final ChallengeRepository challengeRepository;
 
     @Transactional
-    public ChallengeView execute(CreateChallengeCommand command) {
-        AccountId organizerId = AccountId.fromString(command.organizerAccountId());
-        if (!accountLookup.canOrganize(organizerId)) {
-            log.warn("Challenge creation rejected, account cannot organize: {}", organizerId);
-            throw new ForbiddenException("Account is not allowed to organize challenges: " + command.organizerAccountId());
+    public at.fraihs.cookoff.shared.web.openapi.model.Challenge execute(
+            CreateChallengeRequest request, AccountId organizerAccountId) {
+        if (!accountLookup.canOrganize(organizerAccountId)) {
+            log.warn("Challenge creation rejected, account cannot organize: {}", organizerAccountId);
+            throw new ForbiddenException("Account is not allowed to organize challenges: " + organizerAccountId);
         }
 
-        AccountId cookAAccountId = AccountId.fromString(command.cookAAccountId());
-        AccountId cookBAccountId = AccountId.fromString(command.cookBAccountId());
-        List<AccountId> guestAccountIds = command.guestAccountIds().stream()
-                .map(AccountId::fromString)
-                .toList();
+        AccountId cookAAccountId = AccountId.fromString(request.getCookAAccountId());
+        AccountId cookBAccountId = AccountId.fromString(request.getCookBAccountId());
+        List<AccountId> guestAccountIds = request.getGuestAccountIds() == null
+                ? List.of()
+                : request.getGuestAccountIds().stream().map(AccountId::fromString).toList();
 
         Challenge challenge = Challenge.create(
-                command.date(),
-                command.title(),
-                new DishName(command.dishName()),
+                request.getDate(),
+                request.getTitle(),
+                new DishName(request.getDishName()),
                 cookAAccountId,
                 cookBAccountId,
                 guestAccountIds,
-                organizerId);
+                organizerAccountId);
         challengeRepository.save(challenge);
-        log.info("Challenge created: {}, organizer: {}", challenge.getId(), organizerId);
-        return ChallengeView.from(challenge);
+        log.info("Challenge created: {}, organizer: {}", challenge.getId(), organizerAccountId);
+        return ChallengeMapping.toGenerated(challenge, 0);
     }
 }

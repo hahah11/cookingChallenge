@@ -1,8 +1,11 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.ChallengeResultView;
+import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeRevealed;
 import at.fraihs.cookoff.cookoff.domain.model.Category;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
@@ -14,6 +17,7 @@ import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +44,12 @@ class RevealChallengeServiceTest {
 
     @Mock
     private ScoreSubmissionRepository scoreSubmissionRepository;
+
+    @Mock
+    private CookRivalryRepository cookRivalryRepository;
+
+    @Mock
+    private AccountLookup accountLookup;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -74,10 +84,13 @@ class RevealChallengeServiceTest {
         ), Instant.now());
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(scoreSubmissionRepository.findByChallengeId(challenge.getId())).thenReturn(List.of(submission));
+        when(cookRivalryRepository.findByPair(cookAId, cookBId)).thenReturn(Optional.empty());
+        when(accountLookup.getById(cookAId)).thenReturn(new AccountSummary(cookAId, new Email("a@x.com"), "Cook A"));
+        when(accountLookup.getById(cookBId)).thenReturn(new AccountSummary(cookBId, new Email("b@x.com"), "Cook B"));
 
-        ChallengeResultView view = service.execute(challenge.getId().toString());
+        ChallengeResult result = service.execute(challenge.getId().toString());
 
-        assertEquals(cookAId.toString(), view.overallWinnerAccountId());
+        assertEquals(cookAId.toString(), result.getOverallWinnerAccountId().get());
         assertEquals(ChallengeStatus.REVEALED, challenge.getStatus());
         ArgumentCaptor<ChallengeRevealed> captor = ArgumentCaptor.forClass(ChallengeRevealed.class);
         verify(eventPublisher).publishEvent(captor.capture());

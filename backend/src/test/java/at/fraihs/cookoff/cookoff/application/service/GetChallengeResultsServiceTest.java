@@ -1,14 +1,18 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.ChallengeResultView;
+import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotRevealedException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
+import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,6 +36,12 @@ class GetChallengeResultsServiceTest {
 
     @Mock
     private ScoreSubmissionRepository scoreSubmissionRepository;
+
+    @Mock
+    private CookRivalryRepository cookRivalryRepository;
+
+    @Mock
+    private AccountLookup accountLookup;
 
     @InjectMocks
     private GetChallengeResultsService service;
@@ -75,9 +85,12 @@ class GetChallengeResultsServiceTest {
         challenge.reveal(cookA);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(scoreSubmissionRepository.findByChallengeId(challenge.getId())).thenReturn(List.of());
+        when(cookRivalryRepository.findByPair(any(), any())).thenReturn(Optional.empty());
+        when(accountLookup.getById(cookA)).thenReturn(new AccountSummary(cookA, new Email("a@x.com"), "Cook A"));
+        when(accountLookup.getById(cookB)).thenReturn(new AccountSummary(cookB, new Email("b@x.com"), "Cook B"));
 
-        ChallengeResultView view = service.execute(challenge.getId().toString(), cookA);
+        ChallengeResult result = service.execute(challenge.getId().toString(), cookA);
 
-        assertEquals(challenge.getId().toString(), view.challengeId());
+        assertEquals(challenge.getId().toString(), result.getChallengeId());
     }
 }

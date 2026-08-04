@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -75,11 +76,11 @@ class ChallengeRepositoryImplTest {
         repository.save(Challenge.create(LocalDate.now(), null, new DishName("Kaiserschmarrn"),
                 new AccountId(persistAccount()), new AccountId(persistAccount()), List.of(), organizer));
 
-        assertEquals(2, repository.findAll().size());
+        assertEquals(2, repository.findAll(Pageable.unpaged()).getTotalElements());
     }
 
     @Test
-    void should_returnOpenChallengesForParticipant_when_accountIsCookOrGuest_butNotWhenRevealedOrUnrelated() {
+    void should_returnEveryChallengeForParticipant_regardlessOfStatus_butNotUnrelatedChallenges() {
         AccountId organizer = new AccountId(persistAccount());
         AccountId cookA = new AccountId(persistAccount());
         AccountId cookB = new AccountId(persistAccount());
@@ -93,15 +94,17 @@ class ChallengeRepositoryImplTest {
         Challenge revealed = Challenge.create(LocalDate.now(), null, new DishName("Palatschinken"),
                 cookA, cookB, List.of(guest), organizer);
         revealed.reveal(null);
-        repository.save(revealed);
+        Challenge savedRevealed = repository.save(revealed);
 
-        List<Challenge> guestResult = repository.findOpenByParticipant(guest);
-        assertEquals(List.of(openAsGuest.getId()), guestResult.stream().map(Challenge::getId).toList());
+        List<Challenge> guestResult = repository.findByParticipant(guest);
+        assertEquals(Set.of(openAsGuest.getId(), savedRevealed.getId()),
+                guestResult.stream().map(Challenge::getId).collect(Collectors.toSet()));
 
-        List<Challenge> cookResult = repository.findOpenByParticipant(cookB);
-        assertEquals(List.of(openAsCook.getId()), cookResult.stream().map(Challenge::getId).toList());
+        List<Challenge> cookResult = repository.findByParticipant(cookB);
+        assertEquals(Set.of(openAsCook.getId(), savedRevealed.getId()),
+                cookResult.stream().map(Challenge::getId).collect(Collectors.toSet()));
 
-        assertTrue(repository.findOpenByParticipant(stranger).isEmpty());
+        assertTrue(repository.findByParticipant(stranger).isEmpty());
     }
 
     @Test

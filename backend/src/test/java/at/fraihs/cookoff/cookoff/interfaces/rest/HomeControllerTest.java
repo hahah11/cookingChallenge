@@ -1,9 +1,13 @@
 package at.fraihs.cookoff.cookoff.interfaces.rest;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.ChallengeParticipantView;
 import at.fraihs.cookoff.cookoff.application.service.HomeService;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
+import at.fraihs.cookoff.shared.web.openapi.model.Category;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatus;
+import at.fraihs.cookoff.shared.web.openapi.model.DishLabel;
+import at.fraihs.cookoff.shared.web.openapi.model.GuestHome;
+import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * filter chain (@AutoConfigureMockMvc(addFilters = false)). With the filter chain disabled,
  * {@code SecurityContextHolderFilter} never runs, so setting the AccountId principal is done
  * directly via {@link SecurityContextHolder} (MockMvc's single-threaded dispatch still honors
- * it), per docs/cookingChallenge/plans/backend-persistence-api-security-plan.md Phase 5.
+ * it) — {@code CurrentAccount.id()} reads it back the same way regardless.
  */
 @WebMvcTest(HomeController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -48,16 +52,17 @@ class HomeControllerTest {
     }
 
     @Test
-    void should_return200_withOpenChallenges_when_authenticated() throws Exception {
+    void should_return200_withHomeBuckets_when_authenticated() throws Exception {
         AccountId accountId = AccountId.generate();
-        ChallengeParticipantView view = new ChallengeParticipantView(
-                "chal-1", LocalDate.now(), "Title", "Schnitzel", "OPEN",
-                List.of("A", "B"), List.of("MUNDGEFUEHL"), List.of(), null);
-        when(homeService.execute(accountId)).thenReturn(List.of(view));
+        ParticipantChallenge view = new ParticipantChallenge(
+                "chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatus.OPEN,
+                List.of(DishLabel.A, DishLabel.B), List.of(Category.MUNDGEFUEHL), List.of(),
+                false, false, null, null, true, false);
+        when(homeService.execute(accountId)).thenReturn(new GuestHome(List.of(view), List.of()));
         SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(accountId, null));
 
         mockMvc.perform(get("/api/v1/me/home"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value("chal-1"));
+                .andExpect(jsonPath("$.data.open[0].id").value("chal-1"));
     }
 }

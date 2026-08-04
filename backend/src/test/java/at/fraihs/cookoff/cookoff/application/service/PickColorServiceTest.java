@@ -1,9 +1,9 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.PickColorCommand;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
@@ -11,6 +11,7 @@ import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.PlateColor;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.PlateColorRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.PickColorRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,6 +36,9 @@ class PickColorServiceTest {
     @Mock
     private PlateColorRepository plateColorRepository;
 
+    @Mock
+    private ScoreSubmissionRepository scoreSubmissionRepository;
+
     @InjectMocks
     private PickColorService service;
 
@@ -55,7 +59,7 @@ class PickColorServiceTest {
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(plateColorRepository.findAllActiveOrderedBySortOrder()).thenReturn(List.of(red, yellow));
 
-        service.execute(new PickColorCommand(challenge.getId().toString(), cookAId.toString(), red.getId().toString()));
+        service.execute(challenge.getId().toString(), cookAId, new PickColorRequest(red.getId().toString()));
 
         assertEquals(red.getId(), challenge.cookAssignmentFor(DishLabel.A).colorId());
         assertEquals(yellow.getId(), challenge.cookAssignmentFor(DishLabel.B).colorId());
@@ -68,7 +72,7 @@ class PickColorServiceTest {
         when(challengeRepository.findById(missingId)).thenReturn(Optional.empty());
 
         assertThrows(ChallengeNotFoundException.class, () -> service.execute(
-                new PickColorCommand(missingId.toString(), cookAId.toString(), red.getId().toString())));
+                missingId.toString(), cookAId, new PickColorRequest(red.getId().toString())));
     }
 
     @Test
@@ -78,7 +82,7 @@ class PickColorServiceTest {
         AccountId stranger = AccountId.generate();
 
         assertThrows(NotAParticipantException.class, () -> service.execute(
-                new PickColorCommand(challenge.getId().toString(), stranger.toString(), red.getId().toString())));
+                challenge.getId().toString(), stranger, new PickColorRequest(red.getId().toString())));
     }
 
     @Test
@@ -87,8 +91,7 @@ class PickColorServiceTest {
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(plateColorRepository.findAllActiveOrderedBySortOrder()).thenReturn(List.of(red, yellow));
 
-        assertThrows(IllegalArgumentException.class, () -> service.execute(new PickColorCommand(
-                challenge.getId().toString(), cookAId.toString(), PlateColor.create("Blue", "#0000FF", 3, true)
-                        .getId().toString())));
+        assertThrows(IllegalArgumentException.class, () -> service.execute(challenge.getId().toString(), cookAId,
+                new PickColorRequest(PlateColor.create("Blue", "#0000FF", 3, true).getId().toString())));
     }
 }

@@ -2,15 +2,16 @@ package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.EditChallengeParticipantsCommand;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.PlateColorId;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.UpdateParticipantsRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,6 +39,9 @@ class EditChallengeParticipantsServiceTest {
 
     @Mock
     private ChallengeRepository challengeRepository;
+
+    @Mock
+    private ScoreSubmissionRepository scoreSubmissionRepository;
 
     @InjectMocks
     private EditChallengeParticipantsService service;
@@ -57,9 +62,8 @@ class EditChallengeParticipantsServiceTest {
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
-        service.execute(new EditChallengeParticipantsCommand(
-                challenge.getId().toString(), organizerId.toString(), null, null,
-                List.of(guest.toString()), List.of()));
+        service.execute(challenge.getId().toString(), organizerId,
+                new UpdateParticipantsRequest().addGuestAccountIds(List.of(guest.toString())));
 
         assertTrue(challenge.isGuest(guest));
         verify(challengeRepository).save(challenge);
@@ -73,13 +77,12 @@ class EditChallengeParticipantsServiceTest {
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
-        service.execute(new EditChallengeParticipantsCommand(
-                challenge.getId().toString(), organizerId.toString(), null, newCookB.toString(),
-                List.of(), List.of()));
+        service.execute(challenge.getId().toString(), organizerId,
+                new UpdateParticipantsRequest().cookBAccountId(newCookB.toString()));
 
         assertEquals(newCookB, challenge.cookAssignmentFor(DishLabel.B).accountId());
-        assertEquals(null, challenge.cookAssignmentFor(DishLabel.A).colorId());
-        assertEquals(null, challenge.cookAssignmentFor(DishLabel.B).colorId());
+        assertNull(challenge.cookAssignmentFor(DishLabel.A).colorId());
+        assertNull(challenge.cookAssignmentFor(DishLabel.B).colorId());
     }
 
     @Test
@@ -89,8 +92,7 @@ class EditChallengeParticipantsServiceTest {
         when(challengeRepository.findById(missingId)).thenReturn(Optional.empty());
 
         assertThrows(ChallengeNotFoundException.class, () -> service.execute(
-                new EditChallengeParticipantsCommand(missingId.toString(), organizerId.toString(),
-                        null, null, List.of(), List.of())));
+                missingId.toString(), organizerId, new UpdateParticipantsRequest()));
     }
 
     @Test
@@ -98,8 +100,7 @@ class EditChallengeParticipantsServiceTest {
         when(accountLookup.canOrganize(organizerId)).thenReturn(false);
 
         assertThrows(ForbiddenException.class, () -> service.execute(
-                new EditChallengeParticipantsCommand(ChallengeId.generate().toString(), organizerId.toString(),
-                        null, null, List.of(), List.of())));
+                ChallengeId.generate().toString(), organizerId, new UpdateParticipantsRequest()));
         verify(challengeRepository, never()).findById(any());
     }
 }

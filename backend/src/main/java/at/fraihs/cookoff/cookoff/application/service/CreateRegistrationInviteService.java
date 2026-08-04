@@ -10,11 +10,14 @@ import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.RegistrationInvite;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URI;
 import java.time.Duration;
 
 /**
@@ -33,21 +36,25 @@ public class CreateRegistrationInviteService {
     private final AccountLookup accountLookup;
     private final RegistrationInvites registrationInvites;
 
+    @Value("${app.frontend.base-url:http://localhost:4200}")
+    private String frontendBaseUrl;
+
     @Transactional
-    public String execute(AccountId organizerAccountId, ChallengeId challengeId) {
+    public RegistrationInvite execute(String challengeIdString, AccountId organizerAccountId) {
         if (!accountLookup.canOrganize(organizerAccountId)) {
             log.warn("Registration invite rejected, account cannot organize: {}", organizerAccountId);
             throw new ForbiddenException("Account is not allowed to organize challenges: " + organizerAccountId);
         }
 
+        ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
-                .orElseThrow(() -> new ChallengeNotFoundException(challengeId.toString()));
+                .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
         if (challenge.getStatus() != ChallengeStatus.OPEN) {
-            throw new ChallengeNotOpenException(challengeId.toString());
+            throw new ChallengeNotOpenException(challengeIdString);
         }
 
         String token = registrationInvites.issue(organizerAccountId, challengeId.value(), INVITE_VALIDITY);
         log.info("Registration invite issued for challenge {} by {}", challengeId, organizerAccountId);
-        return token;
+        return new RegistrationInvite(token, URI.create(frontendBaseUrl + "/register?token=" + token));
     }
 }

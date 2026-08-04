@@ -2,15 +2,15 @@ package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.application.dto.UnrevealChallengeCommand;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeUnrevealed;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
-import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -41,6 +41,9 @@ class UnrevealChallengeServiceTest {
     private ChallengeRepository challengeRepository;
 
     @Mock
+    private ScoreSubmissionRepository scoreSubmissionRepository;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
@@ -63,9 +66,11 @@ class UnrevealChallengeServiceTest {
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
-        service.execute(new UnrevealChallengeCommand(challenge.getId().toString(), organizerId.toString()));
+        at.fraihs.cookoff.shared.web.openapi.model.Challenge result =
+                service.execute(challenge.getId().toString(), organizerId);
 
-        assertEquals(ChallengeStatus.OPEN, challenge.getStatus());
+        assertEquals(at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus.OPEN, challenge.getStatus());
+        assertEquals(ChallengeStatus.OPEN, result.getStatus());
         ArgumentCaptor<ChallengeUnrevealed> captor = ArgumentCaptor.forClass(ChallengeUnrevealed.class);
         verify(eventPublisher).publishEvent(captor.capture());
         assertEquals(cookAId, captor.getValue().previousOverallWinnerAccountId());
@@ -79,15 +84,14 @@ class UnrevealChallengeServiceTest {
         when(challengeRepository.findById(missingId)).thenReturn(Optional.empty());
 
         assertThrows(ChallengeNotFoundException.class,
-                () -> service.execute(new UnrevealChallengeCommand(missingId.toString(), organizerId.toString())));
+                () -> service.execute(missingId.toString(), organizerId));
     }
 
     @Test
     void should_throw_when_accountCannotOrganize() {
         when(accountLookup.canOrganize(organizerId)).thenReturn(false);
 
-        assertThrows(ForbiddenException.class, () -> service.execute(
-                new UnrevealChallengeCommand(ChallengeId.generate().toString(), organizerId.toString())));
+        assertThrows(ForbiddenException.class, () -> service.execute(ChallengeId.generate().toString(), organizerId));
         verify(challengeRepository, never()).findById(any());
         verifyNoInteractions(eventPublisher);
     }
