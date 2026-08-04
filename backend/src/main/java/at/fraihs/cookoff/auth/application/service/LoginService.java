@@ -1,11 +1,11 @@
 package at.fraihs.cookoff.auth.application.service;
 
-import at.fraihs.cookoff.auth.application.dto.AuthTokenView;
-import at.fraihs.cookoff.auth.application.dto.LoginCommand;
 import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.AuthToken;
+import at.fraihs.cookoff.shared.web.openapi.model.LoginRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 
 /**
  * Password login for ORGANIZER/ADMIN accounts, per
@@ -44,11 +45,11 @@ public class LoginService {
     private Duration expiration = Duration.ofHours(12);
 
     @Transactional(readOnly = true)
-    public AuthTokenView execute(LoginCommand command) {
-        Account account = accountRepository.findByEmail(new Email(command.email()))
+    public AuthToken execute(LoginRequest request) {
+        Account account = accountRepository.findByEmail(new Email(request.getEmail()))
                 .orElseThrow(InvalidCredentialsException::new);
         if (account.getPasswordHash() == null
-                || !passwordEncoder.matches(command.password(), account.getPasswordHash())) {
+                || !passwordEncoder.matches(request.getPassword(), account.getPasswordHash())) {
             throw new InvalidCredentialsException();
         }
 
@@ -64,6 +65,6 @@ public class LoginService {
         JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256).build();
         String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
         log.info("Login succeeded for account {}", account.getId());
-        return new AuthTokenView(token, expiresAt);
+        return new AuthToken(token, expiresAt.atOffset(ZoneOffset.UTC));
     }
 }

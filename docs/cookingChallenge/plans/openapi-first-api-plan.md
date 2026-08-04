@@ -359,11 +359,67 @@ explicit matcher these paths would have fallen through to the chain's
   cases (401 unauthenticated, 200 organizer JWT) proving the new matchers against the real
   filter chain. `./gradlew build` passes end to end: 245 tests (up from 240), including
   `ModularityTests`/`JMoleculesArchitectureTests`, all green.
-- **Next**: no other group has both its application services *and* zero live controller to
-  swap out, so the next slice picks up the "rewrite service + swap live controller in the
-  same step" work described under "Still open in Phase 4" - `CreateAccountService`-style
-  gaps aside, the natural next candidate is `LoginService`/`AuthController` (small, one
-  operation) before the larger `cookoff`-module Challenges group.
+- **Next: `LoginService`/`AuthController`**, chosen because it's the smallest remaining
+  "rewrite service + swap live controller in the same step" slice (one operation) before the
+  larger `cookoff`-module Challenges group. Current state, read ahead of the next session so
+  it doesn't have to re-derive this:
+  - Generated `AuthApi` (`shared.web.openapi.api`) has exactly one operation, `login`, taking
+    generated `LoginRequest` (`email`, `password`, both plain `String`) and returning
+    `AuthTokenResponse { data: AuthToken, meta: ApiMeta }`, where `AuthToken` is
+    `{ accessToken: String, expiresAt: OffsetDateTime }` - only real conversion needed vs.
+    today's `LoginService` is `Instant` -> `OffsetDateTime` for `expiresAt` (e.g.
+    `.atOffset(ZoneOffset.UTC)`), the field names already match.
+  - `LoginService.execute(LoginCommand)` returning hand-written `AuthTokenView` needs to
+    become `execute(LoginRequest)` returning generated `AuthToken`, same
+    take-generated-request/return-generated-model shape `UpdateAccountService` already
+    established - no `AccountModelMapper`-style MapStruct mapper needed here, the shape is
+    trivial enough to construct directly (see `ConfigController`'s pattern of building the
+    generated model inline).
+  - New `AuthController` implements `AuthApi` (replacing today's hand-written
+    `auth.interfaces.rest.AuthController`), same `ApiMeta`-per-response construction as
+    `AccountsController`/`RivalriesController`.
+  - To delete once the new controller is wired: `auth.interfaces.rest.AuthController`,
+    `auth.interfaces.rest.LoginRequest` (hand-written), `auth.application.dto.LoginCommand`,
+    `auth.application.dto.AuthTokenView` - confirmed via grep that nothing outside
+    `LoginService`/`AuthController`/their own tests references these today, but re-check
+    before deleting since new callers may have been added since this note was written.
+  - `SecurityConfig` needs **no change** - `POST /api/v1/auth/login` is already
+    `permitAll()`, matching the spec's `security: []` on that operation.
+  - `SecurityIntegrationTest`'s `login(...)` helper already posts raw JSON (not through the
+    hand-written `LoginRequest`/`AuthTokenView` types), so it shouldn't need edits - a good
+    sign this rewrite is low-risk. Confirmed via grep (2026-08-04): the only other
+    references to the types being deleted are `LoginServiceTest` (needs updating, same
+    pattern as this session's `CreateAccountServiceTest`) and `LoginService`/
+    `AuthController` themselves - **there is no existing `AuthControllerTest`**, so a new
+    one should be written from scratch, same shape as `AccountsControllerTest`/
+    `RivalriesControllerTest` (`@WebMvcTest`, security filter chain disabled, mock
+    `LoginService`, assert 200/400/401).
+
+**Phase 5 continued (2026-08-04) — Auth group.** Executed exactly as scoped above, no
+surprises. `LoginService.execute` now takes the generated `LoginRequest` and returns the
+generated `AuthToken` (`Instant` → `OffsetDateTime` via `.atOffset(ZoneOffset.UTC)`); new
+`auth.interfaces.rest.AuthController` implements `AuthApi` directly (`login`), building
+`AuthTokenResponse` with a fresh `ApiMeta` inline, same pattern as `ConfigController`/
+`AccountsController`/`RivalriesController` — no MapStruct mapper needed, per the prior
+note. Deleted: `auth.interfaces.rest.LoginRequest` (hand-written),
+`auth.application.dto.LoginCommand`, `auth.application.dto.AuthTokenView`; the old
+`AuthController` was replaced in place rather than deleted-then-recreated since the class
+name is unchanged. `GlobalExceptionHandler`'s existing `InvalidCredentialsException` → 401
+mapping needed no changes. `SecurityConfig` needed no changes, confirmed unchanged.
+- New tests: `AuthControllerTest` (didn't exist before, mirrors `AccountsControllerTest`/
+  `RivalriesControllerTest` — 200/400/401), `LoginServiceTest` updated onto the generated
+  `LoginRequest`/`AuthToken` types (mechanical, same assertions). `SecurityIntegrationTest`
+  needed no edits, as predicted. `./gradlew build` passes end to end: 248 tests (up from
+  245), including `ModularityTests`/`JMoleculesArchitectureTests`, all green.
+- **This closes out the small "rewrite service + swap live controller" slices.** Everything
+  left in "Still open in Phase 4" above is now just the `cookoff`-module Challenges group
+  (`CreateChallengeService`, `ListChallengesService`, `GetChallengeStatusService`,
+  `SendChallengeInvitationsService`, `RevealChallengeService`, `GetChallengeResultsService`,
+  `HomeService`, `GetChallengeForParticipantService`, `SubmitScoreService`) — the largest
+  remaining piece of Phase 4/5, not yet started. No specific next-session breadcrumb written
+  for it yet (unlike Auth/Rivalries above); the Challenges group is big enough that it likely
+  needs its own sequencing note before starting, given it spans 9 services and both the
+  organizer and guest/cook-facing controllers.
 
 ## Approach
 

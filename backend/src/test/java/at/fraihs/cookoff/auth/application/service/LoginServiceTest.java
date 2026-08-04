@@ -1,12 +1,12 @@
 package at.fraihs.cookoff.auth.application.service;
 
-import at.fraihs.cookoff.auth.application.dto.AuthTokenView;
-import at.fraihs.cookoff.auth.application.dto.LoginCommand;
 import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.AuthToken;
+import at.fraihs.cookoff.shared.web.openapi.model.LoginRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -49,9 +49,9 @@ class LoginServiceTest {
         when(jwt.getTokenValue()).thenReturn("signed-jwt");
         when(jwtEncoder.encode(any())).thenReturn(jwt);
 
-        AuthTokenView result = service.execute(new LoginCommand("a@b.com", "secret"));
+        AuthToken result = service.execute(new LoginRequest("a@b.com", "secret"));
 
-        assertEquals("signed-jwt", result.accessToken());
+        assertEquals("signed-jwt", result.getAccessToken());
     }
 
     @Test
@@ -59,7 +59,7 @@ class LoginServiceTest {
         when(accountRepository.findByEmail(new Email("a@b.com"))).thenReturn(Optional.empty());
 
         assertThrows(InvalidCredentialsException.class,
-                () -> service.execute(new LoginCommand("a@b.com", "secret")));
+                () -> service.execute(new LoginRequest("a@b.com", "secret")));
     }
 
     @Test
@@ -70,7 +70,7 @@ class LoginServiceTest {
         when(passwordEncoder.matches("wrong", "hashed")).thenReturn(false);
 
         assertThrows(InvalidCredentialsException.class,
-                () -> service.execute(new LoginCommand("a@b.com", "wrong")));
+                () -> service.execute(new LoginRequest("a@b.com", "wrong")));
     }
 
     @Test
@@ -79,6 +79,6 @@ class LoginServiceTest {
         when(accountRepository.findByEmail(new Email("a@b.com"))).thenReturn(Optional.of(account));
 
         assertThrows(InvalidCredentialsException.class,
-                () -> service.execute(new LoginCommand("a@b.com", "anything")));
+                () -> service.execute(new LoginRequest("a@b.com", "anything")));
     }
 }
