@@ -1,15 +1,15 @@
 package at.fraihs.cookoff.shared.security;
 
-import at.fraihs.cookoff.auth.application.dto.AccountView;
-import at.fraihs.cookoff.auth.application.dto.CreateAccountCommand;
 import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.application.service.CreateAccountService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.auth.domain.model.SystemRole;
 import at.fraihs.cookoff.cookoff.application.dto.ChallengeView;
 import at.fraihs.cookoff.cookoff.application.dto.CreateChallengeCommand;
 import at.fraihs.cookoff.cookoff.application.service.CreateChallengeService;
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
+import at.fraihs.cookoff.shared.web.openapi.model.Account;
+import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequest;
+import at.fraihs.cookoff.shared.web.openapi.model.SystemRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,7 +22,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -36,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * backend-persistence-api-security-plan.md Phase 5's own "Verify Phase 5" checklist — this is
  * deliberately a @SpringBootTest, not a @WebMvcTest, since the thing under test IS the
  * SecurityConfig wiring; per-controller @WebMvcTest slices disable the filter chain entirely
- * (see ChallengeControllerTest/HomeControllerTest/AccountControllerTest) and only cover
+ * (see ChallengeControllerTest/HomeControllerTest/AccountsControllerTest) and only cover
  * controller/application-service behavior.
  */
 @SpringBootTest
@@ -60,6 +59,12 @@ class SecurityIntegrationTest {
     private AccessLinkService accessLinkService;
 
     @Test
+    void should_return200_when_unauthenticatedRequestHitsConfigEndpoint() throws Exception {
+        mockMvc.perform(get("/api/v1/config"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void should_return401_when_unauthenticatedRequestHitsOrganizerOnlyEndpoint() throws Exception {
         mockMvc.perform(get("/api/v1/challenges"))
                 .andExpect(status().isUnauthorized())
@@ -69,7 +74,7 @@ class SecurityIntegrationTest {
     @Test
     void should_return403_when_userRoleJwtHitsOrganizerOnlyEndpoint() throws Exception {
         createAccountService.execute(
-                new CreateAccountCommand("user@example.com", "User", Set.of(SystemRole.USER), "password123"));
+                new CreateAccountRequest("user@example.com", "User").roles(List.of(SystemRole.USER)).password("password123"));
         String token = login("user@example.com", "password123");
 
         mockMvc.perform(get("/api/v1/challenges").header("Authorization", "Bearer " + token))
@@ -80,7 +85,7 @@ class SecurityIntegrationTest {
     @Test
     void should_return200_when_organizerRoleJwtHitsOrganizerOnlyEndpoint() throws Exception {
         createAccountService.execute(
-                new CreateAccountCommand("organizer@example.com", "Organizer", Set.of(SystemRole.ORGANIZER), "password123"));
+                new CreateAccountRequest("organizer@example.com", "Organizer").roles(List.of(SystemRole.ORGANIZER)).password("password123"));
         String token = login("organizer@example.com", "password123");
 
         mockMvc.perform(get("/api/v1/challenges").header("Authorization", "Bearer " + token))
@@ -88,9 +93,23 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void should_return201_when_adminCreatesAccountWithPasswordOverHttp() throws Exception {
+        createAccountService.execute(
+                new CreateAccountRequest("admin@example.com", "Admin").roles(List.of(SystemRole.ADMIN)).password("password123"));
+        String token = login("admin@example.com", "password123");
+
+        mockMvc.perform(post("/api/v1/accounts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json")
+                        .content("{\"email\":\"new-user@example.com\",\"name\":\"New User\",\"password\":\"password123\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.email").value("new-user@example.com"));
+    }
+
+    @Test
     void should_return401_when_loginCredentialsInvalid() throws Exception {
         createAccountService.execute(
-                new CreateAccountCommand("known@example.com", "Known", Set.of(SystemRole.ORGANIZER), "password123"));
+                new CreateAccountRequest("known@example.com", "Known").roles(List.of(SystemRole.ORGANIZER)).password("password123"));
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType("application/json")
@@ -117,7 +136,7 @@ class SecurityIntegrationTest {
     @Test
     void should_return401_when_linkTokenExpired() throws Exception {
         AccountId guest = AccountId.fromString(createAccountService.execute(
-                new CreateAccountCommand("expired-guest@example.com", "Guest", Set.of(SystemRole.USER), null)).id());
+                new CreateAccountRequest("expired-guest@example.com", "Guest").roles(List.of(SystemRole.USER))).getId());
         long challengeId = TsidSupport.fromBase32(createSampleChallenge().id());
         String expiredToken = accessLinkService.issue(guest, challengeId, Duration.ofSeconds(-1));
 
@@ -127,21 +146,21 @@ class SecurityIntegrationTest {
     }
 
     private String issueLinkTokenForNewGuest() {
-        AccountView guest = createAccountService.execute(
-                new CreateAccountCommand("guest@example.com", "Guest", Set.of(SystemRole.USER), null));
+        Account guest = createAccountService.execute(
+                new CreateAccountRequest("guest@example.com", "Guest").roles(List.of(SystemRole.USER)));
         long challengeId = TsidSupport.fromBase32(createSampleChallenge().id());
-        return accessLinkService.issue(AccountId.fromString(guest.id()), challengeId, Duration.ofDays(1));
+        return accessLinkService.issue(AccountId.fromString(guest.getId()), challengeId, Duration.ofDays(1));
     }
 
     private ChallengeView createSampleChallenge() {
-        AccountView cookA = createAccountService.execute(
-                new CreateAccountCommand("cook-a@example.com", "Cook A", Set.of(SystemRole.USER), null));
-        AccountView cookB = createAccountService.execute(
-                new CreateAccountCommand("cook-b@example.com", "Cook B", Set.of(SystemRole.USER), null));
-        AccountView organizer = createAccountService.execute(
-                new CreateAccountCommand("challenge-organizer@example.com", "Organizer", Set.of(SystemRole.ORGANIZER), null));
+        Account cookA = createAccountService.execute(
+                new CreateAccountRequest("cook-a@example.com", "Cook A").roles(List.of(SystemRole.USER)));
+        Account cookB = createAccountService.execute(
+                new CreateAccountRequest("cook-b@example.com", "Cook B").roles(List.of(SystemRole.USER)));
+        Account organizer = createAccountService.execute(
+                new CreateAccountRequest("challenge-organizer@example.com", "Organizer").roles(List.of(SystemRole.ORGANIZER)));
         return createChallengeService.execute(new CreateChallengeCommand(
-                LocalDate.now(), "Title", "Schnitzel", cookA.id(), cookB.id(), List.of(), organizer.id()));
+                LocalDate.now(), "Title", "Schnitzel", cookA.getId(), cookB.getId(), List.of(), organizer.getId()));
     }
 
     @SuppressWarnings("unchecked")

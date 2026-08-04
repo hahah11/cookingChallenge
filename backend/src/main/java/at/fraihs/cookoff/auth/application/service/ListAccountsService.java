@@ -1,28 +1,25 @@
 package at.fraihs.cookoff.auth.application.service;
 
-import at.fraihs.cookoff.auth.application.dto.AccountView;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
+import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.openapi.model.Account;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ListAccountsService {
 
     private final AccountRepository accountRepository;
+    private final AccountModelMapper accountModelMapper;
 
-    /**
-     * Unpaginated for now - this use case's own rewrite (to the generated, paginated
-     * AccountListResponse) is still open, see openapi-first-api-plan.md's Phase 4 status.
-     * {@link Pageable#unpaged()} keeps today's "return everything" behavior while letting
-     * the port itself already speak Spring Data pagination end to end.
-     */
     @Transactional(readOnly = true)
-    public List<AccountView> execute() {
-        return accountRepository.findAll(Pageable.unpaged()).map(AccountView::from).toList();
+    public PagedResult<Account> execute(int page, int size) {
+        Page<Account> accounts = accountRepository.findAll(PageRequest.of(page, size))
+                .map(accountModelMapper::toGenerated);
+        return PagedResult.of(accounts);
     }
 }

@@ -262,6 +262,85 @@ swapping its controller in the same step would break a working endpoint, so that
 sequenced together with Phase 5 (new controllers), one use case at a time, rather than done
 as a separate Phase 4 pass first.
 
+**Phase 5 started (2026-08-04) — `GET /api/v1/config`.** First endpoint wired end-to-end
+against a generated interface; every other live endpoint still runs through the pre-OpenAPI
+controllers listed under "Superseded" above. Chosen as the starting point because, unlike
+every other row in the use-case inventory, it had no existing service to rewrite and no live
+controller to swap out in the same step - a self-contained slice to establish the pattern.
+- **New `shared.application.service.ConfigService`** + **`ConfigModelMapper`** (MapStruct,
+  same pattern as `auth.application.service.AccountModelMapper`) + **new
+  `shared.interfaces.rest.ConfigController`** implementing the generated `ConfigApi`.
+  `SecurityConfig` gained a `permitAll` matcher for `GET /api/v1/config`, matching the
+  spec's `security: []`.
+- **New public contract `cookoff.PlateColors`/`PlateColorSummary`**, implemented by
+  `cookoff.application.service.PlateColorsService` - discovered mid-implementation, not
+  planned up front: `ModularityTests` failed the first pass because `shared` (an `OPEN`
+  Spring Modulith module) can reach into `auth.application.service`/`auth.domain.model`
+  freely only because those packages carry explicit `@NamedInterface` annotations: `OPEN`
+  relaxes what other modules may reach *into `shared`*, not what `shared` itself may reach
+  into a normal (closed) module like `cookoff`. `cookoff.domain.model` and
+  `cookoff.application.port` (where `PlateColor`/`PlateColorRepository` live) have no such
+  exposure, so `ConfigService` calling `PlateColorRepository` directly was a real boundary
+  violation, not a false positive. Fixed the same way `auth.AccountLookup`/`AccountSummary`
+  already solve this for `Account` - a root-package interface + plain summary record,
+  keeping `PlateColor`/`PlateColorId`/`PlateColorRepository` internal to `cookoff`. This is
+  a reusable precedent for every other cross-module field Phase 5's remaining controllers
+  will need (e.g. resolving cook names for `Challenges`/`Rivalries` already goes through
+  `AccountLookup` the same way).
+- 5 new tests (`ConfigServiceTest`, `ConfigControllerTest`, `PlateColorsServiceTest`, plus a
+  `should_return200_when_unauthenticatedRequestHitsConfigEndpoint` case added to the existing
+  `SecurityIntegrationTest`). `./gradlew build` passes end to end: 234 tests (up from 229),
+  including `ModularityTests`/`JMoleculesArchitectureTests`, all green.
+- **Next**: Accounts group (`GetAccountDetailService`/`UpdateAccountService` already
+  generated-type-ready; `CreateAccountService`/`ListAccountsService` still need the
+  generated-type rewrite), one `AccountsController` implementing `AccountsApi`, then delete
+  the old `AccountController` + its request records.
+
+**Phase 5 continued (2026-08-04) — Accounts group.** `CreateAccountService` and
+`ListAccountsService` rewritten to generated types, joining the already-generated-ready
+`GetAccountDetailService`/`UpdateAccountService`; new `AccountsController` implements the
+generated `AccountsApi` (all four operations); old `AccountController`,
+`interfaces/rest.CreateAccountRequest`, `application/dto.AccountView`, and
+`application/dto.CreateAccountCommand` deleted per the Superseded list.
+`ListAccountsService` follows the same `PagedResult<T>` + `Pageable`/`PageRequest` shape
+`RivalriesListService` established. `SecurityConfig` gained matchers for
+`GET`/`PATCH /api/v1/accounts/*` (organizer+, same level as the existing list endpoint).
+`SecurityIntegrationTest`'s account-creation test helpers moved off the deleted
+`CreateAccountCommand`/`AccountView` onto the generated `CreateAccountRequest`/`Account`.
+- **Bug found and fixed, not scoped to Accounts alone**: wiring `createAccount` surfaced
+  that the project's Jackson 3 (`tools.jackson.databind`) `ObjectMapper` has no
+  (de)serializer for `org.openapitools.jackson.nullable.JsonNullable` -
+  `org.openapitools:jackson-databind-nullable` 0.2.6 only ships a Jackson 2
+  (`com.fasterxml.jackson.databind`) module, and openapi-generator's `spring` templates
+  wrap every `nullable: true` + optional schema property in `JsonNullable<T>` regardless of
+  request vs. response. `CreateAccountRequest.password` was the first *request* field to hit
+  this (deserialization threw `InvalidDefinitionException`, surfacing as a 500 through
+  `GlobalExceptionHandler`); the same gap would have broken serialization the first time any
+  already-generated *response* field using it (`CookAssignment.colorId`,
+  `Challenge.overallWinnerAccountId`, `ParticipantChallenge.mySubmission`, etc. - 9 more
+  occurrences in the spec today) got exercised by Phase 4/5 work on the Challenges group.
+  Fixed generally, not by working around this one field: new
+  `shared.config.jackson.{JsonNullableSerializer,JsonNullableDeserializer,JsonNullableModule}`
+  (a small Jackson 3 `SimpleModule` - serialization just delegates to the wrapped value's
+  runtime-type serializer via `SerializationContext#writeValue`; deserialization resolves the
+  wrapped type `T` contextually per-property via `BeanProperty#getType()` +
+  `JavaType#containedType(0)`, since `JsonNullable` itself carries no static type info),
+  registered as a `JacksonModule` bean in new `shared.config.JacksonConfig` so Spring Boot
+  4's Jackson autoconfiguration picks it up automatically for the real app. `@WebMvcTest`
+  slices don't scan plain `@Configuration` classes, so `AccountsControllerTest`
+  `@Import`s it explicitly (same pattern as `GlobalExceptionHandler`); a new
+  `SecurityIntegrationTest` case
+  (`should_return201_when_adminCreatesAccountWithPasswordOverHttp`) proves the fix through
+  the real, non-mocked full app context, not just the slice test's manual import.
+- New tests: `ListAccountsServiceTest` (didn't exist before, mirrors
+  `RivalriesListServiceTest`), `AccountsControllerTest` (replaces the deleted
+  `AccountControllerTest`, covers all four operations + 400/404/409), plus the
+  `SecurityIntegrationTest` case above. `./gradlew build` passes end to end: 240 tests (up
+  from 234), including `ModularityTests`/`JMoleculesArchitectureTests`, all green.
+- **Not done in this increment**: `LoginService` and the `cookoff`-module use-case services
+  listed under "Still open in Phase 4" above are unchanged - this pass was scoped to the
+  Accounts group only, per the user's request.
+
 ## Approach
 
 1. Design an OpenAPI spec shaped around what the UI ([`design-reference.md`](../design-reference.md),
