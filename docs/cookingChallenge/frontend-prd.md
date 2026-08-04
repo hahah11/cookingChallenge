@@ -11,6 +11,26 @@ The five follow-up design questions those resolutions raised (§10) were discuss
 closed with the user the same day — nothing is open. This PRD is ready to drive the
 `domain-model.puml` update and subsequent implementation planning.
 
+**Mockup updated (2026-08-04).** The prototype previously described the registration-QR
+flow only in this PRD's text (§4.1, §4.4) — the mockup itself had no button or dialog for
+it. The user has now added both to `CookingChallenge Frontend.dc.html`: a "Registration QR
+code" button in the open-challenge detail screen (alongside "Send links" and "Edit cooks &
+guests"), opening a dialog that renders a QR image. Confirmed flow, matching what was
+already resolved in §10.6/§10.7: an organizer generates the code from within one open
+challenge; a guest scans it, lands on the public registration page, and submitting that
+form creates their `Account` **and** adds them as a guest of that specific challenge in one
+step. Checked against both `openapi/cookingchallenge-api.yaml` and `domain-model.puml` —
+**no changes needed to either**, both already modeled this exact flow (see §7's
+`registration-invites`/`public/registrations` endpoints and §5.1's `RegistrationInvite`
+mechanism). One implementation note for when this becomes real Angular code: the
+prototype's own QR image is a client-side placeholder that URL-encodes the **raw
+`challengeId`** (`?challenge={id}`, no token — see `qrImageUrl` in the prototype's script).
+That's a prototype shortcut, not the design — the real app must render the QR from the
+`registrationUrl` field `POST /api/v1/challenges/{id}/registration-invites` returns, which
+embeds the opaque, expiring `RegistrationInvite` token. Encoding the raw challenge id
+instead would let anyone self-register into any challenge by guessing/editing the URL,
+defeating the whole point of the token gate.
+
 ## 1. Context
 
 A cook-off app: two cooks blind-prepare the same dish under a plate color so tasters don't
@@ -84,7 +104,7 @@ backend (DDD + Spring Modulith, `auth` + `cookoff` modules).
 
 **Accounts**
 - As an admin, I want a table of all accounts (full names) with an edit dialog per row
-  (name, email, roles — `USER` always on and locked), so I can manage who's in the system.
+  (firstname, lastname, email, roles — `USER` always on and locked), so I can manage who's in the system.
 
 **Rivalries**
 - As an organizer, I want a card per cook pair showing their open-vs-revealed challenge
@@ -116,7 +136,7 @@ backend (DDD + Spring Modulith, `auth` + `cookoff` modules).
 ### 4.4 Public
 
 - As a walk-in guest, I want to scan a QR code an organizer generated for this specific
-  challenge and register with just my name and email, so I'm both added to the system and
+  challenge and register with just my firstname, lastname and email, so I'm both added to the system and
   joined as a guest of that event in one step, without the organizer creating my account
   first. If the code has expired or is invalid, I want a clear message rather than a
   half-created account.
@@ -159,7 +179,7 @@ against that diagram; regenerate the `.puml` once these land.
     - `register(token, firstName, lastName, email) : RegistrationResult { accountId,
       challengeId: long }` — verifies the token, rejects on duplicate email (reuses
       `CreateAccountService`'s existing `AccountAlreadyExistsException` → 409 check), then
-      `Account.create(email, name, SystemRole.USER)` and returns both the new `accountId`
+      `Account.create(email, firstName, lastName, SystemRole.USER)` and returns both the new `accountId`
       and the raw `challengeId` the token was tied to. This is the **only** new
       domain-adjacent step here — everything else is infra, same as `AccessLink`.
 
