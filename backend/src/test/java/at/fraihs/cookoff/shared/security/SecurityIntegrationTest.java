@@ -93,6 +93,23 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void should_return401_when_unauthenticatedRequestHitsRivalriesEndpoint() throws Exception {
+        mockMvc.perform(get("/api/v1/rivalries"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void should_return200_when_organizerRoleJwtHitsRivalriesEndpoint() throws Exception {
+        createAccountService.execute(
+                new CreateAccountRequest("rivalries-organizer@example.com", "Organizer").roles(List.of(SystemRole.ORGANIZER)).password("password123"));
+        String token = login("rivalries-organizer@example.com", "password123");
+
+        mockMvc.perform(get("/api/v1/rivalries").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void should_return201_when_adminCreatesAccountWithPasswordOverHttp() throws Exception {
         createAccountService.execute(
                 new CreateAccountRequest("admin@example.com", "Admin").roles(List.of(SystemRole.ADMIN)).password("password123"));

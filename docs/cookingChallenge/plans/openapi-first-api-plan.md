@@ -341,6 +341,30 @@ generated `AccountsApi` (all four operations); old `AccountController`,
   listed under "Still open in Phase 4" above are unchanged - this pass was scoped to the
   Accounts group only, per the user's request.
 
+**Phase 5 continued (2026-08-04) — Rivalries group.** `RivalriesListService`/
+`RivalryDetailService` were already generated-type-ready since Phase 4 (gaps 3-5); this
+increment was purely the controller slice, same shape as Config's own "no existing
+controller to swap out" pattern. New `cookoff.interfaces.rest.RivalriesController`
+implements the generated `RivalriesApi` (`listRivalries`/`getRivalryDetail`), delegating to
+those two services and building `RivalryListResponse`/`RivalryDetailResponse` with a fresh
+`ApiMeta`, same shape as `AccountsController`. `SecurityConfig` gained matchers for
+`GET /api/v1/rivalries` and `GET /api/v1/rivalries/*/*` - the spec only declares
+`security: [{bearerAuth: []}]` with no per-role note (unlike Accounts' explicit
+organizer/admin-vs-ADMIN-only split), so this follows the existing "everything else
+organizer-or-admin" default that the rest of the organizer-facing screens use; without an
+explicit matcher these paths would have fallen through to the chain's
+`.anyRequest().denyAll()` regardless of role, not silently allowed.
+- New tests: `RivalriesControllerTest` (list/detail/404, `@WebMvcTest` slice, security
+  filter chain disabled per the established pattern) plus two `SecurityIntegrationTest`
+  cases (401 unauthenticated, 200 organizer JWT) proving the new matchers against the real
+  filter chain. `./gradlew build` passes end to end: 245 tests (up from 240), including
+  `ModularityTests`/`JMoleculesArchitectureTests`, all green.
+- **Next**: no other group has both its application services *and* zero live controller to
+  swap out, so the next slice picks up the "rewrite service + swap live controller in the
+  same step" work described under "Still open in Phase 4" - `CreateAccountService`-style
+  gaps aside, the natural next candidate is `LoginService`/`AuthController` (small, one
+  operation) before the larger `cookoff`-module Challenges group.
+
 ## Approach
 
 1. Design an OpenAPI spec shaped around what the UI ([`design-reference.md`](../design-reference.md),
