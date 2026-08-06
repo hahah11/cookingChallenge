@@ -1,18 +1,20 @@
 package at.fraihs.cookoff.auth.application.service;
 
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
+import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import at.fraihs.cookoff.auth.application.port.AccountRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
+
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -37,12 +39,12 @@ class GetAccountDetailServiceTest {
         Account account = Account.create(new Email("host@example.com"), "Host", SystemRole.ORGANIZER);
         when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
 
-        at.fraihs.cookoff.shared.web.openapi.model.Account result = service.execute(account.getId());
+        AccountRestDto result = service.execute(account.getId());
 
         assertEquals(account.getId().toString(), result.getId());
         assertEquals("host@example.com", result.getEmail());
         assertEquals("Host", result.getName());
-        assertTrue(result.getRoles().contains(at.fraihs.cookoff.shared.web.openapi.model.SystemRole.ORGANIZER));
+        assertTrue(result.getRoles().contains(SystemRoleRestDto.ORGANIZER));
     }
 
     @Test

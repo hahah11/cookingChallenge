@@ -5,11 +5,16 @@ import at.fraihs.cookoff.auth.application.service.CreateAccountService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.service.CreateChallengeService;
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
-import at.fraihs.cookoff.shared.web.openapi.model.Account;
-import at.fraihs.cookoff.shared.web.openapi.model.Challenge;
-import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.CreateChallengeRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.SystemRole;
+import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.CreateChallengeRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,11 +22,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
-
-import java.time.Duration;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -73,7 +73,7 @@ class SecurityIntegrationTest {
     @Test
     void should_return403_when_userRoleJwtHitsOrganizerOnlyEndpoint() throws Exception {
         createAccountService.execute(
-                new CreateAccountRequest("user@example.com", "User").roles(List.of(SystemRole.USER)).password("password123"));
+                new CreateAccountRequestRestDto("user@example.com", "User").roles(List.of(SystemRoleRestDto.USER)).password("password123"));
         String token = login("user@example.com", "password123");
 
         mockMvc.perform(get("/api/v1/challenges").header("Authorization", "Bearer " + token))
@@ -84,7 +84,7 @@ class SecurityIntegrationTest {
     @Test
     void should_return200_when_organizerRoleJwtHitsOrganizerOnlyEndpoint() throws Exception {
         createAccountService.execute(
-                new CreateAccountRequest("organizer@example.com", "Organizer").roles(List.of(SystemRole.ORGANIZER)).password("password123"));
+                new CreateAccountRequestRestDto("organizer@example.com", "Organizer").roles(List.of(SystemRoleRestDto.ORGANIZER)).password("password123"));
         String token = login("organizer@example.com", "password123");
 
         mockMvc.perform(get("/api/v1/challenges").header("Authorization", "Bearer " + token))
@@ -101,7 +101,7 @@ class SecurityIntegrationTest {
     @Test
     void should_return200_when_organizerRoleJwtHitsRivalriesEndpoint() throws Exception {
         createAccountService.execute(
-                new CreateAccountRequest("rivalries-organizer@example.com", "Organizer").roles(List.of(SystemRole.ORGANIZER)).password("password123"));
+                new CreateAccountRequestRestDto("rivalries-organizer@example.com", "Organizer").roles(List.of(SystemRoleRestDto.ORGANIZER)).password("password123"));
         String token = login("rivalries-organizer@example.com", "password123");
 
         mockMvc.perform(get("/api/v1/rivalries").header("Authorization", "Bearer " + token))
@@ -111,7 +111,7 @@ class SecurityIntegrationTest {
     @Test
     void should_return201_when_adminCreatesAccountWithPasswordOverHttp() throws Exception {
         createAccountService.execute(
-                new CreateAccountRequest("admin@example.com", "Admin").roles(List.of(SystemRole.ADMIN)).password("password123"));
+                new CreateAccountRequestRestDto("admin@example.com", "Admin").roles(List.of(SystemRoleRestDto.ADMIN)).password("password123"));
         String token = login("admin@example.com", "password123");
 
         mockMvc.perform(post("/api/v1/accounts")
@@ -125,7 +125,7 @@ class SecurityIntegrationTest {
     @Test
     void should_return401_when_loginCredentialsInvalid() throws Exception {
         createAccountService.execute(
-                new CreateAccountRequest("known@example.com", "Known").roles(List.of(SystemRole.ORGANIZER)).password("password123"));
+                new CreateAccountRequestRestDto("known@example.com", "Known").roles(List.of(SystemRoleRestDto.ORGANIZER)).password("password123"));
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType("application/json")
@@ -162,7 +162,7 @@ class SecurityIntegrationTest {
     @Test
     void should_return401_when_accessLinkTokenExpired() throws Exception {
         AccountId guest = AccountId.fromString(createAccountService.execute(
-                new CreateAccountRequest("expired-guest@example.com", "Guest").roles(List.of(SystemRole.USER))).getId());
+                new CreateAccountRequestRestDto("expired-guest@example.com", "Guest").roles(List.of(SystemRoleRestDto.USER))).getId());
         long challengeId = TsidSupport.fromBase32(createSampleChallenge().getId());
         String expiredToken = accessLinkService.issue(guest, challengeId, Duration.ofSeconds(-1));
 
@@ -174,20 +174,20 @@ class SecurityIntegrationTest {
     }
 
     private String issueLinkTokenForNewGuest() {
-        Account guest = createAccountService.execute(
-                new CreateAccountRequest("guest@example.com", "Guest").roles(List.of(SystemRole.USER)));
+        AccountRestDto guest = createAccountService.execute(
+                new CreateAccountRequestRestDto("guest@example.com", "Guest").roles(List.of(SystemRoleRestDto.USER)));
         long challengeId = TsidSupport.fromBase32(createSampleChallenge().getId());
         return accessLinkService.issue(AccountId.fromString(guest.getId()), challengeId, Duration.ofDays(1));
     }
 
-    private Challenge createSampleChallenge() {
-        Account cookA = createAccountService.execute(
-                new CreateAccountRequest("cook-a@example.com", "Cook A").roles(List.of(SystemRole.USER)));
-        Account cookB = createAccountService.execute(
-                new CreateAccountRequest("cook-b@example.com", "Cook B").roles(List.of(SystemRole.USER)));
-        Account organizer = createAccountService.execute(
-                new CreateAccountRequest("challenge-organizer@example.com", "Organizer").roles(List.of(SystemRole.ORGANIZER)));
-        CreateChallengeRequest request = new CreateChallengeRequest(
+    private ChallengeRestDto createSampleChallenge() {
+        AccountRestDto cookA = createAccountService.execute(
+                new CreateAccountRequestRestDto("cook-a@example.com", "Cook A").roles(List.of(SystemRoleRestDto.USER)));
+        AccountRestDto cookB = createAccountService.execute(
+                new CreateAccountRequestRestDto("cook-b@example.com", "Cook B").roles(List.of(SystemRoleRestDto.USER)));
+        AccountRestDto organizer = createAccountService.execute(
+                new CreateAccountRequestRestDto("challenge-organizer@example.com", "Organizer").roles(List.of(SystemRoleRestDto.ORGANIZER)));
+        CreateChallengeRequestRestDto request = new CreateChallengeRequestRestDto(
                 LocalDate.now(), "Title", "Schnitzel", cookA.getId(), cookB.getId());
         return createChallengeService.execute(request, AccountId.fromString(organizer.getId()));
     }

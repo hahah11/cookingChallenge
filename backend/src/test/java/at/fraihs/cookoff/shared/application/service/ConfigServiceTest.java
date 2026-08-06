@@ -2,13 +2,15 @@ package at.fraihs.cookoff.shared.application.service;
 
 import at.fraihs.cookoff.cookoff.PlateColorSummary;
 import at.fraihs.cookoff.cookoff.PlateColors;
+import at.fraihs.cookoff.shared.web.openapi.model.ConfigRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
+
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,12 +35,12 @@ class ConfigServiceTest {
         PlateColorSummary yellow = new PlateColorSummary("color-2", "Yellow", "#e0b400", 1);
         when(plateColors.listActive()).thenReturn(List.of(red, yellow));
 
-        at.fraihs.cookoff.shared.web.openapi.model.Config result = service.execute();
+        ConfigRestDto result = service.execute();
 
         assertEquals(3, result.getAvailableRoles().size());
-        assertTrue(result.getAvailableRoles().contains(at.fraihs.cookoff.shared.web.openapi.model.SystemRole.ADMIN));
-        assertTrue(result.getAvailableRoles().contains(at.fraihs.cookoff.shared.web.openapi.model.SystemRole.ORGANIZER));
-        assertTrue(result.getAvailableRoles().contains(at.fraihs.cookoff.shared.web.openapi.model.SystemRole.USER));
+        assertTrue(result.getAvailableRoles().contains(SystemRoleRestDto.ADMIN));
+        assertTrue(result.getAvailableRoles().contains(SystemRoleRestDto.ORGANIZER));
+        assertTrue(result.getAvailableRoles().contains(SystemRoleRestDto.USER));
 
         assertEquals(2, result.getPlateColors().size());
         assertEquals("color-1", result.getPlateColors().get(0).getId());
@@ -54,7 +56,7 @@ class ConfigServiceTest {
     void should_returnEmptyPlateColors_when_noneActive() {
         when(plateColors.listActive()).thenReturn(List.of());
 
-        at.fraihs.cookoff.shared.web.openapi.model.Config result = service.execute();
+        ConfigRestDto result = service.execute();
 
         assertTrue(result.getPlateColors().isEmpty());
     }

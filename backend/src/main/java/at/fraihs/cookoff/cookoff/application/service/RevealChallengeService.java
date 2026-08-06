@@ -2,23 +2,24 @@ package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeRevealed;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.service.ChallengeResult;
 import at.fraihs.cookoff.cookoff.domain.service.ResultCalculator;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResultRestDto;
+
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -33,7 +34,7 @@ public class RevealChallengeService {
     private final ResultCalculator resultCalculator = new ResultCalculator();
 
     @Transactional
-    public at.fraihs.cookoff.shared.web.openapi.model.ChallengeResult execute(String challengeIdString) {
+    public ChallengeResultRestDto execute(String challengeIdString) {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));

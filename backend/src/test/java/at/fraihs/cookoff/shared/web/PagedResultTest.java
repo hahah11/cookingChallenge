@@ -1,12 +1,12 @@
 package at.fraihs.cookoff.shared.web;
 
-import at.fraihs.cookoff.shared.web.openapi.model.Pagination;
+import at.fraihs.cookoff.shared.web.openapi.model.PaginationRestDto;
+
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,7 +21,7 @@ class PagedResultTest {
         PagedResult<Integer> result = PagedResult.of(page);
 
         assertEquals(List.of(1, 2, 3), result.content());
-        Pagination pagination = result.pagination();
+        PaginationRestDto pagination = result.pagination();
         assertEquals(0, pagination.getPage());
         assertEquals(3L, pagination.getTotalElements());
         assertEquals(1, pagination.getTotalPages());

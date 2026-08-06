@@ -14,6 +14,19 @@ import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.RevealResult;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
+import at.fraihs.cookoff.shared.web.openapi.model.CategoryRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.CategoryScoreTotalRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResultRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatusRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.CookAssignmentRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.DishLabelRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.DishScoreTotalRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.MyScoreSubmissionRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallengeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ParticipantCookAssignmentRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.RivalrySummaryRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ScoreRestDto;
 
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -23,8 +36,8 @@ import java.util.Set;
 
 /**
  * Domain {@link Challenge} -> generated-OpenAPI-model mapping shared by every use case that
- * returns the organizer-facing {@code Challenge} model or one of its nested pieces. Kept as
- * plain static helpers rather than a MapStruct interface (like auth's AccountModelMapper)
+ * returns the organizer-facing {@code ChallengeRestDto} model or one of its nested pieces. Kept
+ * as plain static helpers rather than a MapStruct interface (like auth's AccountModelMapper)
  * because the generated model bundles cross-aggregate computed fields (submittedGuestCount,
  * hasImage) that MapStruct can't derive from the Challenge aggregate alone.
  */
@@ -33,13 +46,13 @@ final class ChallengeMapping {
     private ChallengeMapping() {
     }
 
-    static at.fraihs.cookoff.shared.web.openapi.model.Challenge toGenerated(Challenge challenge, int submittedGuestCount) {
-        return new at.fraihs.cookoff.shared.web.openapi.model.Challenge(
+    static ChallengeRestDto toGenerated(Challenge challenge, int submittedGuestCount) {
+        return new ChallengeRestDto(
                 challenge.getId().toString(),
                 challenge.getDate(),
                 challenge.getTitle(),
                 challenge.getDishName().toString(),
-                at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatus.valueOf(challenge.getStatus().name()),
+                ChallengeStatusRestDto.valueOf(challenge.getStatus().name()),
                 cookAssignments(challenge),
                 challenge.getGuestAccountIds().stream().map(AccountId::toString).toList(),
                 challenge.getCreatedBy().toString(),
@@ -57,11 +70,11 @@ final class ChallengeMapping {
                 .count();
     }
 
-    static List<at.fraihs.cookoff.shared.web.openapi.model.CookAssignment> cookAssignments(Challenge challenge) {
+    static List<CookAssignmentRestDto> cookAssignments(Challenge challenge) {
         return challenge.getCookAssignments().stream()
-                .map(assignment -> new at.fraihs.cookoff.shared.web.openapi.model.CookAssignment(
+                .map(assignment -> new CookAssignmentRestDto(
                         assignment.accountId().toString(),
-                        at.fraihs.cookoff.shared.web.openapi.model.DishLabel.valueOf(assignment.label().name()),
+                        DishLabelRestDto.valueOf(assignment.label().name()),
                         assignment.colorId() == null ? null : assignment.colorId().toString()))
                 .toList();
     }
@@ -71,21 +84,21 @@ final class ChallengeMapping {
         return result == null || result.winnerAccountId() == null ? null : result.winnerAccountId().toString();
     }
 
-    static at.fraihs.cookoff.shared.web.openapi.model.Score toGeneratedScore(Score score) {
-        return new at.fraihs.cookoff.shared.web.openapi.model.Score(
-                at.fraihs.cookoff.shared.web.openapi.model.DishLabel.valueOf(score.dishLabel().name()),
-                at.fraihs.cookoff.shared.web.openapi.model.Category.valueOf(score.category().name()),
+    static ScoreRestDto toGeneratedScore(Score score) {
+        return new ScoreRestDto(
+                DishLabelRestDto.valueOf(score.dishLabel().name()),
+                CategoryRestDto.valueOf(score.category().name()),
                 score.points());
     }
 
-    static at.fraihs.cookoff.shared.web.openapi.model.MyScoreSubmission toGeneratedMySubmission(ScoreSubmission submission) {
+    static MyScoreSubmissionRestDto toGeneratedMySubmission(ScoreSubmission submission) {
         if (submission == null) {
             return null;
         }
-        List<at.fraihs.cookoff.shared.web.openapi.model.Score> scores = submission.getScores().stream()
+        List<ScoreRestDto> scores = submission.getScores().stream()
                 .map(ChallengeMapping::toGeneratedScore)
                 .toList();
-        return new at.fraihs.cookoff.shared.web.openapi.model.MyScoreSubmission(
+        return new MyScoreSubmissionRestDto(
                 scores, submission.getSubmittedAt().atOffset(ZoneOffset.UTC));
     }
 
@@ -95,13 +108,13 @@ final class ChallengeMapping {
      * since blind scoring is done by plate color, not by cook identity - see
      * openapi-first-api-plan.md's ParticipantChallenge restructuring note.
      */
-    static at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge toParticipantChallenge(
+    static ParticipantChallengeRestDto toParticipantChallenge(
             Challenge challenge, ScoreSubmission mySubmission, AccountId requesterAccountId) {
         boolean revealed = challenge.getStatus() == ChallengeStatus.REVEALED;
-        List<at.fraihs.cookoff.shared.web.openapi.model.ParticipantCookAssignment> assignments =
+        List<ParticipantCookAssignmentRestDto> assignments =
                 challenge.getCookAssignments().stream()
-                        .map(assignment -> new at.fraihs.cookoff.shared.web.openapi.model.ParticipantCookAssignment(
-                                at.fraihs.cookoff.shared.web.openapi.model.DishLabel.valueOf(assignment.label().name()),
+                        .map(assignment -> new ParticipantCookAssignmentRestDto(
+                                DishLabelRestDto.valueOf(assignment.label().name()),
                                 revealed ? assignment.accountId().toString() : null,
                                 assignment.colorId() == null ? null : assignment.colorId().toString()))
                         .toList();
@@ -111,20 +124,20 @@ final class ChallengeMapping {
                 .map(CookAssignment::label)
                 .findFirst()
                 .orElse(null);
-        at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge.MyCookLabelEnum myCookLabel = myLabel == null
+        ParticipantChallengeRestDto.MyCookLabelEnum myCookLabel = myLabel == null
                 ? null
-                : at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge.MyCookLabelEnum.fromValue(myLabel.name());
+                : ParticipantChallengeRestDto.MyCookLabelEnum.fromValue(myLabel.name());
         boolean anyColorPicked = challenge.getCookAssignments().stream().anyMatch(CookAssignment::hasColor);
         boolean canPickColor = myCookLabel != null && !anyColorPicked;
 
-        return new at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge(
+        return new ParticipantChallengeRestDto(
                 challenge.getId().toString(),
                 challenge.getDate(),
                 challenge.getTitle(),
                 challenge.getDishName().toString(),
-                at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatus.valueOf(challenge.getStatus().name()),
-                Arrays.asList(at.fraihs.cookoff.shared.web.openapi.model.DishLabel.values()),
-                Arrays.asList(at.fraihs.cookoff.shared.web.openapi.model.Category.values()),
+                ChallengeStatusRestDto.valueOf(challenge.getStatus().name()),
+                Arrays.asList(DishLabelRestDto.values()),
+                Arrays.asList(CategoryRestDto.values()),
                 assignments,
                 challenge.getImageRef() != null,
                 mySubmission != null,
@@ -141,7 +154,7 @@ final class ChallengeMapping {
      * {@code revealChallenge} itself must not use this overload - see
      * {@link RevealChallengeService} for why.
      */
-    static at.fraihs.cookoff.shared.web.openapi.model.ChallengeResult toGeneratedResult(
+    static ChallengeResultRestDto toGeneratedResult(
             Challenge challenge, at.fraihs.cookoff.cookoff.domain.service.ChallengeResult result,
             CookRivalryRepository cookRivalryRepository, AccountLookup accountLookup) {
         AccountId challengeCookA = challenge.cookAssignmentFor(DishLabel.A).accountId();
@@ -158,30 +171,30 @@ final class ChallengeMapping {
      * update only lands after commit, via {@code ChallengeRevealedRivalryUpdater}), so its own
      * response isn't off-by-one-game.
      */
-    static at.fraihs.cookoff.shared.web.openapi.model.ChallengeResult toGeneratedResult(
+    static ChallengeResultRestDto toGeneratedResult(
             Challenge challenge, at.fraihs.cookoff.cookoff.domain.service.ChallengeResult result,
             CookRivalry rivalry, AccountLookup accountLookup) {
         Map<String, String> categoryWinners = Arrays.stream(Category.values())
                 .filter(category -> result.categoryWinners().containsKey(category))
                 .collect(java.util.stream.Collectors.toMap(Enum::name,
                         category -> result.categoryWinners().get(category).name()));
-        List<at.fraihs.cookoff.shared.web.openapi.model.CategoryScoreTotal> categoryTotals =
+        List<CategoryScoreTotalRestDto> categoryTotals =
                 Arrays.stream(Category.values())
                         .map(category -> {
                             Map<DishLabel, Integer> byLabel = result.categoryTotals().getOrDefault(category, Map.of());
-                            List<at.fraihs.cookoff.shared.web.openapi.model.DishScoreTotal> dishTotals =
+                            List<DishScoreTotalRestDto> dishTotals =
                                     Arrays.stream(DishLabel.values())
-                                            .map(label -> new at.fraihs.cookoff.shared.web.openapi.model.DishScoreTotal(
-                                                    at.fraihs.cookoff.shared.web.openapi.model.DishLabel.valueOf(label.name()),
+                                            .map(label -> new DishScoreTotalRestDto(
+                                                    DishLabelRestDto.valueOf(label.name()),
                                                     byLabel.getOrDefault(label, 0)))
                                             .toList();
-                            return new at.fraihs.cookoff.shared.web.openapi.model.CategoryScoreTotal(
-                                    at.fraihs.cookoff.shared.web.openapi.model.Category.valueOf(category.name()), dishTotals);
+                            return new CategoryScoreTotalRestDto(
+                                    CategoryRestDto.valueOf(category.name()), dishTotals);
                         })
                         .toList();
         String overallWinnerAccountId = result.overallWinnerAccountId() == null
                 ? null : result.overallWinnerAccountId().toString();
-        return new at.fraihs.cookoff.shared.web.openapi.model.ChallengeResult(
+        return new ChallengeResultRestDto(
                 challenge.getId().toString(),
                 categoryWinners,
                 categoryTotals,
@@ -197,7 +210,7 @@ final class ChallengeMapping {
      * the challenge's own labeling, swapping win counts if the orders disagree. {@code rivalry}
      * is null when the pair has never been revealed together before (zeroed record).
      */
-    private static at.fraihs.cookoff.shared.web.openapi.model.RivalrySummary rivalrySummary(
+    private static RivalrySummaryRestDto rivalrySummary(
             Challenge challenge, CookRivalry rivalry, AccountLookup accountLookup) {
         AccountId challengeCookA = challenge.cookAssignmentFor(DishLabel.A).accountId();
         AccountId challengeCookB = challenge.cookAssignmentFor(DishLabel.B).accountId();
@@ -212,7 +225,7 @@ final class ChallengeMapping {
         AccountSummary cookA = accountLookup.getById(challengeCookA);
         AccountSummary cookB = accountLookup.getById(challengeCookB);
         String headline = RivalryHeadline.build(cookA.name(), cookB.name(), cookAWins, cookBWins, draws);
-        return new at.fraihs.cookoff.shared.web.openapi.model.RivalrySummary(
+        return new RivalrySummaryRestDto(
                 challengeCookA.toString(), challengeCookB.toString(), cookAWins, cookBWins, draws, totalChallenges, headline);
     }
 }

@@ -4,20 +4,20 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.GuestSubmissionStatus;
-import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatus;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import at.fraihs.cookoff.shared.web.openapi.model.GuestSubmissionStatusRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatusRestDto;
 
 import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * "Which guests have/haven't submitted" — organizer-only progress view per
@@ -34,7 +34,7 @@ public class GetChallengeStatusService {
     private final AccountLookup accountLookup;
 
     @Transactional(readOnly = true)
-    public SubmissionStatus execute(String challengeIdString) {
+    public SubmissionStatusRestDto execute(String challengeIdString) {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
@@ -46,14 +46,14 @@ public class GetChallengeStatusService {
         var guests = challenge.getGuestAccountIds().stream()
                 .map(guestAccountId -> toGuestSubmissionStatus(guestAccountId, submissionsByGuest.get(guestAccountId)))
                 .toList();
-        long submittedCount = guests.stream().filter(GuestSubmissionStatus::getSubmitted).count();
+        long submittedCount = guests.stream().filter(GuestSubmissionStatusRestDto::getSubmitted).count();
 
-        return new SubmissionStatus(challengeIdString, guests.size(), (int) submittedCount, guests);
+        return new SubmissionStatusRestDto(challengeIdString, guests.size(), (int) submittedCount, guests);
     }
 
-    private GuestSubmissionStatus toGuestSubmissionStatus(AccountId guestAccountId, ScoreSubmission submission) {
+    private GuestSubmissionStatusRestDto toGuestSubmissionStatus(AccountId guestAccountId, ScoreSubmission submission) {
         AccountSummary account = accountLookup.getById(guestAccountId);
-        GuestSubmissionStatus status = new GuestSubmissionStatus(
+        GuestSubmissionStatusRestDto status = new GuestSubmissionStatusRestDto(
                 guestAccountId.toString(), account.name(), account.email().toString(), submission != null);
         if (submission != null) {
             status.submittedAt(submission.getSubmittedAt().atOffset(ZoneOffset.UTC));

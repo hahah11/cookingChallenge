@@ -6,10 +6,11 @@ import at.fraihs.cookoff.auth.application.service.AccessLinkLoginService;
 import at.fraihs.cookoff.auth.application.service.LoginService;
 import at.fraihs.cookoff.shared.config.JacksonConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
-import at.fraihs.cookoff.shared.web.openapi.model.AccessLinkLoginRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.AuthToken;
-import at.fraihs.cookoff.shared.web.openapi.model.LoginRequest;
-import tools.jackson.databind.ObjectMapper;
+import at.fraihs.cookoff.shared.web.openapi.model.AccessLinkLoginRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.AuthTokenRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.LoginRequestRestDto;
+
+import java.time.OffsetDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -17,8 +18,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.OffsetDateTime;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -50,12 +50,12 @@ class AuthControllerTest {
 
     @Test
     void should_return200_when_credentialsValid() throws Exception {
-        AuthToken token = new AuthToken("signed-jwt", OffsetDateTime.parse("2026-08-04T12:00:00Z"));
+        AuthTokenRestDto token = new AuthTokenRestDto("signed-jwt", OffsetDateTime.parse("2026-08-04T12:00:00Z"));
         when(loginService.execute(any())).thenReturn(token);
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new LoginRequest("a@b.com", "secret"))))
+                        .content(objectMapper.writeValueAsString(new LoginRequestRestDto("a@b.com", "secret"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").value("signed-jwt"));
     }
@@ -64,7 +64,7 @@ class AuthControllerTest {
     void should_return400_when_emailInvalid() throws Exception {
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new LoginRequest("not-an-email", "secret"))))
+                        .content(objectMapper.writeValueAsString(new LoginRequestRestDto("not-an-email", "secret"))))
                 .andExpect(status().isBadRequest());
     }
 
@@ -74,19 +74,19 @@ class AuthControllerTest {
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new LoginRequest("a@b.com", "wrong"))))
+                        .content(objectMapper.writeValueAsString(new LoginRequestRestDto("a@b.com", "wrong"))))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("INVALID_CREDENTIALS"));
     }
 
     @Test
     void should_return200_when_accessLinkTokenValid() throws Exception {
-        AuthToken token = new AuthToken("signed-jwt", OffsetDateTime.parse("2026-08-04T12:00:00Z"));
+        AuthTokenRestDto token = new AuthTokenRestDto("signed-jwt", OffsetDateTime.parse("2026-08-04T12:00:00Z"));
         when(accessLinkLoginService.execute(any())).thenReturn(token);
 
         mockMvc.perform(post("/api/v1/auth/access-link-login")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new AccessLinkLoginRequest("link-token"))))
+                        .content(objectMapper.writeValueAsString(new AccessLinkLoginRequestRestDto("link-token"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").value("signed-jwt"));
     }
@@ -97,7 +97,7 @@ class AuthControllerTest {
 
         mockMvc.perform(post("/api/v1/auth/access-link-login")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new AccessLinkLoginRequest("bad-token"))))
+                        .content(objectMapper.writeValueAsString(new AccessLinkLoginRequestRestDto("bad-token"))))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("INVALID_OR_EXPIRED_LINK"));
     }

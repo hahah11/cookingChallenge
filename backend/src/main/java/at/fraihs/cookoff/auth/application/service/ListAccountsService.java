@@ -2,7 +2,8 @@ package at.fraihs.cookoff.auth.application.service;
 
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.shared.web.PagedResult;
-import at.fraihs.cookoff.shared.web.openapi.model.Account;
+import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,8 +18,8 @@ public class ListAccountsService {
     private final AccountModelMapper accountModelMapper;
 
     @Transactional(readOnly = true)
-    public PagedResult<Account> execute(int page, int size) {
-        Page<Account> accounts = accountRepository.findAll(PageRequest.of(page, size))
+    public PagedResult<AccountRestDto> execute(int page, int size) {
+        Page<AccountRestDto> accounts = accountRepository.findAll(PageRequest.of(page, size))
                 .map(accountModelMapper::toGenerated);
         return PagedResult.of(accounts);
     }

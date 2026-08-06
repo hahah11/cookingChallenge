@@ -6,14 +6,14 @@ import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
-import at.fraihs.cookoff.shared.web.openapi.model.GuestHome;
-import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import at.fraihs.cookoff.shared.web.openapi.model.GuestHomeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallengeRestDto;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Backs GET /api/v1/me/home: a personalized home for a guest or cook, per
@@ -30,15 +30,15 @@ public class HomeService {
     private final ScoreSubmissionRepository scoreSubmissionRepository;
 
     @Transactional(readOnly = true)
-    public GuestHome execute(AccountId accountId) {
-        List<ParticipantChallenge> open = new ArrayList<>();
-        List<ParticipantChallenge> past = new ArrayList<>();
+    public GuestHomeRestDto execute(AccountId accountId) {
+        List<ParticipantChallengeRestDto> open = new ArrayList<>();
+        List<ParticipantChallengeRestDto> past = new ArrayList<>();
 
         for (Challenge challenge : challengeRepository.findByParticipant(accountId)) {
             ScoreSubmission mySubmission = scoreSubmissionRepository
                     .findByChallengeIdAndGuestAccountId(challenge.getId(), accountId)
                     .orElse(null);
-            ParticipantChallenge view = ChallengeMapping.toParticipantChallenge(challenge, mySubmission, accountId);
+            ParticipantChallengeRestDto view = ChallengeMapping.toParticipantChallenge(challenge, mySubmission, accountId);
             boolean pendingAction = (view.getCanScore() && !view.getSubmitted()) || view.getCanPickColor();
             if (challenge.getStatus() == ChallengeStatus.OPEN && pendingAction) {
                 open.add(view);
@@ -47,6 +47,6 @@ public class HomeService {
             }
         }
 
-        return new GuestHome(open, past);
+        return new GuestHomeRestDto(open, past);
     }
 }

@@ -4,23 +4,25 @@ import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import org.mapstruct.Mapper;
+import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
 
 import java.util.List;
 import java.util.Set;
+import org.mapstruct.Mapper;
 
 /**
  * Domain -> generated-OpenAPI-model mapping, shared by every account use case that returns
- * the generated {@code Account} model. Unlike infrastructure/persistence's AccountMapper
+ * the generated {@code AccountRestDto} model. Unlike infrastructure/persistence's AccountMapper
  * (which hand-writes both directions because the domain Account has no public constructor),
- * the generated Account model has a plain public constructor/setters, so MapStruct generates
+ * the generated model has a plain public constructor/setters, so MapStruct generates
  * {@link #toGenerated} itself; only the typed-VO/enum conversions it can't infer are
  * hand-written, per docs/backend/03-code-style.md's Mapper Usage section.
  */
 @Mapper(componentModel = "spring")
 public interface AccountModelMapper {
 
-    at.fraihs.cookoff.shared.web.openapi.model.Account toGenerated(Account account);
+    AccountRestDto toGenerated(Account account);
 
     default String map(AccountId id) {
         return id.toString();
@@ -31,9 +33,9 @@ public interface AccountModelMapper {
     }
 
     /** Account#getRoles()'s Set.copyOf(...) doesn't guarantee iteration order - sort explicitly for a deterministic response. */
-    default List<at.fraihs.cookoff.shared.web.openapi.model.SystemRole> mapRoles(Set<SystemRole> roles) {
+    default List<SystemRoleRestDto> mapRoles(Set<SystemRole> roles) {
         return roles.stream()
-                .map(role -> at.fraihs.cookoff.shared.web.openapi.model.SystemRole.valueOf(role.name()))
+                .map(role -> SystemRoleRestDto.valueOf(role.name()))
                 .sorted()
                 .toList();
     }

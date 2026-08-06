@@ -1,20 +1,20 @@
 package at.fraihs.cookoff.auth.application.service;
 
 import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
+import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.Email;
-import at.fraihs.cookoff.auth.application.port.AccountRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.AuthToken;
-import at.fraihs.cookoff.shared.web.openapi.model.LoginRequest;
+import at.fraihs.cookoff.shared.web.openapi.model.AuthTokenRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.LoginRequestRestDto;
+
+import java.time.Duration;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-import java.time.Instant;
 
 /**
  * Password login for ORGANIZER/ADMIN accounts, per
@@ -36,7 +36,7 @@ public class LoginService {
     private Duration expiration = Duration.ofHours(12);
 
     @Transactional(readOnly = true)
-    public AuthToken execute(LoginRequest request) {
+    public AuthTokenRestDto execute(LoginRequestRestDto request) {
         Account account = accountRepository.findByEmail(new Email(request.getEmail()))
                 .orElseThrow(InvalidCredentialsException::new);
         if (account.getPasswordHash() == null
@@ -44,7 +44,7 @@ public class LoginService {
             throw new InvalidCredentialsException();
         }
 
-        AuthToken token = jwtIssuer.issueUntil(account, Instant.now().plus(expiration));
+        AuthTokenRestDto token = jwtIssuer.issueUntil(account, Instant.now().plus(expiration));
         log.info("Login succeeded for account {}", account.getId());
         return token;
     }

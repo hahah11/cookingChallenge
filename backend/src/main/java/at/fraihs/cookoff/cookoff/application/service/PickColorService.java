@@ -3,21 +3,22 @@ package at.fraihs.cookoff.cookoff.application.service;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.PlateColorRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.PlateColor;
 import at.fraihs.cookoff.cookoff.domain.model.PlateColorId;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.PlateColorRepository;
-import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.PickColorRequest;
+import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallengeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.PickColorRequestRestDto;
+
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -29,8 +30,8 @@ public class PickColorService {
     private final ScoreSubmissionRepository scoreSubmissionRepository;
 
     @Transactional
-    public at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge execute(
-            String challengeIdString, AccountId cookAccountId, PickColorRequest request) {
+    public ParticipantChallengeRestDto execute(
+            String challengeIdString, AccountId cookAccountId, PickColorRequestRestDto request) {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));

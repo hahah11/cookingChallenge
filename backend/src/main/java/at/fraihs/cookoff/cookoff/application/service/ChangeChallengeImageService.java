@@ -4,11 +4,13 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ImageStoragePort;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ public class ChangeChallengeImageService {
     private final ScoreSubmissionRepository scoreSubmissionRepository;
 
     @Transactional
-    public at.fraihs.cookoff.shared.web.openapi.model.Challenge execute(
+    public ChallengeRestDto execute(
             String challengeIdString, AccountId organizerAccountId, byte[] imageBytes, String contentType) {
         if (!accountLookup.canOrganize(organizerAccountId)) {
             log.warn("Change image rejected, account cannot organize: {}", organizerAccountId);

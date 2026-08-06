@@ -1,6 +1,8 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Category;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
@@ -8,19 +10,17 @@ import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.GuestHome;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import at.fraihs.cookoff.shared.web.openapi.model.GuestHomeRestDto;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -61,7 +61,7 @@ class HomeServiceTest {
         when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(alreadySubmitted.getId(), accountId))
                 .thenReturn(Optional.of(submission));
 
-        GuestHome home = service.execute(accountId);
+        GuestHomeRestDto home = service.execute(accountId);
 
         assertEquals(1, home.getOpen().size());
         assertEquals(notYetSubmitted.getId().toString(), home.getOpen().get(0).getId());
@@ -78,7 +78,7 @@ class HomeServiceTest {
         when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(revealed.getId(), accountId))
                 .thenReturn(Optional.empty());
 
-        GuestHome home = service.execute(accountId);
+        GuestHomeRestDto home = service.execute(accountId);
 
         assertTrue(home.getOpen().isEmpty());
         assertEquals(1, home.getPast().size());
@@ -92,7 +92,7 @@ class HomeServiceTest {
         when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(open.getId(), accountId))
                 .thenReturn(Optional.empty());
 
-        GuestHome home = service.execute(accountId);
+        GuestHomeRestDto home = service.execute(accountId);
 
         assertTrue(home.getOpen().get(0).getParticipantCookAssignments().stream()
                 .allMatch(assignment -> assignment.getAccountId().get() == null));

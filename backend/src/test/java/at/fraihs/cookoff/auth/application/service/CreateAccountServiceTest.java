@@ -4,16 +4,17 @@ import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsExceptio
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.Email;
-import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.SystemRole;
+import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
+
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,12 +43,12 @@ class CreateAccountServiceTest {
         when(accountRepository.existsByEmail(new Email("host@example.com"))).thenReturn(false);
         when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        at.fraihs.cookoff.shared.web.openapi.model.Account result = service.execute(
-                new CreateAccountRequest("host@example.com", "Host").roles(List.of(SystemRole.ORGANIZER)));
+        AccountRestDto result = service.execute(
+                new CreateAccountRequestRestDto("host@example.com", "Host").roles(List.of(SystemRoleRestDto.ORGANIZER)));
 
         assertEquals("host@example.com", result.getEmail());
         assertEquals("Host", result.getName());
-        assertTrue(result.getRoles().contains(SystemRole.ORGANIZER));
+        assertTrue(result.getRoles().contains(SystemRoleRestDto.ORGANIZER));
     }
 
     @Test
@@ -55,6 +56,6 @@ class CreateAccountServiceTest {
         when(accountRepository.existsByEmail(new Email("host@example.com"))).thenReturn(true);
 
         assertThrows(AccountAlreadyExistsException.class, () -> service.execute(
-                new CreateAccountRequest("host@example.com", "Host")));
+                new CreateAccountRequestRestDto("host@example.com", "Host")));
     }
 }

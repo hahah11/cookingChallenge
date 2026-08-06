@@ -21,23 +21,31 @@ import at.fraihs.cookoff.cookoff.application.service.UnrevealChallengeService;
 import at.fraihs.cookoff.shared.config.JacksonConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
 import at.fraihs.cookoff.shared.web.PagedResult;
-import at.fraihs.cookoff.shared.web.openapi.model.Category;
-import at.fraihs.cookoff.shared.web.openapi.model.Challenge;
-import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResult;
-import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatus;
-import at.fraihs.cookoff.shared.web.openapi.model.CookAssignment;
-import at.fraihs.cookoff.shared.web.openapi.model.CreateChallengeRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.DishLabel;
-import at.fraihs.cookoff.shared.web.openapi.model.InvitationsSent;
-import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge;
-import at.fraihs.cookoff.shared.web.openapi.model.Pagination;
-import at.fraihs.cookoff.shared.web.openapi.model.PickColorRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.RegistrationInvite;
-import at.fraihs.cookoff.shared.web.openapi.model.RivalrySummary;
-import at.fraihs.cookoff.shared.web.openapi.model.ScoreEntry;
-import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatus;
-import at.fraihs.cookoff.shared.web.openapi.model.SubmitScoresRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.UpdateParticipantsRequest;
+import at.fraihs.cookoff.shared.web.openapi.model.CategoryRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResultRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatusRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.CookAssignmentRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.CreateChallengeRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.DishLabelRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.InvitationsSentRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.PaginationRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallengeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.PickColorRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.RegistrationInviteRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.RivalrySummaryRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ScoreEntryRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ScoreSubmissionRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatusRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SubmitScoresRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.UpdateParticipantsRequestRestDto;
+
+import java.net.URI;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,13 +60,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
-
-import java.net.URI;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -129,25 +130,25 @@ class ChallengesControllerTest {
         SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(jwt, null));
     }
 
-    private Challenge sampleChallenge() {
-        return new Challenge("chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatus.OPEN,
-                List.of(new CookAssignment("acc-a", DishLabel.A, null), new CookAssignment("acc-b", DishLabel.B, null)),
+    private ChallengeRestDto sampleChallenge() {
+        return new ChallengeRestDto("chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatusRestDto.OPEN,
+                List.of(new CookAssignmentRestDto("acc-a", DishLabelRestDto.A, null), new CookAssignmentRestDto("acc-b", DishLabelRestDto.B, null)),
                 List.of(), "acc-org", 0, 0, false, null);
     }
 
-    private SubmitScoresRequest sixValidScores() {
-        List<ScoreEntry> scores = new ArrayList<>();
-        for (DishLabel label : DishLabel.values()) {
-            for (Category category : Category.values()) {
-                scores.add(new ScoreEntry(label, category, 3));
+    private SubmitScoresRequestRestDto sixValidScores() {
+        List<ScoreEntryRestDto> scores = new ArrayList<>();
+        for (DishLabelRestDto label : DishLabelRestDto.values()) {
+            for (CategoryRestDto category : CategoryRestDto.values()) {
+                scores.add(new ScoreEntryRestDto(label, category, 3));
             }
         }
-        return new SubmitScoresRequest(scores);
+        return new SubmitScoresRequestRestDto(scores);
     }
 
-    private ParticipantChallenge sampleParticipantChallenge() {
-        return new ParticipantChallenge("chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatus.OPEN,
-                List.of(DishLabel.A, DishLabel.B), List.of(Category.MUNDGEFUEHL), List.of(),
+    private ParticipantChallengeRestDto sampleParticipantChallenge() {
+        return new ParticipantChallengeRestDto("chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatusRestDto.OPEN,
+                List.of(DishLabelRestDto.A, DishLabelRestDto.B), List.of(CategoryRestDto.MUNDGEFUEHL), List.of(),
                 false, false, null, null, true, false);
     }
 
@@ -160,14 +161,14 @@ class ChallengesControllerTest {
         mockMvc.perform(post("/api/v1/challenges")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(
-                                new CreateChallengeRequest(LocalDate.now(), "Title", "Schnitzel", "acc-a", "acc-b"))))
+                                new CreateChallengeRequestRestDto(LocalDate.now(), "Title", "Schnitzel", "acc-a", "acc-b"))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.dishName").value("Schnitzel"));
     }
 
     @Test
     void should_return200_when_listingChallenges() throws Exception {
-        Pagination pagination = new Pagination(0, 20, 1L, 1, true, true);
+        PaginationRestDto pagination = new PaginationRestDto(0, 20, 1L, 1, true, true);
         when(listChallengesService.execute(0, 20)).thenReturn(new PagedResult<>(List.of(sampleChallenge()), pagination));
 
         mockMvc.perform(get("/api/v1/challenges"))
@@ -199,7 +200,7 @@ class ChallengesControllerTest {
 
     @Test
     void should_return200_when_gettingStatus() throws Exception {
-        when(getChallengeStatusService.execute("chal-1")).thenReturn(new SubmissionStatus("chal-1", 2, 1, List.of()));
+        when(getChallengeStatusService.execute("chal-1")).thenReturn(new SubmissionStatusRestDto("chal-1", 2, 1, List.of()));
 
         mockMvc.perform(get("/api/v1/challenges/chal-1/status"))
                 .andExpect(status().isOk())
@@ -214,7 +215,7 @@ class ChallengesControllerTest {
 
         mockMvc.perform(patch("/api/v1/challenges/chal-1/participants")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new UpdateParticipantsRequest())))
+                        .content(objectMapper.writeValueAsString(new UpdateParticipantsRequestRestDto())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value("chal-1"));
     }
@@ -227,7 +228,7 @@ class ChallengesControllerTest {
 
         mockMvc.perform(post("/api/v1/challenges/chal-1/color-pick")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new PickColorRequest("color-1"))))
+                        .content(objectMapper.writeValueAsString(new PickColorRequestRestDto("color-1"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value("chal-1"));
     }
@@ -256,7 +257,7 @@ class ChallengesControllerTest {
     void should_return201_when_creatingRegistrationInvite() throws Exception {
         AccountId organizer = AccountId.generate();
         when(createRegistrationInviteService.execute("chal-1", organizer))
-                .thenReturn(new RegistrationInvite("tok", URI.create("http://localhost:4200/register?token=tok")));
+                .thenReturn(new RegistrationInviteRestDto("tok", URI.create("http://localhost:4200/register?token=tok")));
         authenticateAs(organizer);
 
         mockMvc.perform(post("/api/v1/challenges/chal-1/registration-invites"))
@@ -266,7 +267,7 @@ class ChallengesControllerTest {
 
     @Test
     void should_return200_when_sendingInvitations() throws Exception {
-        when(sendChallengeInvitationsService.execute(eq("chal-1"), any())).thenReturn(new InvitationsSent(3));
+        when(sendChallengeInvitationsService.execute(eq("chal-1"), any())).thenReturn(new InvitationsSentRestDto(3));
 
         mockMvc.perform(post("/api/v1/challenges/chal-1/invitations"))
                 .andExpect(status().isOk())
@@ -275,8 +276,8 @@ class ChallengesControllerTest {
 
     @Test
     void should_return200_when_revealing() throws Exception {
-        ChallengeResult result = new ChallengeResult("chal-1", Map.of(), List.of(), null, List.of(),
-                new RivalrySummary("acc-a", "acc-b", 0, 0, 0, 0, "headline"));
+        ChallengeResultRestDto result = new ChallengeResultRestDto("chal-1", Map.of(), List.of(), null, List.of(),
+                new RivalrySummaryRestDto("acc-a", "acc-b", 0, 0, 0, 0, "headline"));
         when(revealChallengeService.execute("chal-1")).thenReturn(result);
 
         mockMvc.perform(post("/api/v1/challenges/chal-1/reveal"))
@@ -298,8 +299,8 @@ class ChallengesControllerTest {
     @Test
     void should_return200_when_gettingResults() throws Exception {
         AccountId accountId = AccountId.generate();
-        ChallengeResult result = new ChallengeResult("chal-1", Map.of(), List.of(), null, List.of(),
-                new RivalrySummary("acc-a", "acc-b", 0, 0, 0, 0, "headline"));
+        ChallengeResultRestDto result = new ChallengeResultRestDto("chal-1", Map.of(), List.of(), null, List.of(),
+                new RivalrySummaryRestDto("acc-a", "acc-b", 0, 0, 0, 0, "headline"));
         when(getChallengeResultsService.execute("chal-1", accountId)).thenReturn(result);
         authenticateAs(accountId);
 
@@ -321,8 +322,8 @@ class ChallengesControllerTest {
     @Test
     void should_return201_when_submittingScoresFirstTime() throws Exception {
         AccountId accountId = AccountId.generate();
-        at.fraihs.cookoff.shared.web.openapi.model.ScoreSubmission data =
-                new at.fraihs.cookoff.shared.web.openapi.model.ScoreSubmission(
+        ScoreSubmissionRestDto data =
+                new ScoreSubmissionRestDto(
                         "chal-1", accountId.toString(), List.of(), OffsetDateTime.now());
         when(submitScoreService.execute(eq("chal-1"), eq(accountId), any()))
                 .thenReturn(new SubmitScoreService.Result(data, true));
@@ -337,8 +338,8 @@ class ChallengesControllerTest {
     @Test
     void should_return200_when_resubmittingScores() throws Exception {
         AccountId accountId = AccountId.generate();
-        at.fraihs.cookoff.shared.web.openapi.model.ScoreSubmission data =
-                new at.fraihs.cookoff.shared.web.openapi.model.ScoreSubmission(
+        ScoreSubmissionRestDto data =
+                new ScoreSubmissionRestDto(
                         "chal-1", accountId.toString(), List.of(), OffsetDateTime.now());
         when(submitScoreService.execute(eq("chal-1"), eq(accountId), any()))
                 .thenReturn(new SubmitScoreService.Result(data, false));

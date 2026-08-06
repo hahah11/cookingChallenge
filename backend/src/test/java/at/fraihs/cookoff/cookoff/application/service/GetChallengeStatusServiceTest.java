@@ -5,6 +5,8 @@ import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Category;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
@@ -12,20 +14,18 @@ import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.GuestSubmissionStatus;
-import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatus;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import at.fraihs.cookoff.shared.web.openapi.model.GuestSubmissionStatusRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatusRestDto;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -68,12 +68,12 @@ class GetChallengeStatusServiceTest {
         when(scoreSubmissionRepository.findByChallengeId(challenge.getId()))
                 .thenReturn(List.of(guestSubmission, cookSubmission));
 
-        SubmissionStatus status = service.execute(challenge.getId().toString());
+        SubmissionStatusRestDto status = service.execute(challenge.getId().toString());
 
         assertEquals(2, status.getTotalGuestCount());
         assertEquals(1, status.getSubmittedGuestCount());
         assertEquals(guest1.toString(), status.getGuests().stream()
-                .filter(GuestSubmissionStatus::getSubmitted)
+                .filter(GuestSubmissionStatusRestDto::getSubmitted)
                 .findFirst().orElseThrow().getAccountId());
     }
 

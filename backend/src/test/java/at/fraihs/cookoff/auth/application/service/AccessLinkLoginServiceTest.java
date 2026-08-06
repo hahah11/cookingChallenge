@@ -7,8 +7,12 @@ import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import at.fraihs.cookoff.shared.web.openapi.model.AccessLinkLoginRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.AuthToken;
+import at.fraihs.cookoff.shared.web.openapi.model.AccessLinkLoginRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.AuthTokenRestDto;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,10 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -57,7 +57,7 @@ class AccessLinkLoginServiceTest {
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
         stubJwtEncoder("signed-jwt");
 
-        AuthToken result = service.execute(new AccessLinkLoginRequest("tok"));
+        AuthTokenRestDto result = service.execute(new AccessLinkLoginRequestRestDto("tok"));
 
         assertEquals("signed-jwt", result.getAccessToken());
     }
@@ -72,7 +72,7 @@ class AccessLinkLoginServiceTest {
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
         stubJwtEncoder("signed-jwt");
 
-        AuthToken result = service.execute(new AccessLinkLoginRequest("tok"));
+        AuthTokenRestDto result = service.execute(new AccessLinkLoginRequestRestDto("tok"));
 
         assertTrue(result.getExpiresAt().toInstant().isBefore(farFuture));
     }
@@ -82,7 +82,7 @@ class AccessLinkLoginServiceTest {
         when(accessLinkService.verify("bad")).thenThrow(new InvalidOrExpiredLinkException());
 
         assertThrows(InvalidOrExpiredLinkException.class,
-                () -> service.execute(new AccessLinkLoginRequest("bad")));
+                () -> service.execute(new AccessLinkLoginRequestRestDto("bad")));
     }
 
     @Test
@@ -94,7 +94,7 @@ class AccessLinkLoginServiceTest {
         when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
 
         assertThrows(InvalidOrExpiredLinkException.class,
-                () -> service.execute(new AccessLinkLoginRequest("tok")));
+                () -> service.execute(new AccessLinkLoginRequestRestDto("tok")));
     }
 
     private void stubJwtEncoder(String tokenValue) {

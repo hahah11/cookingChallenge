@@ -3,11 +3,14 @@ package at.fraihs.cookoff.cookoff.interfaces.rest;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.service.HomeService;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
-import at.fraihs.cookoff.shared.web.openapi.model.Category;
-import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatus;
-import at.fraihs.cookoff.shared.web.openapi.model.DishLabel;
-import at.fraihs.cookoff.shared.web.openapi.model.GuestHome;
-import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge;
+import at.fraihs.cookoff.shared.web.openapi.model.CategoryRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatusRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.DishLabelRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.GuestHomeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallengeRestDto;
+
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDate;
-import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -55,11 +55,11 @@ class HomeControllerTest {
     @Test
     void should_return200_withHomeBuckets_when_authenticated() throws Exception {
         AccountId accountId = AccountId.generate();
-        ParticipantChallenge view = new ParticipantChallenge(
-                "chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatus.OPEN,
-                List.of(DishLabel.A, DishLabel.B), List.of(Category.MUNDGEFUEHL), List.of(),
+        ParticipantChallengeRestDto view = new ParticipantChallengeRestDto(
+                "chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatusRestDto.OPEN,
+                List.of(DishLabelRestDto.A, DishLabelRestDto.B), List.of(CategoryRestDto.MUNDGEFUEHL), List.of(),
                 false, false, null, null, true, false);
-        when(homeService.execute(accountId)).thenReturn(new GuestHome(List.of(view), List.of()));
+        when(homeService.execute(accountId)).thenReturn(new GuestHomeRestDto(List.of(view), List.of()));
         Jwt jwt = Jwt.withTokenValue("test-token")
                 .header("alg", "none")
                 .claim("sub", accountId.toString())

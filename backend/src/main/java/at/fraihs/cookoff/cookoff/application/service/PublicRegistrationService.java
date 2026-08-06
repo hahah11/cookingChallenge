@@ -3,18 +3,18 @@ package at.fraihs.cookoff.cookoff.application.service;
 import at.fraihs.cookoff.auth.RegistrationInvites;
 import at.fraihs.cookoff.auth.RegistrationResult;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationResult;
+import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationResultRestDto;
+
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * Public, unauthenticated self-registration via a QR-scanned invite token
@@ -31,7 +31,7 @@ public class PublicRegistrationService {
     private final ChallengeRepository challengeRepository;
 
     @Transactional
-    public PublicRegistrationResult execute(PublicRegistrationRequest request) {
+    public PublicRegistrationResultRestDto execute(PublicRegistrationRequestRestDto request) {
         RegistrationResult result = registrationInvites.register(
                 request.getToken(), request.getFirstName(), request.getLastName(), request.getEmail());
 
@@ -49,6 +49,6 @@ public class PublicRegistrationService {
         String message = joined
                 ? "You're registered and joined!"
                 : "You're registered, but this event has already closed.";
-        return new PublicRegistrationResult(result.accountId().toString(), joined, message);
+        return new PublicRegistrationResultRestDto(result.accountId().toString(), joined, message);
     }
 }

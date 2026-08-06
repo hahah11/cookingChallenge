@@ -4,21 +4,21 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.RivalryNotFoundException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
 import at.fraihs.cookoff.cookoff.domain.model.RevealResult;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatus;
-import at.fraihs.cookoff.shared.web.openapi.model.RivalryChallengeSummary;
-import at.fraihs.cookoff.shared.web.openapi.model.RivalryDetail;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatusRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.RivalryChallengeSummaryRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.RivalryDetailRestDto;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Joins the CookRivalry win/loss record (if the pair has ever been revealed) with every
@@ -34,7 +34,7 @@ public class RivalryDetailService {
     private final AccountLookup accountLookup;
 
     @Transactional(readOnly = true)
-    public RivalryDetail execute(AccountId requestedCookA, AccountId requestedCookB) {
+    public RivalryDetailRestDto execute(AccountId requestedCookA, AccountId requestedCookB) {
         AccountId[] ordered = CookRivalry.orderPair(requestedCookA, requestedCookB);
         AccountId cookAId = ordered[0];
         AccountId cookBId = ordered[1];
@@ -53,22 +53,22 @@ public class RivalryDetailService {
         int totalChallenges = rivalry.map(CookRivalry::getTotalChallenges).orElse(0);
         String headline = RivalryHeadline.build(cookA.name(), cookB.name(), cookAWins, cookBWins, draws);
 
-        List<RivalryChallengeSummary> challengeSummaries = challenges.stream()
+        List<RivalryChallengeSummaryRestDto> challengeSummaries = challenges.stream()
                 .sorted(Comparator.comparing(Challenge::getDate).reversed())
                 .map(this::toGenerated)
                 .toList();
 
-        return new RivalryDetail(cookAId.toString(), cookA.name(), cookBId.toString(), cookB.name(),
+        return new RivalryDetailRestDto(cookAId.toString(), cookA.name(), cookBId.toString(), cookB.name(),
                 cookAWins, cookBWins, draws, totalChallenges, headline, challengeSummaries);
     }
 
-    private RivalryChallengeSummary toGenerated(Challenge challenge) {
+    private RivalryChallengeSummaryRestDto toGenerated(Challenge challenge) {
         RevealResult result = challenge.getLastRevealResult();
         String overallWinnerAccountId = result == null || result.winnerAccountId() == null
                 ? null
                 : result.winnerAccountId().toString();
-        ChallengeStatus status = ChallengeStatus.valueOf(challenge.getStatus().name());
-        return new RivalryChallengeSummary(challenge.getId().toString(), challenge.getDate(),
+        ChallengeStatusRestDto status = ChallengeStatusRestDto.valueOf(challenge.getStatus().name());
+        return new RivalryChallengeSummaryRestDto(challenge.getId().toString(), challenge.getDate(),
                 challenge.getTitle(), status, overallWinnerAccountId);
     }
 }

@@ -8,14 +8,15 @@ import at.fraihs.cookoff.auth.application.service.ListAccountsService;
 import at.fraihs.cookoff.auth.application.service.UpdateAccountService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.shared.config.JacksonConfig;
-import at.fraihs.cookoff.shared.web.PagedResult;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
-import at.fraihs.cookoff.shared.web.openapi.model.Account;
-import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.Pagination;
-import at.fraihs.cookoff.shared.web.openapi.model.SystemRole;
-import at.fraihs.cookoff.shared.web.openapi.model.UpdateAccountRequest;
-import tools.jackson.databind.ObjectMapper;
+import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.PaginationRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.UpdateAccountRequestRestDto;
+
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -23,8 +24,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -65,13 +65,13 @@ class AccountsControllerTest {
 
     @Test
     void should_return201_when_accountCreated() throws Exception {
-        Account account = new Account("acc-1", "a@b.com", "Alice", List.of(SystemRole.USER));
+        AccountRestDto account = new AccountRestDto("acc-1", "a@b.com", "Alice", List.of(SystemRoleRestDto.USER));
         when(createAccountService.execute(any())).thenReturn(account);
 
         mockMvc.perform(post("/api/v1/accounts")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(
-                                new CreateAccountRequest("a@b.com", "Alice").roles(List.of(SystemRole.USER)))))
+                                new CreateAccountRequestRestDto("a@b.com", "Alice").roles(List.of(SystemRoleRestDto.USER)))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.email").value("a@b.com"));
     }
@@ -80,7 +80,7 @@ class AccountsControllerTest {
     void should_return400_when_emailInvalid() throws Exception {
         mockMvc.perform(post("/api/v1/accounts")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new CreateAccountRequest("not-an-email", "Alice"))))
+                        .content(objectMapper.writeValueAsString(new CreateAccountRequestRestDto("not-an-email", "Alice"))))
                 .andExpect(status().isBadRequest());
     }
 
@@ -90,15 +90,15 @@ class AccountsControllerTest {
 
         mockMvc.perform(post("/api/v1/accounts")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new CreateAccountRequest("a@b.com", "Alice"))))
+                        .content(objectMapper.writeValueAsString(new CreateAccountRequestRestDto("a@b.com", "Alice"))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("ACCOUNT_ALREADY_EXISTS"));
     }
 
     @Test
     void should_return200_withAccountList_when_listCalled() throws Exception {
-        Account account = new Account("acc-1", "a@b.com", "Alice", List.of(SystemRole.USER));
-        Pagination pagination = new Pagination(0, 20, 1L, 1, true, true);
+        AccountRestDto account = new AccountRestDto("acc-1", "a@b.com", "Alice", List.of(SystemRoleRestDto.USER));
+        PaginationRestDto pagination = new PaginationRestDto(0, 20, 1L, 1, true, true);
         when(listAccountsService.execute(0, 20)).thenReturn(new PagedResult<>(List.of(account), pagination));
 
         mockMvc.perform(get("/api/v1/accounts"))
@@ -110,7 +110,7 @@ class AccountsControllerTest {
     @Test
     void should_return200_withAccountDetail_when_accountExists() throws Exception {
         AccountId id = AccountId.generate();
-        Account account = new Account(id.toString(), "a@b.com", "Alice", List.of(SystemRole.USER));
+        AccountRestDto account = new AccountRestDto(id.toString(), "a@b.com", "Alice", List.of(SystemRoleRestDto.USER));
         when(getAccountDetailService.execute(eq(id))).thenReturn(account);
 
         mockMvc.perform(get("/api/v1/accounts/{accountId}", id.toString()))
@@ -131,12 +131,12 @@ class AccountsControllerTest {
     @Test
     void should_return200_when_accountUpdated() throws Exception {
         AccountId id = AccountId.generate();
-        Account updated = new Account(id.toString(), "a@b.com", "New Name", List.of(SystemRole.USER));
+        AccountRestDto updated = new AccountRestDto(id.toString(), "a@b.com", "New Name", List.of(SystemRoleRestDto.USER));
         when(updateAccountService.execute(eq(id), any())).thenReturn(updated);
 
         mockMvc.perform(patch("/api/v1/accounts/{accountId}", id.toString())
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new UpdateAccountRequest().name("New Name"))))
+                        .content(objectMapper.writeValueAsString(new UpdateAccountRequestRestDto().name("New Name"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.name").value("New Name"));
     }

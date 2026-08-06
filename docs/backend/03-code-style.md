@@ -7,6 +7,14 @@
 - Use meaningful names: verbs for methods (`calculateTotal()`), nouns for classes (`CustomerService`)
 - Constants: UPPER_SNAKE_CASE (`const MAX_RETRY_COUNT = 3`)
 - Test methods: `should_doX_when_Y()` or `given_X_when_Y_then_Z()`
+- Layer-boundary suffixes disambiguate a class from its domain counterpart of the same
+  simple name, mirroring each other: JPA entities are `XxxJpaEntity`
+  (`infrastructure/persistence`), generated OpenAPI request/response models are
+  `XxxRestDto` (`shared.web.openapi.model`, via the `modelNameSuffix` openapi-generator
+  option in `build.gradle.kts` — every generated model gets it, not just the ones that
+  collide with a domain name, so the convention stays uniform). Both let the domain class
+  itself (`Challenge`, `Account`, ...) keep the unqualified, undecorated name and be
+  imported normally everywhere; only the adapter-layer type carries the suffix.
 
 ### Code Structure
 - Add Javadoc for public APIs (controllers, service interfaces)
@@ -56,9 +64,13 @@ public class Customer {
   mappers stay next to the entity they convert, per the module structure below.
 - This also covers domain → generated-OpenAPI-model mappers in the **application** layer
   (e.g. `auth.application.service.AccountModelMapper`, domain `Account` → the generated
-  `Account` model) — same `@Mapper(componentModel = "spring")` interface, hand-written
-  `default` methods where a typed VO or enum needs explicit conversion, same reasoning as
-  above. Not just an `infrastructure/persistence` rule despite the section title.
+  `AccountRestDto` model) — same `@Mapper(componentModel = "spring")` interface,
+  hand-written `default` methods where a typed VO or enum needs explicit conversion, same
+  reasoning as above. Not just an `infrastructure/persistence` rule despite the section
+  title. Where the generated model needs cross-aggregate computed fields MapStruct can't
+  derive from the domain aggregate alone (e.g. `cookoff.application.service.ChallengeMapping`),
+  fall back to plain static helper methods instead of a `@Mapper` interface — see that
+  class's javadoc.
 
 ```java
 @Mapper(componentModel = "spring")

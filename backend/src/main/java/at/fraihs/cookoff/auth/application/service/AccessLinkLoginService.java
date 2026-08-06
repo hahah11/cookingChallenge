@@ -4,16 +4,16 @@ import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkExceptio
 import at.fraihs.cookoff.auth.application.port.AccessLink;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.Account;
-import at.fraihs.cookoff.shared.web.openapi.model.AccessLinkLoginRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.AuthToken;
+import at.fraihs.cookoff.shared.web.openapi.model.AccessLinkLoginRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.AuthTokenRestDto;
+
+import java.time.Duration;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-import java.time.Instant;
 
 /**
  * Exchanges a personalized access-link token (AccessLinkService, "casual access via
@@ -35,7 +35,7 @@ public class AccessLinkLoginService {
     private Duration guestExpirationCap = Duration.ofDays(1);
 
     @Transactional(readOnly = true)
-    public AuthToken execute(AccessLinkLoginRequest request) {
+    public AuthTokenRestDto execute(AccessLinkLoginRequestRestDto request) {
         AccessLink accessLink = accessLinkService.verify(request.getToken());
         Account account = accountRepository.findById(accessLink.accountId())
                 .orElseThrow(InvalidOrExpiredLinkException::new);
@@ -43,7 +43,7 @@ public class AccessLinkLoginService {
         Instant cap = Instant.now().plus(guestExpirationCap);
         Instant expiresAt = accessLink.expiresAt().isBefore(cap) ? accessLink.expiresAt() : cap;
 
-        AuthToken token = jwtIssuer.issueUntil(account, expiresAt);
+        AuthTokenRestDto token = jwtIssuer.issueUntil(account, expiresAt);
         log.info("Access-link login succeeded for account {}", account.getId());
         return token;
     }

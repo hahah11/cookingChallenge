@@ -5,22 +5,22 @@ import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.RivalryNotFoundException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalryId;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.RivalryDetail;
+import at.fraihs.cookoff.shared.web.openapi.model.RivalryDetailRestDto;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,7 +59,7 @@ class RivalryDetailServiceTest {
         when(cookRivalryRepository.findByPair(aliceId, bobId)).thenReturn(Optional.of(rivalry));
         stubNames();
 
-        RivalryDetail detail = service.execute(aliceId, bobId);
+        RivalryDetailRestDto detail = service.execute(aliceId, bobId);
 
         assertEquals("Alice", detail.getCookAName());
         assertEquals(2, detail.getCookAWins());
@@ -76,7 +76,7 @@ class RivalryDetailServiceTest {
         when(cookRivalryRepository.findByPair(aliceId, bobId)).thenReturn(Optional.empty());
         stubNames();
 
-        RivalryDetail detail = service.execute(aliceId, bobId);
+        RivalryDetailRestDto detail = service.execute(aliceId, bobId);
 
         assertEquals(0, detail.getCookAWins());
         assertEquals(0, detail.getTotalChallenges());
@@ -90,7 +90,7 @@ class RivalryDetailServiceTest {
                 .thenReturn(Optional.of(CookRivalry.reconstitute(CookRivalryId.generate(), aliceId, bobId, 1, 0, 0, 1)));
         stubNames();
 
-        RivalryDetail detail = service.execute(bobId, aliceId);
+        RivalryDetailRestDto detail = service.execute(bobId, aliceId);
 
         assertEquals(aliceId.toString(), detail.getCookAAccountId());
         assertEquals(bobId.toString(), detail.getCookBAccountId());

@@ -3,6 +3,8 @@ package at.fraihs.cookoff.cookoff.application.service;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,8 +20,8 @@ public class ListChallengesService {
     private final ScoreSubmissionRepository scoreSubmissionRepository;
 
     @Transactional(readOnly = true)
-    public PagedResult<at.fraihs.cookoff.shared.web.openapi.model.Challenge> execute(int page, int size) {
-        Page<at.fraihs.cookoff.shared.web.openapi.model.Challenge> mapped = challengeRepository
+    public PagedResult<ChallengeRestDto> execute(int page, int size) {
+        Page<ChallengeRestDto> mapped = challengeRepository
                 .findAll(PageRequest.of(page, size))
                 .map(challenge -> ChallengeMapping.toGenerated(
                         challenge, ChallengeMapping.submittedGuestCount(challenge, scoreSubmissionRepository)));

@@ -1,9 +1,10 @@
 package at.fraihs.cookoff.auth.application.service;
 
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
-import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.Account;
+import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +18,7 @@ public class GetAccountDetailService {
     private final AccountModelMapper accountModelMapper;
 
     @Transactional(readOnly = true)
-    public Account execute(AccountId id) {
+    public AccountRestDto execute(AccountId id) {
         at.fraihs.cookoff.auth.domain.model.Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException(id.toString()));
         return accountModelMapper.toGenerated(account);

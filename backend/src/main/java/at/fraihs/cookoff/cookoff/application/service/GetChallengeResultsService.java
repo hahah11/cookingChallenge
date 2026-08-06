@@ -5,20 +5,21 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotRevealedException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.service.ChallengeResult;
 import at.fraihs.cookoff.cookoff.domain.service.ResultCalculator;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResultRestDto;
+
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * Reachable by either the organizer (bearer token) or a participant (access-link token) -
@@ -39,7 +40,7 @@ public class GetChallengeResultsService {
     private final ResultCalculator resultCalculator = new ResultCalculator();
 
     @Transactional(readOnly = true)
-    public at.fraihs.cookoff.shared.web.openapi.model.ChallengeResult execute(
+    public ChallengeResultRestDto execute(
             String challengeIdString, AccountId requesterAccountId) {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)

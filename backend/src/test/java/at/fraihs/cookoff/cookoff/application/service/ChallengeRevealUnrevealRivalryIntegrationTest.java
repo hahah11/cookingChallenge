@@ -6,6 +6,9 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.event.ChallengeRevealedRivalryUpdater;
 import at.fraihs.cookoff.cookoff.application.event.ChallengeUnrevealedRivalryUpdater;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeRevealed;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeUnrevealed;
 import at.fraihs.cookoff.cookoff.domain.model.Category;
@@ -17,17 +20,7 @@ import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
-import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResultRestDto;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -36,6 +29,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -112,7 +113,7 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         challengeRepository.save(challenge);
         scoreSubmissionRepository.replace(challenge.getId(), cookAWinsSubmission(challenge.getId()));
 
-        at.fraihs.cookoff.shared.web.openapi.model.ChallengeResult firstRevealResponse =
+        ChallengeResultRestDto firstRevealResponse =
                 revealChallengeService.execute(challenge.getId().toString());
         // The response must already reflect this reveal's own rivalry update, even though
         // ChallengeRevealedRivalryUpdater (AFTER_COMMIT) hasn't run yet - commit() below is

@@ -6,9 +6,11 @@ import at.fraihs.cookoff.cookoff.application.service.RivalriesListService;
 import at.fraihs.cookoff.cookoff.application.service.RivalryDetailService;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
 import at.fraihs.cookoff.shared.web.PagedResult;
-import at.fraihs.cookoff.shared.web.openapi.model.Pagination;
-import at.fraihs.cookoff.shared.web.openapi.model.Rivalry;
-import at.fraihs.cookoff.shared.web.openapi.model.RivalryDetail;
+import at.fraihs.cookoff.shared.web.openapi.model.PaginationRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.RivalryDetailRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.RivalryRestDto;
+
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -16,8 +18,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -45,8 +45,8 @@ class RivalriesControllerTest {
 
     @Test
     void should_return200_withRivalryList_when_listCalled() throws Exception {
-        Rivalry rivalry = new Rivalry("acc-a", "Alice", "acc-b", "Bob", 3, 1, 1, 5, "Alice leads Bob 3-1 (1 draw)");
-        Pagination pagination = new Pagination(0, 20, 1L, 1, true, true);
+        RivalryRestDto rivalry = new RivalryRestDto("acc-a", "Alice", "acc-b", "Bob", 3, 1, 1, 5, "Alice leads Bob 3-1 (1 draw)");
+        PaginationRestDto pagination = new PaginationRestDto(0, 20, 1L, 1, true, true);
         when(rivalriesListService.execute(0, 20)).thenReturn(new PagedResult<>(List.of(rivalry), pagination));
 
         mockMvc.perform(get("/api/v1/rivalries"))
@@ -59,7 +59,7 @@ class RivalriesControllerTest {
     void should_return200_withRivalryDetail_when_pairExists() throws Exception {
         AccountId aliceId = AccountId.generate();
         AccountId bobId = AccountId.generate();
-        RivalryDetail detail = new RivalryDetail(aliceId.toString(), "Alice", bobId.toString(), "Bob",
+        RivalryDetailRestDto detail = new RivalryDetailRestDto(aliceId.toString(), "Alice", bobId.toString(), "Bob",
                 3, 1, 1, 5, "Alice leads Bob 3-1 (1 draw)", List.of());
         when(rivalryDetailService.execute(aliceId, bobId)).thenReturn(detail);
 

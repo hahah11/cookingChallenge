@@ -5,24 +5,24 @@ import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.NotificationPort;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.InvitationsSent;
-import at.fraihs.cookoff.shared.web.openapi.model.SendInvitationsRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import at.fraihs.cookoff.shared.web.openapi.model.InvitationsSentRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SendInvitationsRequestRestDto;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * "Send links" action from docs/cookingChallenge/first-plan.md's Invite flow: issues one
@@ -49,7 +49,7 @@ public class SendChallengeInvitationsService {
     private String frontendBaseUrl;
 
     @Transactional
-    public InvitationsSent execute(String challengeIdString, SendInvitationsRequest request) {
+    public InvitationsSentRestDto execute(String challengeIdString, SendInvitationsRequestRestDto request) {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
@@ -62,10 +62,10 @@ public class SendChallengeInvitationsService {
         }
 
         log.info("Sent {} invitation(s) for challenge {}", targets.size(), challengeId);
-        return new InvitationsSent(targets.size());
+        return new InvitationsSentRestDto(targets.size());
     }
 
-    private List<AccountId> resolveTargets(Challenge challenge, ChallengeId challengeId, SendInvitationsRequest request) {
+    private List<AccountId> resolveTargets(Challenge challenge, ChallengeId challengeId, SendInvitationsRequestRestDto request) {
         List<String> requestedIds = request == null ? null : request.getGuestAccountIds();
         if (requestedIds != null && !requestedIds.isEmpty()) {
             Set<AccountId> guestAccountIds = Set.copyOf(challenge.getGuestAccountIds());

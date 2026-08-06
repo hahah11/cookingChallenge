@@ -4,28 +4,28 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotOpenException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.Category;
-import at.fraihs.cookoff.shared.web.openapi.model.DishLabel;
-import at.fraihs.cookoff.shared.web.openapi.model.ScoreEntry;
-import at.fraihs.cookoff.shared.web.openapi.model.SubmitScoresRequest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import at.fraihs.cookoff.shared.web.openapi.model.CategoryRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.DishLabelRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ScoreEntryRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SubmitScoresRequestRestDto;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -56,14 +56,14 @@ class SubmitScoreServiceTest {
                 cookAId, cookBId, guests, organizerId);
     }
 
-    private SubmitScoresRequest sixValidScores() {
-        List<ScoreEntry> scores = new ArrayList<>();
-        for (DishLabel label : DishLabel.values()) {
-            for (Category category : Category.values()) {
-                scores.add(new ScoreEntry(label, category, 3));
+    private SubmitScoresRequestRestDto sixValidScores() {
+        List<ScoreEntryRestDto> scores = new ArrayList<>();
+        for (DishLabelRestDto label : DishLabelRestDto.values()) {
+            for (CategoryRestDto category : CategoryRestDto.values()) {
+                scores.add(new ScoreEntryRestDto(label, category, 3));
             }
         }
-        return new SubmitScoresRequest(scores);
+        return new SubmitScoresRequestRestDto(scores);
     }
 
     private List<Score> sixDomainScores() {

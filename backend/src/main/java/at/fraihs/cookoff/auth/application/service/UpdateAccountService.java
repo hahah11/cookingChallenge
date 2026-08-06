@@ -2,19 +2,20 @@ package at.fraihs.cookoff.auth.application.service;
 
 import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsException;
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
+import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import at.fraihs.cookoff.auth.application.port.AccountRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.Account;
-import at.fraihs.cookoff.shared.web.openapi.model.UpdateAccountRequest;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.UpdateAccountRequestRestDto;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Edits name/email/roles on an existing account. {@code roles} is documented as "replaces
@@ -31,7 +32,7 @@ public class UpdateAccountService {
     private final AccountModelMapper accountModelMapper;
 
     @Transactional
-    public Account execute(AccountId id, UpdateAccountRequest request) {
+    public AccountRestDto execute(AccountId id, UpdateAccountRequestRestDto request) {
         at.fraihs.cookoff.auth.domain.model.Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException(id.toString()));
 
@@ -59,7 +60,7 @@ public class UpdateAccountService {
 
     /** Grants every target role before revoking any dropped one, so the account never transiently holds zero roles. */
     private void applyRoles(at.fraihs.cookoff.auth.domain.model.Account account,
-                             List<at.fraihs.cookoff.shared.web.openapi.model.SystemRole> targetGeneratedRoles) {
+                             List<SystemRoleRestDto> targetGeneratedRoles) {
         Set<SystemRole> target = targetGeneratedRoles.stream()
                 .map(role -> SystemRole.valueOf(role.name()))
                 .collect(java.util.stream.Collectors.toCollection(() -> EnumSet.noneOf(SystemRole.class)));

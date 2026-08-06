@@ -4,7 +4,9 @@ import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsExceptio
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequest;
+import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequestRestDto;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openapitools.jackson.nullable.JsonNullable;
@@ -22,7 +24,7 @@ public class CreateAccountService {
     private final AccountModelMapper accountModelMapper;
 
     @Transactional
-    public at.fraihs.cookoff.shared.web.openapi.model.Account execute(CreateAccountRequest request) {
+    public AccountRestDto execute(CreateAccountRequestRestDto request) {
         Email email = new Email(request.getEmail());
         if (accountRepository.existsByEmail(email)) {
             log.warn("Account creation rejected, email already exists: {}", request.getEmail());
@@ -37,7 +39,7 @@ public class CreateAccountService {
         return accountModelMapper.toGenerated(account);
     }
 
-    private SystemRole[] toDomainRoles(CreateAccountRequest request) {
+    private SystemRole[] toDomainRoles(CreateAccountRequestRestDto request) {
         if (request.getRoles() == null) {
             return new SystemRole[0];
         }

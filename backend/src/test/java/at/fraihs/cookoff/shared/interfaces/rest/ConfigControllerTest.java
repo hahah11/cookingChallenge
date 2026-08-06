@@ -1,18 +1,18 @@
 package at.fraihs.cookoff.shared.interfaces.rest;
 
 import at.fraihs.cookoff.shared.application.service.ConfigService;
-import at.fraihs.cookoff.shared.web.openapi.model.Config;
-import at.fraihs.cookoff.shared.web.openapi.model.PlateColor;
-import at.fraihs.cookoff.shared.web.openapi.model.SystemRole;
+import at.fraihs.cookoff.shared.web.openapi.model.ConfigRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.PlateColorRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
+
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-import java.util.Map;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,9 +31,9 @@ class ConfigControllerTest {
 
     @Test
     void should_return200WithConfig_when_requested() throws Exception {
-        Config config = new Config(
-                List.of(SystemRole.ADMIN, SystemRole.ORGANIZER, SystemRole.USER),
-                List.of(new PlateColor("color-1", "Red", "#c0392b", 0)),
+        ConfigRestDto config = new ConfigRestDto(
+                List.of(SystemRoleRestDto.ADMIN, SystemRoleRestDto.ORGANIZER, SystemRoleRestDto.USER),
+                List.of(new PlateColorRestDto("color-1", "Red", "#c0392b", 0)),
                 Map.of());
         when(configService.execute()).thenReturn(config);
 

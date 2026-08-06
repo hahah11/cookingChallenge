@@ -4,11 +4,13 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeUnrevealed;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,7 +28,7 @@ public class UnrevealChallengeService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public at.fraihs.cookoff.shared.web.openapi.model.Challenge execute(
+    public ChallengeRestDto execute(
             String challengeIdString, AccountId organizerAccountId) {
         if (!accountLookup.canOrganize(organizerAccountId)) {
             log.warn("Unreveal rejected, account cannot organize: {}", organizerAccountId);

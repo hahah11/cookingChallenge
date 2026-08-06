@@ -1,12 +1,14 @@
 package at.fraihs.cookoff.auth.application.service;
 
 import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
+import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import at.fraihs.cookoff.auth.application.port.AccountRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.AuthToken;
-import at.fraihs.cookoff.shared.web.openapi.model.LoginRequest;
+import at.fraihs.cookoff.shared.web.openapi.model.AuthTokenRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.LoginRequestRestDto;
+
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,8 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -54,7 +54,7 @@ class LoginServiceTest {
         when(jwt.getTokenValue()).thenReturn("signed-jwt");
         when(jwtEncoder.encode(any())).thenReturn(jwt);
 
-        AuthToken result = service.execute(new LoginRequest("a@b.com", "secret"));
+        AuthTokenRestDto result = service.execute(new LoginRequestRestDto("a@b.com", "secret"));
 
         assertEquals("signed-jwt", result.getAccessToken());
     }
@@ -64,7 +64,7 @@ class LoginServiceTest {
         when(accountRepository.findByEmail(new Email("a@b.com"))).thenReturn(Optional.empty());
 
         assertThrows(InvalidCredentialsException.class,
-                () -> service.execute(new LoginRequest("a@b.com", "secret")));
+                () -> service.execute(new LoginRequestRestDto("a@b.com", "secret")));
     }
 
     @Test
@@ -75,7 +75,7 @@ class LoginServiceTest {
         when(passwordEncoder.matches("wrong", "hashed")).thenReturn(false);
 
         assertThrows(InvalidCredentialsException.class,
-                () -> service.execute(new LoginRequest("a@b.com", "wrong")));
+                () -> service.execute(new LoginRequestRestDto("a@b.com", "wrong")));
     }
 
     @Test
@@ -84,6 +84,6 @@ class LoginServiceTest {
         when(accountRepository.findByEmail(new Email("a@b.com"))).thenReturn(Optional.of(account));
 
         assertThrows(InvalidCredentialsException.class,
-                () -> service.execute(new LoginRequest("a@b.com", "anything")));
+                () -> service.execute(new LoginRequestRestDto("a@b.com", "anything")));
     }
 }

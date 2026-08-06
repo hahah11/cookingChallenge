@@ -3,20 +3,20 @@ package at.fraihs.cookoff.cookoff.application.service;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallenge;
+import at.fraihs.cookoff.shared.web.openapi.model.ParticipantChallengeRestDto;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -53,7 +53,7 @@ class GetChallengeForParticipantServiceTest {
         when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), guest))
                 .thenReturn(Optional.empty());
 
-        ParticipantChallenge view = service.execute(challenge.getId().toString(), guest);
+        ParticipantChallengeRestDto view = service.execute(challenge.getId().toString(), guest);
 
         assertTrue(view.getParticipantCookAssignments().stream().allMatch(a -> a.getAccountId().get() == null));
     }
@@ -83,7 +83,7 @@ class GetChallengeForParticipantServiceTest {
         when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), guest))
                 .thenReturn(Optional.empty());
 
-        ParticipantChallenge view = service.execute(challenge.getId().toString(), guest);
+        ParticipantChallengeRestDto view = service.execute(challenge.getId().toString(), guest);
 
         assertEquals(2, view.getParticipantCookAssignments().size());
         assertTrue(view.getParticipantCookAssignments().stream().allMatch(a -> a.getAccountId().get() != null));

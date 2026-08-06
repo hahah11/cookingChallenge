@@ -4,18 +4,19 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
-import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatus;
-import at.fraihs.cookoff.shared.web.openapi.model.CreateChallengeRequest;
+import at.fraihs.cookoff.cookoff.domain.model.Challenge;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatusRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.CreateChallengeRequestRestDto;
+
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,8 +39,8 @@ class CreateChallengeServiceTest {
     private final AccountId cookAId = AccountId.generate();
     private final AccountId cookBId = AccountId.generate();
 
-    private CreateChallengeRequest request() {
-        return new CreateChallengeRequest(LocalDate.now(), "Season Finale", "Schnitzel",
+    private CreateChallengeRequestRestDto request() {
+        return new CreateChallengeRequestRestDto(LocalDate.now(), "Season Finale", "Schnitzel",
                 cookAId.toString(), cookBId.toString()).guestAccountIds(List.of());
     }
 
@@ -48,10 +49,10 @@ class CreateChallengeServiceTest {
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
         when(challengeRepository.save(any(Challenge.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        at.fraihs.cookoff.shared.web.openapi.model.Challenge result = service.execute(request(), organizerId);
+        ChallengeRestDto result = service.execute(request(), organizerId);
 
         assertEquals("Schnitzel", result.getDishName());
-        assertEquals(ChallengeStatus.OPEN, result.getStatus());
+        assertEquals(ChallengeStatusRestDto.OPEN, result.getStatus());
     }
 
     @Test

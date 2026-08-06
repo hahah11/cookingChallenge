@@ -5,20 +5,20 @@ import at.fraihs.cookoff.auth.RegistrationResult;
 import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsException;
 import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkException;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationRequest;
-import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationResult;
+import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationResultRestDto;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,8 +45,8 @@ class PublicRegistrationServiceTest {
                 AccountId.generate(), AccountId.generate(), List.of(), AccountId.generate());
     }
 
-    private static PublicRegistrationRequest request(String token) {
-        return new PublicRegistrationRequest(token, "Walk", "In", "walkin@example.com");
+    private static PublicRegistrationRequestRestDto request(String token) {
+        return new PublicRegistrationRequestRestDto(token, "Walk", "In", "walkin@example.com");
     }
 
     @Test
@@ -57,7 +57,7 @@ class PublicRegistrationServiceTest {
                 .thenReturn(new RegistrationResult(newAccountId, challenge.getId().value()));
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
-        PublicRegistrationResult result = service.execute(request("tok"));
+        PublicRegistrationResultRestDto result = service.execute(request("tok"));
 
         assertTrue(result.getJoined());
         assertEquals(newAccountId.toString(), result.getAccountId());
@@ -74,7 +74,7 @@ class PublicRegistrationServiceTest {
                 .thenReturn(new RegistrationResult(newAccountId, challenge.getId().value()));
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
-        PublicRegistrationResult result = service.execute(request("tok"));
+        PublicRegistrationResultRestDto result = service.execute(request("tok"));
 
         assertFalse(result.getJoined());
         assertEquals(newAccountId.toString(), result.getAccountId());

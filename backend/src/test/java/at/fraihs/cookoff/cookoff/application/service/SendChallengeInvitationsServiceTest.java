@@ -7,23 +7,23 @@ import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.NotificationPort;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.InvitationsSent;
-import at.fraihs.cookoff.shared.web.openapi.model.SendInvitationsRequest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import at.fraihs.cookoff.shared.web.openapi.model.InvitationsSentRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SendInvitationsRequestRestDto;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -78,7 +78,7 @@ class SendChallengeInvitationsServiceTest {
         when(accountLookup.getById(guestId)).thenReturn(accountFor(guestId));
         when(accessLinkService.issue(eq(guestId), anyLong(), any(Duration.class))).thenReturn("token");
 
-        InvitationsSent sent = service.execute(challenge.getId().toString(), null);
+        InvitationsSentRestDto sent = service.execute(challenge.getId().toString(), null);
 
         assertEquals(1, sent.getCount());
         verify(accessLinkService, times(1)).issue(eq(guestId), anyLong(), any(Duration.class));
@@ -92,8 +92,8 @@ class SendChallengeInvitationsServiceTest {
         when(accountLookup.getById(guestId)).thenReturn(accountFor(guestId));
         when(accessLinkService.issue(eq(guestId), anyLong(), any(Duration.class))).thenReturn("token");
 
-        InvitationsSent sent = service.execute(challenge.getId().toString(),
-                new SendInvitationsRequest().guestAccountIds(List.of(guestId.toString())));
+        InvitationsSentRestDto sent = service.execute(challenge.getId().toString(),
+                new SendInvitationsRequestRestDto().guestAccountIds(List.of(guestId.toString())));
 
         assertEquals(1, sent.getCount());
     }

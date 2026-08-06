@@ -78,6 +78,7 @@ openApiGenerate {
 	outputDir.set(openApiOutputDir.path)
 	apiPackage.set("at.fraihs.cookoff.shared.web.openapi.api")
 	modelPackage.set("at.fraihs.cookoff.shared.web.openapi.model")
+	modelNameSuffix.set("RestDto")
 	configOptions.set(
 		mapOf(
 			"interfaceOnly" to "true",

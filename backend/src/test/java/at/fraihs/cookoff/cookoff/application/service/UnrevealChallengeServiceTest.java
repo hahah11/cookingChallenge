@@ -4,13 +4,18 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
+import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeUnrevealed;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
-import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
-import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatus;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatusRestDto;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -18,10 +23,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -66,11 +67,11 @@ class UnrevealChallengeServiceTest {
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
-        at.fraihs.cookoff.shared.web.openapi.model.Challenge result =
+        ChallengeRestDto result =
                 service.execute(challenge.getId().toString(), organizerId);
 
         assertEquals(at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus.OPEN, challenge.getStatus());
-        assertEquals(ChallengeStatus.OPEN, result.getStatus());
+        assertEquals(ChallengeStatusRestDto.OPEN, result.getStatus());
         ArgumentCaptor<ChallengeUnrevealed> captor = ArgumentCaptor.forClass(ChallengeUnrevealed.class);
         verify(eventPublisher).publishEvent(captor.capture());
         assertEquals(cookAId, captor.getValue().previousOverallWinnerAccountId());

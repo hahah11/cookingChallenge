@@ -2,10 +2,12 @@ package at.fraihs.cookoff.shared.application.service;
 
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
 import at.fraihs.cookoff.cookoff.PlateColorSummary;
-import org.mapstruct.Mapper;
+import at.fraihs.cookoff.shared.web.openapi.model.PlateColorRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
 
 import java.util.Arrays;
 import java.util.List;
+import org.mapstruct.Mapper;
 
 /**
  * Generated-OpenAPI-model mapping for GET /api/v1/config, per docs/backend/03-code-style.md's
@@ -16,11 +18,11 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ConfigModelMapper {
 
-    at.fraihs.cookoff.shared.web.openapi.model.PlateColor toGenerated(PlateColorSummary plateColor);
+    PlateColorRestDto toGenerated(PlateColorSummary plateColor);
 
-    default List<at.fraihs.cookoff.shared.web.openapi.model.SystemRole> mapRoles(SystemRole[] roles) {
+    default List<SystemRoleRestDto> mapRoles(SystemRole[] roles) {
         return Arrays.stream(roles)
-                .map(role -> at.fraihs.cookoff.shared.web.openapi.model.SystemRole.valueOf(role.name()))
+                .map(role -> SystemRoleRestDto.valueOf(role.name()))
                 .sorted()
                 .toList();
     }
