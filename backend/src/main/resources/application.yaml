@@ -15,3 +15,7 @@ app:
     issuer: cookoff
     # Organizer/admin JWT lifetime (POST /api/v1/auth/login) — ISO-8601 duration.
     expiration: PT12H
+    # Cap on a guest JWT's lifetime (POST /api/v1/auth/access-link-login) — the actual
+    # expiry is min(accessLink.expiresAt(), now + this), since the access link itself can be
+    # valid for up to 30 days and an unrevocable bearer token shouldn't live that long.
+    guest-expiration-cap: P1D

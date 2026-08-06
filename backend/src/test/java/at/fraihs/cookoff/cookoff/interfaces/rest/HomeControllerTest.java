@@ -16,6 +16,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Security enforcement (JWT roles, link tokens) is covered by
  * {@code shared.security.SecurityIntegrationTest} — this slice test disables the security
  * filter chain (@AutoConfigureMockMvc(addFilters = false)). With the filter chain disabled,
- * {@code SecurityContextHolderFilter} never runs, so setting the AccountId principal is done
+ * {@code SecurityContextHolderFilter} never runs, so setting the {@link Jwt} principal is done
  * directly via {@link SecurityContextHolder} (MockMvc's single-threaded dispatch still honors
  * it) — {@code CurrentAccount.id()} reads it back the same way regardless.
  */
@@ -59,7 +60,11 @@ class HomeControllerTest {
                 List.of(DishLabel.A, DishLabel.B), List.of(Category.MUNDGEFUEHL), List.of(),
                 false, false, null, null, true, false);
         when(homeService.execute(accountId)).thenReturn(new GuestHome(List.of(view), List.of()));
-        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(accountId, null));
+        Jwt jwt = Jwt.withTokenValue("test-token")
+                .header("alg", "none")
+                .claim("sub", accountId.toString())
+                .build();
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(jwt, null));
 
         mockMvc.perform(get("/api/v1/me/home"))
                 .andExpect(status().isOk())

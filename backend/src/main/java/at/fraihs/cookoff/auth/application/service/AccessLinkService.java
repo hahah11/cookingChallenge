@@ -42,13 +42,13 @@ public class AccessLinkService {
     }
 
     @Transactional(readOnly = true)
-    public AccountId verify(String token) {
+    public AccessLink verify(String token) {
         AccessLink accessLink = accessLinkRepository.findByToken(token)
                 .orElseThrow(InvalidOrExpiredLinkException::new);
         if (accessLink.isExpired(Instant.now())) {
             throw new InvalidOrExpiredLinkException();
         }
-        return accessLink.accountId();
+        return accessLink;
     }
 
     private static String generateToken() {

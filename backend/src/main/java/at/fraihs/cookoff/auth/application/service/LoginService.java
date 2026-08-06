@@ -10,17 +10,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
-import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
 
 /**
  * Password login for ORGANIZER/ADMIN accounts, per
@@ -36,10 +30,7 @@ public class LoginService {
 
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtEncoder jwtEncoder;
-
-    @Value("${app.jwt.issuer:cookoff}")
-    private String issuer = "cookoff";
+    private final JwtIssuer jwtIssuer;
 
     @Value("${app.jwt.expiration:PT12H}")
     private Duration expiration = Duration.ofHours(12);
@@ -53,18 +44,8 @@ public class LoginService {
             throw new InvalidCredentialsException();
         }
 
-        Instant now = Instant.now();
-        Instant expiresAt = now.plus(expiration);
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer(issuer)
-                .issuedAt(now)
-                .expiresAt(expiresAt)
-                .subject(account.getId().toString())
-                .claim("roles", account.getRoles().stream().map(Enum::name).toList())
-                .build();
-        JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256).build();
-        String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+        AuthToken token = jwtIssuer.issueUntil(account, Instant.now().plus(expiration));
         log.info("Login succeeded for account {}", account.getId());
-        return new AuthToken(token, expiresAt.atOffset(ZoneOffset.UTC));
+        return token;
     }
 }

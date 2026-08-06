@@ -14,7 +14,7 @@ tags:
   - name: Config
     description: Cross-cutting bootstrap data (roles, plate colors, feature flags) - fetched once at app start.
   - name: Auth
-    description: Organizer/admin login.
+    description: Login - organizer/admin password login, or a guest exchanging an access-link token for a JWT.
   - name: Accounts
     description: Account administration (organizer/admin only).
   - name: Challenges
@@ -22,7 +22,7 @@ tags:
   - name: Rivalries
     description: Head-to-head cook rivalry records.
   - name: Home
-    description: Guest-facing personalized home (link-token access, no login).
+    description: Guest-facing personalized home (accessed via the access-link JWT exchange).
   - name: Public
     description: Unauthenticated, token-gated actions (QR self-registration).
 
@@ -39,6 +39,36 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/access-link-login:
+    post:
+      tags: [Auth]
+      operationId: accessLinkLogin
+      summary: Exchange a personalized access-link token for a JWT
+      description: >
+        Guests authenticate via a personalized access link emailed to them (see
+        `sendInvitations`), but from that point on use the same JWT bearer mechanism as
+        organizers - this endpoint is the one-time exchange step. The link token itself
+        remains valid (reusable until its own expiry) and can be exchanged again to obtain a
+        fresh JWT.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessLinkLoginRequest'
       responses:
         '200':
           description: Authenticated successfully.
@@ -215,11 +245,11 @@ paths:
     get:
       tags: [Challenges]
       operationId: getChallenge
-      summary: Get a challenge as seen by a participant (guest or cook), via access-link token
+      summary: Get a challenge as seen by a participant (guest or cook)
       description: >
         Cook-to-label mapping (`cookAssignments`) is omitted (null) until the
         challenge is REVEALED, so guests/cooks can't infer blind assignments early.
-      security: [{ accessLinkToken: [] }]
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChallengeIdPathParam'
       responses:
@@ -298,7 +328,7 @@ paths:
       description: >
         OPEN challenges only, and only by one of this challenge's two cooks. Irreversible
         once either cook has picked - both colors are assigned atomically in this call.
-      security: [{ accessLinkToken: [] }]
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChallengeIdPathParam'
       requestBody:
@@ -377,10 +407,8 @@ paths:
       tags: [Challenges]
       operationId: getChallengeImage
       summary: Stream the challenge photo's bytes
-      description: Same visibility as the challenge itself - organizer bearer token or a valid access-link token.
-      security:
-        - bearerAuth: []
-        - accessLinkToken: []
+      description: Same visibility as the challenge itself - organizer or participant, both via bearer JWT.
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChallengeIdPathParam'
       responses:
@@ -519,11 +547,9 @@ paths:
       operationId: getChallengeResults
       summary: Revealed results, category winners, and rivalry summary
       description: >
-        Reachable by the organizer (bearer token) or a participant (access-link
-        token) - same shape either way.
-      security:
-        - bearerAuth: []
-        - accessLinkToken: []
+        Reachable by the organizer or a participant, both via bearer JWT - same shape
+        either way.
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChallengeIdPathParam'
       responses:
@@ -554,9 +580,9 @@ paths:
         submission returns 201, a later resubmission by the same guest returns
         200 and replaces the prior scores. Once REVEALED, further submissions
         are rejected. Callers must have `canScore = true` on the participant
-        challenge view (a guest, or the challenge's creator) - cooks hold a valid
-        access-link token but are rejected with 403 here.
-      security: [{ accessLinkToken: [] }]
+        challenge view (a guest, or the challenge's creator) - cooks are authenticated
+        but are rejected with 403 here.
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChallengeIdPathParam'
       requestBody:
@@ -645,7 +671,7 @@ paths:
         cook (`canPickColor`). `past` holds everything else the requester is a
         participant in: already actioned but still OPEN (editable/re-pickable until
         reveal, per each flag) and REVEALED challenges (view results).
-      security: [{ accessLinkToken: [] }]
+      security: [{ bearerAuth: [] }]
       responses:
         '200':
           description: The requester's home buckets.
@@ -698,14 +724,10 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Organizer/admin login token.
-    accessLinkToken:
-      type: apiKey
-      in: query
-      name: token
       description: >
-        Per-guest access-link token issued via invitations; resolved to an
-        AccountId by AccessLinkAuthenticationFilter. No login/password.
+        Login token — issued by POST /api/v1/auth/login (organizer/admin, password) or
+        POST /api/v1/auth/access-link-login (guest, exchanging a personalized access-link
+        token). Every authenticated endpoint uses this same mechanism.
 
   parameters:
     PageParam:
@@ -924,6 +946,13 @@ components:
           type: string
           format: email
         password:
+          type: string
+
+    AccessLinkLoginRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
           type: string
 
     AuthToken:

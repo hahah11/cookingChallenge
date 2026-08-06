@@ -30,12 +30,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * End-to-end Phase 5 security checks against the real filter chain (JWT resource server +
- * AccessLinkAuthenticationFilter), per docs/cookingChallenge/plans/
- * backend-persistence-api-security-plan.md Phase 5's own "Verify Phase 5" checklist — this is
- * deliberately a @SpringBootTest, not a @WebMvcTest, since the thing under test IS the
- * SecurityConfig wiring; per-controller @WebMvcTest slices disable the filter chain entirely
- * (see ChallengeControllerTest/HomeControllerTest/AccountsControllerTest) and only cover
+ * End-to-end security checks against the real filter chain (JWT resource server only, per
+ * docs/cookingChallenge/plans/access-link-jwt-unification-plan.md) — this is deliberately a
+ * @SpringBootTest, not a @WebMvcTest, since the thing under test IS the SecurityConfig
+ * wiring; per-controller @WebMvcTest slices disable the filter chain entirely (see
+ * ChallengeControllerTest/HomeControllerTest/AccountsControllerTest) and only cover
  * controller/application-service behavior.
  */
 @SpringBootTest
@@ -136,28 +135,40 @@ class SecurityIntegrationTest {
     }
 
     @Test
-    void should_return200_when_validLinkTokenHitsGuestEndpoint() throws Exception {
+    void should_return200_when_jwtFromAccessLinkExchangeHitsGuestEndpoint() throws Exception {
         String linkToken = issueLinkTokenForNewGuest();
+        String jwt = exchangeAccessLinkForJwt(linkToken);
 
-        mockMvc.perform(get("/api/v1/me/home").param("token", linkToken))
+        mockMvc.perform(get("/api/v1/me/home").header("Authorization", "Bearer " + jwt))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void should_return401_when_linkTokenInvalid() throws Exception {
-        mockMvc.perform(get("/api/v1/me/home").param("token", "not-a-real-token"))
+    void should_return401_when_guestEndpointHitWithoutAuthorizationHeader() throws Exception {
+        mockMvc.perform(get("/api/v1/me/home"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void should_return401_when_accessLinkTokenInvalid() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/access-link-login")
+                        .contentType("application/json")
+                        .content("{\"token\":\"not-a-real-token\"}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("INVALID_OR_EXPIRED_LINK"));
     }
 
     @Test
-    void should_return401_when_linkTokenExpired() throws Exception {
+    void should_return401_when_accessLinkTokenExpired() throws Exception {
         AccountId guest = AccountId.fromString(createAccountService.execute(
                 new CreateAccountRequest("expired-guest@example.com", "Guest").roles(List.of(SystemRole.USER))).getId());
         long challengeId = TsidSupport.fromBase32(createSampleChallenge().getId());
         String expiredToken = accessLinkService.issue(guest, challengeId, Duration.ofSeconds(-1));
 
-        mockMvc.perform(get("/api/v1/me/home").param("token", expiredToken))
+        mockMvc.perform(post("/api/v1/auth/access-link-login")
+                        .contentType("application/json")
+                        .content("{\"token\":\"" + expiredToken + "\"}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("INVALID_OR_EXPIRED_LINK"));
     }
@@ -181,13 +192,26 @@ class SecurityIntegrationTest {
         return createChallengeService.execute(request, AccountId.fromString(organizer.getId()));
     }
 
-    @SuppressWarnings("unchecked")
     private String login(String email, String password) throws Exception {
         String responseBody = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType("application/json")
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
+        return extractAccessToken(responseBody);
+    }
+
+    private String exchangeAccessLinkForJwt(String linkToken) throws Exception {
+        String responseBody = mockMvc.perform(post("/api/v1/auth/access-link-login")
+                        .contentType("application/json")
+                        .content("{\"token\":\"" + linkToken + "\"}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return extractAccessToken(responseBody);
+    }
+
+    @SuppressWarnings("unchecked")
+    private String extractAccessToken(String responseBody) throws Exception {
         Map<String, Object> body = objectMapper.readValue(responseBody, Map.class);
         Map<String, Object> data = (Map<String, Object>) body.get("data");
         String token = (String) data.get("accessToken");

@@ -1,9 +1,12 @@
 package at.fraihs.cookoff.auth.interfaces.rest;
 
 import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
+import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkException;
+import at.fraihs.cookoff.auth.application.service.AccessLinkLoginService;
 import at.fraihs.cookoff.auth.application.service.LoginService;
 import at.fraihs.cookoff.shared.config.JacksonConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
+import at.fraihs.cookoff.shared.web.openapi.model.AccessLinkLoginRequest;
 import at.fraihs.cookoff.shared.web.openapi.model.AuthToken;
 import at.fraihs.cookoff.shared.web.openapi.model.LoginRequest;
 import tools.jackson.databind.ObjectMapper;
@@ -42,6 +45,9 @@ class AuthControllerTest {
     @MockitoBean
     private LoginService loginService;
 
+    @MockitoBean
+    private AccessLinkLoginService accessLinkLoginService;
+
     @Test
     void should_return200_when_credentialsValid() throws Exception {
         AuthToken token = new AuthToken("signed-jwt", OffsetDateTime.parse("2026-08-04T12:00:00Z"));
@@ -71,5 +77,28 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(new LoginRequest("a@b.com", "wrong"))))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("INVALID_CREDENTIALS"));
+    }
+
+    @Test
+    void should_return200_when_accessLinkTokenValid() throws Exception {
+        AuthToken token = new AuthToken("signed-jwt", OffsetDateTime.parse("2026-08-04T12:00:00Z"));
+        when(accessLinkLoginService.execute(any())).thenReturn(token);
+
+        mockMvc.perform(post("/api/v1/auth/access-link-login")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new AccessLinkLoginRequest("link-token"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").value("signed-jwt"));
+    }
+
+    @Test
+    void should_return401_when_accessLinkTokenInvalid() throws Exception {
+        when(accessLinkLoginService.execute(any())).thenThrow(new InvalidOrExpiredLinkException());
+
+        mockMvc.perform(post("/api/v1/auth/access-link-login")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new AccessLinkLoginRequest("bad-token"))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("INVALID_OR_EXPIRED_LINK"));
     }
 }

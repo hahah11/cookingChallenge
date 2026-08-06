@@ -7,10 +7,10 @@ import at.fraihs.cookoff.auth.domain.model.SystemRole;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.shared.web.openapi.model.AuthToken;
 import at.fraihs.cookoff.shared.web.openapi.model.LoginRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -36,8 +36,13 @@ class LoginServiceTest {
     @Mock
     private JwtEncoder jwtEncoder;
 
-    @InjectMocks
     private LoginService service;
+
+    @BeforeEach
+    void setUp() {
+        JwtIssuer jwtIssuer = new JwtIssuer(jwtEncoder);
+        service = new LoginService(accountRepository, passwordEncoder, jwtIssuer);
+    }
 
     @Test
     void should_issueToken_when_credentialsValid() {

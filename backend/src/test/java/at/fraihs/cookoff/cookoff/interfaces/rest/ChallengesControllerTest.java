@@ -48,6 +48,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
@@ -70,10 +71,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Security enforcement (JWT roles, link tokens) is covered by
+ * Security enforcement (JWT roles) is covered by
  * {@code shared.security.SecurityIntegrationTest} — this slice test disables the security
- * filter chain, so {@code CurrentAccount.id()} is fed via {@link SecurityContextHolder}
- * directly rather than a real filter chain.
+ * filter chain, so {@code CurrentAccount.id()} is fed a {@link Jwt} principal via
+ * {@link SecurityContextHolder} directly rather than a real filter chain.
  */
 @WebMvcTest(ChallengesController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -121,7 +122,11 @@ class ChallengesControllerTest {
     }
 
     private void authenticateAs(AccountId accountId) {
-        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(accountId, null));
+        Jwt jwt = Jwt.withTokenValue("test-token")
+                .header("alg", "none")
+                .claim("sub", accountId.toString())
+                .build();
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(jwt, null));
     }
 
     private Challenge sampleChallenge() {

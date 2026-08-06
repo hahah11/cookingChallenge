@@ -47,7 +47,7 @@ class AccessLinkServiceTest {
         assertTrue(saved.expiresAt().isAfter(Instant.now()));
 
         when(accessLinkRepository.findByToken(token)).thenReturn(Optional.of(saved));
-        assertEquals(accountId, service.verify(token));
+        assertEquals(accountId, service.verify(token).accountId());
     }
 
     @Test
@@ -56,8 +56,8 @@ class AccessLinkServiceTest {
         AccessLink link = new AccessLink(1L, accountId, 42L, "tok", Instant.now().plusSeconds(60), null, Instant.now());
         when(accessLinkRepository.findByToken("tok")).thenReturn(Optional.of(link));
 
-        assertEquals(accountId, service.verify("tok"));
-        assertEquals(accountId, service.verify("tok"));
+        assertEquals(accountId, service.verify("tok").accountId());
+        assertEquals(accountId, service.verify("tok").accountId());
     }
 
     @Test
