@@ -1,8 +1,9 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
-import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
 
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,8 @@ public class ListChallengesService {
     public PagedResult<ChallengeRestDto> execute(int page, int size) {
         Page<ChallengeRestDto> mapped = challengeRepository
                 .findAll(PageRequest.of(page, size))
-                .map(challenge -> ChallengeMapping.toGenerated(
-                        challenge, ChallengeMapping.submittedGuestCount(challenge, scoreSubmissionRepository)));
+                .map(challenge -> ChallengeModelMapper.toGenerated(
+                        challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository)));
         return PagedResult.of(mapped);
     }
 }

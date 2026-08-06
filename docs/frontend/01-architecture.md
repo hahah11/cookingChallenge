@@ -54,6 +54,8 @@ src/app/
 │   │   │   └── customer.service.ts
 │   │   ├── models/
 │   │   │   └── customer.ts
+│   │   ├── mappers/
+│   │   │   └── customer.mapper.ts
 │   │   ├── guards/
 │   │   │   └── customer-edit.guard.ts
 │   │   ├── resolvers/
@@ -79,8 +81,10 @@ src/app/
 │   ├── interceptors/      # HTTP interceptors
 │   │   ├── auth.interceptor.ts
 │   │   └── error.interceptor.ts
-│   └── models/            # Core domain models
-│       └── user.ts
+│   ├── models/            # Core domain models
+│   │   └── user.ts
+│   └── mappers/           # API-model → view-model conversion
+│       └── user.mapper.ts
 ├── app.component.ts
 ├── app.config.ts
 └── app.routes.ts

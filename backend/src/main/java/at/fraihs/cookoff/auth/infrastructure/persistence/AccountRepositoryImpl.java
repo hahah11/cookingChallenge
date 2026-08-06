@@ -4,6 +4,8 @@ import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
+import at.fraihs.cookoff.auth.infrastructure.persistence.entity.AccountJpaEntity;
+import at.fraihs.cookoff.auth.infrastructure.persistence.mapper.AccountMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

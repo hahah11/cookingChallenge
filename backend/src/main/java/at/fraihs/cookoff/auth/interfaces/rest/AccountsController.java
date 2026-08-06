@@ -5,7 +5,7 @@ import at.fraihs.cookoff.auth.application.service.GetAccountDetailService;
 import at.fraihs.cookoff.auth.application.service.ListAccountsService;
 import at.fraihs.cookoff.auth.application.service.UpdateAccountService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.api.AccountsApi;
 import at.fraihs.cookoff.shared.web.openapi.model.AccountDetailResponseRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.AccountListResponseRestDto;

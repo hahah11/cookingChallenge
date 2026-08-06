@@ -1,7 +1,7 @@
 package at.fraihs.cookoff.cookoff.infrastructure.image;
 
+import at.fraihs.cookoff.cookoff.application.dto.StoredImage;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeImageNotFoundException;
-import at.fraihs.cookoff.cookoff.application.port.StoredImage;
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

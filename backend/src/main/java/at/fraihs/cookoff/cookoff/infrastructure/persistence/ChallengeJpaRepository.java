@@ -1,5 +1,6 @@
 package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ChallengeJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

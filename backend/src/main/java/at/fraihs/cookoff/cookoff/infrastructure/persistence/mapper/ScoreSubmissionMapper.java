@@ -1,51 +1,54 @@
-package at.fraihs.cookoff.cookoff.infrastructure.persistence;
+package at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper;
 
-import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
-import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
-import org.mapstruct.Mapper;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ScoreEmbeddable;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ScoreSubmissionJpaEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * ScoreSubmission is immutable with no public constructor (only submit/reconstitute
- * factories), so this mapper delegates to ScoreSubmission.reconstitute(...) rather than
- * MapStruct's generated field-by-field mapping, per
- * docs/backend/03-code-style.md#mapper-usage-mapstruct. Score <-> ScoreEmbeddable map 1:1.
+ * factories), so this mapping is fully hand-written rather than MapStruct-generated. It's a
+ * plain constructor-injected {@code @Component}, not a MapStruct {@code @Mapper} abstract
+ * class: MapStruct doesn't forward a hand-declared constructor to its generated {@code Impl}
+ * subclass, so an abstract {@code @Mapper} class can't have hand-written methods reach a
+ * constructor-injected sub-mapper field — only a plain class can, per
+ * docs/backend/03-code-style.md#mapper-usage-mapstruct. Composes ScoreSubmissionIdMapper,
+ * ChallengeIdMapper, AccountIdMapper, and ScoreMapper for its sub-objects, per that doc's
+ * mapper-composition rule.
  */
-@Mapper(componentModel = "spring")
-public interface ScoreSubmissionMapper {
+@Component
+@RequiredArgsConstructor
+public class ScoreSubmissionMapper {
 
-    default ScoreSubmission toDomain(ScoreSubmissionJpaEntity entity) {
-        List<Score> scores = entity.getScores().stream().map(this::toScore).toList();
+    private final ScoreSubmissionIdMapper scoreSubmissionIdMapper;
+    private final ChallengeIdMapper challengeIdMapper;
+    private final AccountIdMapper accountIdMapper;
+    private final ScoreMapper scoreMapper;
+
+    public ScoreSubmission toDomain(ScoreSubmissionJpaEntity entity) {
+        List<Score> scores = entity.getScores().stream().map(scoreMapper::toDomain).toList();
         return ScoreSubmission.reconstitute(
-                new ScoreSubmissionId(entity.getId()),
-                new ChallengeId(entity.getChallengeId()),
-                new AccountId(entity.getGuestAccountId()),
+                scoreSubmissionIdMapper.toDomain(entity.getId()),
+                challengeIdMapper.toDomain(entity.getChallengeId()),
+                accountIdMapper.toDomain(entity.getGuestAccountId()),
                 scores,
                 entity.getSubmittedAt());
     }
 
-    default ScoreSubmissionJpaEntity toEntity(ScoreSubmission submission) {
+    public ScoreSubmissionJpaEntity toEntity(ScoreSubmission submission) {
         List<ScoreEmbeddable> scores = submission.getScores().stream()
-                .map(this::toEmbeddable)
+                .map(scoreMapper::toEmbeddable)
                 .toList();
         return new ScoreSubmissionJpaEntity(
-                submission.getId().value(),
-                submission.getChallengeId().value(),
-                submission.getGuestAccountId().value(),
+                scoreSubmissionIdMapper.toRaw(submission.getId()),
+                challengeIdMapper.toRaw(submission.getChallengeId()),
+                accountIdMapper.toRaw(submission.getGuestAccountId()),
                 submission.getSubmittedAt(),
                 new ArrayList<>(scores));
-    }
-
-    default Score toScore(ScoreEmbeddable embeddable) {
-        return new Score(embeddable.getDishLabel(), embeddable.getCategory(), embeddable.getPoints());
-    }
-
-    default ScoreEmbeddable toEmbeddable(Score score) {
-        return new ScoreEmbeddable(score.dishLabel(), score.category(), score.points());
     }
 }

@@ -1,7 +1,7 @@
 package at.fraihs.cookoff.auth.application.service;
 
 import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkException;
-import at.fraihs.cookoff.auth.application.port.AccessLink;
+import at.fraihs.cookoff.auth.application.dto.AccessLink;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;

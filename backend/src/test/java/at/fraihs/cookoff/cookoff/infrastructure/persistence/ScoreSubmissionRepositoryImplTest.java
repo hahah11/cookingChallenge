@@ -1,7 +1,7 @@
 package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.auth.infrastructure.persistence.AccountJpaEntity;
+import at.fraihs.cookoff.auth.infrastructure.persistence.entity.AccountJpaEntity;
 import at.fraihs.cookoff.cookoff.application.exception.DuplicateSubmissionException;
 import at.fraihs.cookoff.cookoff.domain.model.Category;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
@@ -10,6 +10,14 @@ import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ChallengeJpaEntity;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ScoreEmbeddable;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ScoreSubmissionJpaEntity;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.AccountIdMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.ChallengeIdMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.ScoreMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.ScoreSubmissionIdMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.ScoreSubmissionMapper;
 import jakarta.persistence.PersistenceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +51,8 @@ class ScoreSubmissionRepositoryImplTest {
 
     @BeforeEach
     void setUp() {
-        repository = new ScoreSubmissionRepositoryImpl(jpaRepository, new ScoreSubmissionMapperImpl());
+        repository = new ScoreSubmissionRepositoryImpl(jpaRepository, new ScoreSubmissionMapper(
+                new ScoreSubmissionIdMapperImpl(), new ChallengeIdMapperImpl(), new AccountIdMapperImpl(), new ScoreMapperImpl()));
     }
 
     @Test

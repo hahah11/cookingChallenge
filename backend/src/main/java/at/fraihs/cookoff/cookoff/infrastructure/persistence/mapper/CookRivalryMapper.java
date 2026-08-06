@@ -1,35 +1,43 @@
-package at.fraihs.cookoff.cookoff.infrastructure.persistence;
+package at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper;
 
-import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
-import at.fraihs.cookoff.cookoff.domain.model.CookRivalryId;
-import org.mapstruct.Mapper;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.CookRivalryJpaEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 /**
  * CookRivalry is immutable-shaped with no public constructor (only start/reconstitute
- * factories), so this mapper delegates to CookRivalry.reconstitute(...) rather than
- * MapStruct's generated field-by-field mapping, per
- * docs/backend/03-code-style.md#mapper-usage-mapstruct.
+ * factories), so this mapping is fully hand-written rather than MapStruct-generated. It's a
+ * plain constructor-injected {@code @Component}, not a MapStruct {@code @Mapper} abstract
+ * class: MapStruct doesn't forward a hand-declared constructor to its generated {@code Impl}
+ * subclass, so an abstract {@code @Mapper} class can't have hand-written methods reach a
+ * constructor-injected sub-mapper field — only a plain class can, per
+ * docs/backend/03-code-style.md#mapper-usage-mapstruct. Composes CookRivalryIdMapper and
+ * AccountIdMapper for its sub-objects, per that doc's mapper-composition rule.
  */
-@Mapper(componentModel = "spring")
-public interface CookRivalryMapper {
+@Component
+@RequiredArgsConstructor
+public class CookRivalryMapper {
 
-    default CookRivalry toDomain(CookRivalryJpaEntity entity) {
+    private final CookRivalryIdMapper cookRivalryIdMapper;
+    private final AccountIdMapper accountIdMapper;
+
+    public CookRivalry toDomain(CookRivalryJpaEntity entity) {
         return CookRivalry.reconstitute(
-                new CookRivalryId(entity.getId()),
-                new AccountId(entity.getCookAAccountId()),
-                new AccountId(entity.getCookBAccountId()),
+                cookRivalryIdMapper.toDomain(entity.getId()),
+                accountIdMapper.toDomain(entity.getCookAAccountId()),
+                accountIdMapper.toDomain(entity.getCookBAccountId()),
                 entity.getCookAWins(),
                 entity.getCookBWins(),
                 entity.getDraws(),
                 entity.getTotalChallenges());
     }
 
-    default CookRivalryJpaEntity toEntity(CookRivalry rivalry) {
+    public CookRivalryJpaEntity toEntity(CookRivalry rivalry) {
         return new CookRivalryJpaEntity(
-                rivalry.getId().value(),
-                rivalry.getCookAAccountId().value(),
-                rivalry.getCookBAccountId().value(),
+                cookRivalryIdMapper.toRaw(rivalry.getId()),
+                accountIdMapper.toRaw(rivalry.getCookAAccountId()),
+                accountIdMapper.toRaw(rivalry.getCookBAccountId()),
                 rivalry.getCookAWins(),
                 rivalry.getCookBWins(),
                 rivalry.getDraws(),

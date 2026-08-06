@@ -1,8 +1,9 @@
 package at.fraihs.cookoff.auth.infrastructure.accesslink;
 
-import at.fraihs.cookoff.auth.application.port.AccessLink;
+import at.fraihs.cookoff.auth.application.dto.AccessLink;
 import at.fraihs.cookoff.auth.application.port.AccessLinkRepository;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.infrastructure.accesslink.entity.AccessLinkJpaEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

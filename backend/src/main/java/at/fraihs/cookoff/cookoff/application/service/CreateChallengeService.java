@@ -3,6 +3,7 @@ package at.fraihs.cookoff.cookoff.application.service;
 import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
+import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
@@ -47,6 +48,6 @@ public class CreateChallengeService {
                 organizerAccountId);
         challengeRepository.save(challenge);
         log.info("Challenge created: {}, organizer: {}", challenge.getId(), organizerAccountId);
-        return ChallengeMapping.toGenerated(challenge, 0);
+        return ChallengeModelMapper.toGenerated(challenge, 0);
     }
 }

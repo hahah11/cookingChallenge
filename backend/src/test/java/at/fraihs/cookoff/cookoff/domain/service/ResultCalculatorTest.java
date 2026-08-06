@@ -4,6 +4,7 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.model.Category;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
+import at.fraihs.cookoff.cookoff.domain.model.ChallengeResult;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.Score;

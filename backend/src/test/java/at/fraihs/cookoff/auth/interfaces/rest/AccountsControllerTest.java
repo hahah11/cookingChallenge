@@ -9,7 +9,7 @@ import at.fraihs.cookoff.auth.application.service.UpdateAccountService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.shared.config.JacksonConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
-import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequestRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.PaginationRestDto;

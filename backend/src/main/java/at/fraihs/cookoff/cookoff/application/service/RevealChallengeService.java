@@ -2,15 +2,16 @@ package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.event.ChallengeRevealed;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
+import at.fraihs.cookoff.cookoff.domain.model.ChallengeResult;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
-import at.fraihs.cookoff.cookoff.domain.service.ChallengeResult;
 import at.fraihs.cookoff.cookoff.domain.service.ResultCalculator;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResultRestDto;
 
@@ -55,6 +56,6 @@ public class RevealChallengeService {
                 .orElseGet(() -> CookRivalry.start(event.cookAAccountId(), event.cookBAccountId()));
         rivalry.recordResult(result.overallWinnerAccountId());
 
-        return ChallengeMapping.toGeneratedResult(challenge, result, rivalry, accountLookup);
+        return ChallengeModelMapper.toGeneratedResult(challenge, result, rivalry, accountLookup);
     }
 }

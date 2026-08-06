@@ -1,5 +1,7 @@
 package at.fraihs.cookoff.cookoff.application.port;
 
+import at.fraihs.cookoff.cookoff.application.dto.StoredImage;
+
 /**
  * Storage for challenge photos. {@code store}'s returned ref is opaque to callers — it's
  * whatever {@code Challenge.imageRef} should hold, not necessarily a raw id. The initial

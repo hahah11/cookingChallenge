@@ -1,12 +1,20 @@
 package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.auth.infrastructure.persistence.AccountJpaEntity;
+import at.fraihs.cookoff.auth.infrastructure.persistence.entity.AccountJpaEntity;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.PlateColorId;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.PlateColorJpaEntity;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.AccountIdMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.ChallengeIdMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.ChallengeMapper;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.CookAssignmentMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.DishNameMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.PlateColorIdMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.RevealResultMapperImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +46,9 @@ class ChallengeRepositoryImplTest {
 
     @BeforeEach
     void setUp() {
-        repository = new ChallengeRepositoryImpl(jpaRepository, new ChallengeMapperImpl());
+        repository = new ChallengeRepositoryImpl(jpaRepository, new ChallengeMapper(
+                new ChallengeIdMapperImpl(), new AccountIdMapperImpl(), new PlateColorIdMapperImpl(),
+                new DishNameMapperImpl(), new CookAssignmentMapperImpl(), new RevealResultMapperImpl()));
     }
 
     @Test

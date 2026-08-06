@@ -4,6 +4,7 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
+import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
@@ -50,7 +51,7 @@ public class EditChallengeParticipantsService {
         challenge.editParticipants(newCookAAccountId, newCookBAccountId, guestIdsToAdd, guestIdsToRemove);
         challengeRepository.save(challenge);
         log.info("Challenge participants edited: {}", challengeId);
-        return ChallengeMapping.toGenerated(
-                challenge, ChallengeMapping.submittedGuestCount(challenge, scoreSubmissionRepository));
+        return ChallengeModelMapper.toGenerated(
+                challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository));
     }
 }

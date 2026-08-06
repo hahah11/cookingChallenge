@@ -3,6 +3,8 @@ package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 import at.fraihs.cookoff.cookoff.domain.model.PlateColor;
 import at.fraihs.cookoff.cookoff.domain.model.PlateColorId;
 import at.fraihs.cookoff.cookoff.application.port.PlateColorRepository;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.PlateColorJpaEntity;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.PlateColorMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

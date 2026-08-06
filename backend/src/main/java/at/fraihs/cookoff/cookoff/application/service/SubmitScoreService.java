@@ -4,6 +4,7 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotOpenException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
+import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
@@ -72,7 +73,7 @@ public class SubmitScoreService {
                 new ScoreSubmissionRestDto(
                         challengeIdString,
                         requesterAccountId.toString(),
-                        submission.getScores().stream().map(ChallengeMapping::toGeneratedScore).toList(),
+                        submission.getScores().stream().map(ChallengeModelMapper::toGeneratedScore).toList(),
                         submission.getSubmittedAt().atOffset(ZoneOffset.UTC));
         return new Result(data, created);
     }

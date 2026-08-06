@@ -6,6 +6,8 @@ import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ScoreSubmissionJpaEntity;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.ScoreSubmissionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;

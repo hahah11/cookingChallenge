@@ -1,7 +1,8 @@
 package at.fraihs.cookoff.auth.application.service;
 
+import at.fraihs.cookoff.auth.application.mapper.AccountModelMapper;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
-import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
 
 import lombok.RequiredArgsConstructor;

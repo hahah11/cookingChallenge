@@ -3,6 +3,7 @@ package at.fraihs.cookoff.cookoff.application.service;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
+import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.PlateColorRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
@@ -66,6 +67,6 @@ public class PickColorService {
         ScoreSubmission mySubmission = scoreSubmissionRepository
                 .findByChallengeIdAndGuestAccountId(challengeId, cookAccountId)
                 .orElse(null);
-        return ChallengeMapping.toParticipantChallenge(challenge, mySubmission, cookAccountId);
+        return ChallengeModelMapper.toParticipantChallenge(challenge, mySubmission, cookAccountId);
     }
 }

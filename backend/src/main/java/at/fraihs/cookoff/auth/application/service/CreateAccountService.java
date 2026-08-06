@@ -1,6 +1,7 @@
 package at.fraihs.cookoff.auth.application.service;
 
 import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsException;
+import at.fraihs.cookoff.auth.application.mapper.AccountModelMapper;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;

@@ -4,7 +4,7 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
-import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.model.RivalryRestDto;
 
 import lombok.RequiredArgsConstructor;

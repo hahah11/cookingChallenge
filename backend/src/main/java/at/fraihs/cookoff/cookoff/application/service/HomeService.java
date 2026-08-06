@@ -1,6 +1,7 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
@@ -38,7 +39,7 @@ public class HomeService {
             ScoreSubmission mySubmission = scoreSubmissionRepository
                     .findByChallengeIdAndGuestAccountId(challenge.getId(), accountId)
                     .orElse(null);
-            ParticipantChallengeRestDto view = ChallengeMapping.toParticipantChallenge(challenge, mySubmission, accountId);
+            ParticipantChallengeRestDto view = ChallengeModelMapper.toParticipantChallenge(challenge, mySubmission, accountId);
             boolean pendingAction = (view.getCanScore() && !view.getSubmitted()) || view.getCanPickColor();
             if (challenge.getStatus() == ChallengeStatus.OPEN && pendingAction) {
                 open.add(view);

@@ -1,9 +1,10 @@
 package at.fraihs.cookoff.auth.application.service;
 
+import at.fraihs.cookoff.auth.application.mapper.AccountModelMapperImpl;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
-import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
 
 import java.util.List;

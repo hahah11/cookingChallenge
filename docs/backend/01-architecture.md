@@ -27,11 +27,15 @@
 - ✅ Repository providing `findCustomersByStatus()` - data filtering only
 
 ### Model/Entity Layer (Data Structures)
-- Entities: Map directly to database tables, minimal behavior
-- DTOs: Transfer data between layers (Controller ↔ Service)
-- Value Objects: Immutable objects with behavior (`Money`, `Address`)
-- ✅ Entity: `Customer` with `@Id`, `@Column` annotations
-- ✅ DTO: `CustomerResponse` with only fields needed for API response
+- Entities: Map directly to database tables, minimal behavior — live in
+  `infrastructure/<adapter>/entity` (`CustomerJpaEntity`, `@Embeddable`s)
+- DTOs: Transfer data between layers (commands, query results, port payloads) — live in
+  `application/dto`
+- Value Objects/aggregates: Immutable domain types with behavior (`Money`, `Address`,
+  `Customer`) — live in `domain/model`
+- ✅ Entity: `CustomerJpaEntity` with `@Id`, `@Column` annotations, in
+  `infrastructure/persistence/entity`
+- ✅ DTO: `CustomerView` with only fields needed for API response, in `application/dto`
 
 ### Configuration Layer (Setup)
 - `@Configuration` classes for Spring beans
@@ -85,29 +89,27 @@
 
 ## Package Structure
 
+This project organizes by DDD/Spring-Modulith module, not by technical layer at the top level.
+`docs/backend/02-ddd-modulith.md` is the authoritative module layout; summary:
+
 ```
-src/main/java/com/cookingchallenge/
-├── controller/       # REST endpoints
-│   ├── CustomerController.java
-│   └── OrderController.java
-├── service/          # Business logic
-│   ├── CustomerService.java
-│   ├── OrderService.java
-│   └── notification/ # Related services grouped
-├── repository/       # Data access
-│   ├── CustomerRepository.java
-│   └── OrderRepository.java
-├── model/            # Entities and DTOs
-│   ├── entity/       # JPA entities
-│   │   ├── Customer.java
-│   │   └── Order.java
-│   └── dto/          # Request/Response DTOs
-│       ├── CreateCustomerRequest.java
-│       └── CustomerResponse.java
-├── config/           # Configuration
-│   ├── SecurityConfig.java
-│   └── DatabaseConfig.java
-└── exception/        # Custom exceptions
-    ├── CustomerNotFoundException.java
-    └── GlobalExceptionHandler.java
+<module>/
+├── domain/
+│   ├── model/                     aggregates, VOs, enums, domain records
+│   ├── service/                   domain services only
+│   └── event/
+├── application/
+│   ├── dto/                       commands, query results, port payloads
+│   ├── mapper/                    domain → generated-OpenAPI-model mappers
+│   ├── port/                      interfaces only
+│   ├── service/                   use cases only
+│   ├── event/
+│   └── exception/
+├── infrastructure/<adapter>/      adapters: persistence, image, accesslink, registrationinvite
+│   ├── entity/                    *JpaEntity, @Embeddable
+│   ├── mapper/                    domain ↔ entity mappers
+│   └── <X>RepositoryImpl.java, <X>JpaRepository.java
+└── interfaces/rest/               controllers (request/response DTOs are generated → shared.web.openapi.model)
 ```
+
+See [`docs/backend/02-ddd-modulith.md`](02-ddd-modulith.md) for the full rationale.

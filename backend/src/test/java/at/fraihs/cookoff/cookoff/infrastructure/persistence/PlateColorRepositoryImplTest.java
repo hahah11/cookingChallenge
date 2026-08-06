@@ -2,6 +2,9 @@ package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 
 import at.fraihs.cookoff.cookoff.domain.model.PlateColor;
 import at.fraihs.cookoff.cookoff.domain.model.PlateColorId;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.PlateColorJpaEntity;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.PlateColorIdMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.PlateColorMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +32,7 @@ class PlateColorRepositoryImplTest {
 
     @BeforeEach
     void setUp() {
-        repository = new PlateColorRepositoryImpl(jpaRepository, new PlateColorMapperImpl());
+        repository = new PlateColorRepositoryImpl(jpaRepository, new PlateColorMapper(new PlateColorIdMapperImpl()));
     }
 
     @Test

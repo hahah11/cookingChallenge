@@ -1,8 +1,9 @@
 package at.fraihs.cookoff.cookoff.infrastructure.image;
 
+import at.fraihs.cookoff.cookoff.application.dto.StoredImage;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeImageNotFoundException;
 import at.fraihs.cookoff.cookoff.application.port.ImageStoragePort;
-import at.fraihs.cookoff.cookoff.application.port.StoredImage;
+import at.fraihs.cookoff.cookoff.infrastructure.image.entity.ChallengeImageJpaEntity;
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

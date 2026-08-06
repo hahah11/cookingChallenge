@@ -1,8 +1,9 @@
 package at.fraihs.cookoff.auth.infrastructure.registrationinvite;
 
-import at.fraihs.cookoff.auth.application.port.RegistrationInvite;
+import at.fraihs.cookoff.auth.application.dto.RegistrationInvite;
 import at.fraihs.cookoff.auth.application.port.RegistrationInviteRepository;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.infrastructure.registrationinvite.entity.RegistrationInviteJpaEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

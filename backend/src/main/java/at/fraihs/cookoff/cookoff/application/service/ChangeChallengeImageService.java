@@ -4,6 +4,7 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
+import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ImageStoragePort;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
@@ -47,7 +48,7 @@ public class ChangeChallengeImageService {
             imageStoragePort.delete(oldImageRef);
         }
         log.info("Challenge image changed: {}", challengeId);
-        return ChallengeMapping.toGenerated(
-                challenge, ChallengeMapping.submittedGuestCount(challenge, scoreSubmissionRepository));
+        return ChallengeModelMapper.toGenerated(
+                challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository));
     }
 }

@@ -31,24 +31,31 @@ com.cookingchallenge.customer/
 │   ├── dto/
 │   │   ├── CreateCustomerCommand.java   # CQRS Command
 │   │   └── CustomerView.java            # CQRS Query Result
-│   └── port/
-│       ├── CustomerRepository.java      # Outgoing port (interface) - see ADR 0002
-│       └── NotificationPort.java        # Outgoing port (interface)
+│   ├── mapper/
+│   │   └── CustomerModelMapper.java     # Domain → generated-OpenAPI-model mapper
+│   ├── port/
+│   │   ├── CustomerRepository.java      # Outgoing port (interface) - see ADR 0002
+│   │   └── NotificationPort.java        # Outgoing port (interface)
+│   └── event/
 │
 ├── infrastructure/            # Outer circle - Frameworks & Drivers
 │   ├── persistence/
-│   │   ├── CustomerJpaEntity.java       # DB mapping
-│   │   ├── CustomerRepositoryImpl.java  # Adapter (implements the application-layer port)
-│   │   └── CustomerMapper.java          # Domain ↔ Entity conversion (MapStruct interface)
+│   │   ├── entity/
+│   │   │   └── CustomerJpaEntity.java   # DB mapping
+│   │   ├── mapper/
+│   │   │   ├── CustomerMapper.java      # Domain ↔ Entity conversion (plain @Component if it
+│   │   │   │                            #   composes sub-object mappers below, MapStruct
+│   │   │   │                            #   interface otherwise)
+│   │   │   └── EmailMapper.java         # Value Object mapper, injected into CustomerMapper
+│   │   └── CustomerRepositoryImpl.java  # Adapter (implements the application-layer port)
 │   ├── notification/
 │   │   └── EmailNotificationAdapter.java # Implements NotificationPort
 │   └── config/
 │       └── CustomerModuleConfig.java
 │
-└── interface/                 # Interface Adapters - REST/Events
+└── interfaces/                # Interface Adapters - REST/Events
     ├── rest/
-    │   ├── CustomerController.java
-    │   └── CustomerDto.java
+    │   └── CustomerController.java      # request/response DTOs are generated → shared.web.openapi.model
     └── event/
         └── CustomerEventHandler.java    # Listen to other modules
 ```
@@ -108,8 +115,10 @@ public interface CustomerRepository {
 }
 
 // Infrastructure adapter - in infrastructure package
-// CustomerMapper is a MapStruct interface (see docs/backend/03-code-style.md#mapper-usage-mapstruct);
-// Spring injects the generated Impl like any other bean.
+// CustomerMapper lives in infrastructure/persistence/mapper and is either a MapStruct
+// interface (Spring injects the generated Impl) or a plain constructor-injected @Component
+// composing sub-object mappers (see docs/backend/03-code-style.md#mapper-usage-mapstruct) -
+// either way, Spring wires it like any other bean.
 @Repository
 @RequiredArgsConstructor
 public class CustomerRepositoryImpl implements CustomerRepository {

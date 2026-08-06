@@ -4,6 +4,8 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ChallengeJpaEntity;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.ChallengeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

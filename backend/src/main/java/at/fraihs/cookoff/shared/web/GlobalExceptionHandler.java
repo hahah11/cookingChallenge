@@ -12,6 +12,9 @@ import at.fraihs.cookoff.cookoff.application.exception.DuplicateSubmissionExcept
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
 import at.fraihs.cookoff.cookoff.application.exception.RivalryNotFoundException;
+import at.fraihs.cookoff.shared.web.dto.ApiErrorBody;
+import at.fraihs.cookoff.shared.web.dto.ApiErrorDetail;
+import at.fraihs.cookoff.shared.web.dto.ApiErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

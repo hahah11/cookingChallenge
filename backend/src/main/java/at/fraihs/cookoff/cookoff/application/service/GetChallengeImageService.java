@@ -4,7 +4,7 @@ import at.fraihs.cookoff.cookoff.application.exception.ChallengeImageNotFoundExc
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ImageStoragePort;
-import at.fraihs.cookoff.cookoff.application.port.StoredImage;
+import at.fraihs.cookoff.cookoff.application.dto.StoredImage;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import lombok.RequiredArgsConstructor;

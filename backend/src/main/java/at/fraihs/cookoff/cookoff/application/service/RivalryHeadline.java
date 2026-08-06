@@ -1,12 +1,16 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
-/** Server-rendered display text for a cook-pair record, e.g. "Alice leads Bob 3-1 (1 draw)". */
-final class RivalryHeadline {
+/**
+ * Server-rendered display text for a cook-pair record, e.g. "Alice leads Bob 3-1 (1 draw)".
+ * Public because it's also called from {@code application.mapper.ChallengeModelMapper}, a
+ * sibling package.
+ */
+public final class RivalryHeadline {
 
     private RivalryHeadline() {
     }
 
-    static String build(String cookAName, String cookBName, int cookAWins, int cookBWins, int draws) {
+    public static String build(String cookAName, String cookBName, int cookAWins, int cookBWins, int draws) {
         if (cookAWins == 0 && cookBWins == 0 && draws == 0) {
             return cookAName + " and " + cookBName + " haven't faced off yet.";
         }

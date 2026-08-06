@@ -3,7 +3,7 @@ package at.fraihs.cookoff.cookoff.interfaces.rest;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.service.RivalriesListService;
 import at.fraihs.cookoff.cookoff.application.service.RivalryDetailService;
-import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.api.RivalriesApi;
 import at.fraihs.cookoff.shared.web.openapi.model.ApiMetaRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.RivalryDetailResponseRestDto;

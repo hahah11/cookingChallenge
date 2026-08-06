@@ -1,6 +1,6 @@
 package at.fraihs.cookoff.cookoff.interfaces.rest;
 
-import at.fraihs.cookoff.cookoff.application.port.StoredImage;
+import at.fraihs.cookoff.cookoff.application.dto.StoredImage;
 import at.fraihs.cookoff.cookoff.application.service.ChangeChallengeImageService;
 import at.fraihs.cookoff.cookoff.application.service.CreateChallengeService;
 import at.fraihs.cookoff.cookoff.application.service.CreateRegistrationInviteService;
@@ -16,7 +16,7 @@ import at.fraihs.cookoff.cookoff.application.service.SendChallengeInvitationsSer
 import at.fraihs.cookoff.cookoff.application.service.SubmitScoreService;
 import at.fraihs.cookoff.cookoff.application.service.UnrevealChallengeService;
 import at.fraihs.cookoff.shared.security.CurrentAccount;
-import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.api.ChallengesApi;
 import at.fraihs.cookoff.shared.web.openapi.model.ApiMetaRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeListResponseRestDto;

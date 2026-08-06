@@ -3,6 +3,8 @@ package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
 import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.CookRivalryJpaEntity;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.CookRivalryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

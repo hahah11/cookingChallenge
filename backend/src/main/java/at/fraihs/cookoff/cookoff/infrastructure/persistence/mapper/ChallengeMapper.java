@@ -1,88 +1,84 @@
-package at.fraihs.cookoff.cookoff.infrastructure.persistence;
+package at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
-import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.CookAssignment;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
-import at.fraihs.cookoff.cookoff.domain.model.DishName;
-import at.fraihs.cookoff.cookoff.domain.model.PlateColorId;
-import at.fraihs.cookoff.cookoff.domain.model.RevealResult;
-import org.mapstruct.Mapper;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ChallengeJpaEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Challenge is immutable with no public constructor (only create/reconstitute factories) and
- * its List<CookAssignment> doesn't line up 1:1 with the entity's flat cookAAccountId/
- * cookBAccountId columns, so this mapper is hand-written rather than MapStruct-generated, per
- * docs/backend/03-code-style.md#mapper-usage-mapstruct.
+ * its List&lt;CookAssignment&gt; doesn't line up 1:1 with the entity's flat cookAAccountId/
+ * cookBAccountId columns, so this mapping is fully hand-written rather than MapStruct-generated.
+ * It's a plain constructor-injected {@code @Component}, not a MapStruct {@code @Mapper}
+ * abstract class: MapStruct doesn't forward a hand-declared constructor to its generated
+ * {@code Impl} subclass, so an abstract {@code @Mapper} class can't have hand-written methods
+ * reach a constructor-injected sub-mapper field — only a plain class can, per
+ * docs/backend/03-code-style.md#mapper-usage-mapstruct. Composes the dedicated mappers for
+ * each sub-object (typed ids, DishName, CookAssignment, RevealResult) instead of inlining
+ * their conversions here.
  */
-@Mapper(componentModel = "spring")
-public interface ChallengeMapper {
+@Component
+@RequiredArgsConstructor
+public class ChallengeMapper {
 
-    default Challenge toDomain(ChallengeJpaEntity entity) {
+    private final ChallengeIdMapper challengeIdMapper;
+    private final AccountIdMapper accountIdMapper;
+    private final PlateColorIdMapper plateColorIdMapper;
+    private final DishNameMapper dishNameMapper;
+    private final CookAssignmentMapper cookAssignmentMapper;
+    private final RevealResultMapper revealResultMapper;
+
+    public Challenge toDomain(ChallengeJpaEntity entity) {
         List<CookAssignment> cookAssignments = List.of(
-                new CookAssignment(new AccountId(entity.getCookAAccountId()), DishLabel.A,
-                        toPlateColorId(entity.getCookAColorId())),
-                new CookAssignment(new AccountId(entity.getCookBAccountId()), DishLabel.B,
-                        toPlateColorId(entity.getCookBColorId())));
+                cookAssignmentMapper.toDomain(
+                        accountIdMapper.toDomain(entity.getCookAAccountId()), DishLabel.A,
+                        plateColorIdMapper.toDomain(entity.getCookAColorId())),
+                cookAssignmentMapper.toDomain(
+                        accountIdMapper.toDomain(entity.getCookBAccountId()), DishLabel.B,
+                        plateColorIdMapper.toDomain(entity.getCookBColorId())));
         List<AccountId> guestAccountIds = entity.getGuestAccountIds().stream()
-                .map(AccountId::new)
+                .map(accountIdMapper::toDomain)
                 .toList();
         return Challenge.reconstitute(
-                new ChallengeId(entity.getId()),
+                challengeIdMapper.toDomain(entity.getId()),
                 entity.getChallengeDate(),
                 entity.getTitle(),
-                new DishName(entity.getDishName()),
+                dishNameMapper.toDomain(entity.getDishName()),
                 cookAssignments,
                 guestAccountIds,
                 entity.getStatus(),
-                new AccountId(entity.getCreatedByAccountId()),
+                accountIdMapper.toDomain(entity.getCreatedByAccountId()),
                 entity.getImageRef(),
-                toRevealResult(entity.isHasBeenRevealed(), entity.getLastRevealWinnerAccountId()));
+                revealResultMapper.toDomain(entity.isHasBeenRevealed(),
+                        accountIdMapper.toDomain(entity.getLastRevealWinnerAccountId())));
     }
 
-    default ChallengeJpaEntity toEntity(Challenge challenge) {
+    public ChallengeJpaEntity toEntity(Challenge challenge) {
         List<Long> guestAccountIds = challenge.getGuestAccountIds().stream()
-                .map(AccountId::value)
+                .map(accountIdMapper::toRaw)
                 .toList();
         CookAssignment cookA = challenge.cookAssignmentFor(DishLabel.A);
         CookAssignment cookB = challenge.cookAssignmentFor(DishLabel.B);
         return new ChallengeJpaEntity(
-                challenge.getId().value(),
+                challengeIdMapper.toRaw(challenge.getId()),
                 challenge.getTitle(),
                 challenge.getDate(),
-                challenge.getDishName().value(),
-                cookA.accountId().value(),
-                cookB.accountId().value(),
-                toRawId(cookA.colorId()),
-                toRawId(cookB.colorId()),
+                dishNameMapper.toRaw(challenge.getDishName()),
+                accountIdMapper.toRaw(cookA.accountId()),
+                accountIdMapper.toRaw(cookB.accountId()),
+                plateColorIdMapper.toRaw(cookA.colorId()),
+                plateColorIdMapper.toRaw(cookB.colorId()),
                 challenge.getStatus(),
-                challenge.getCreatedBy().value(),
+                accountIdMapper.toRaw(challenge.getCreatedBy()),
                 new ArrayList<>(guestAccountIds),
                 challenge.getImageRef(),
-                challenge.getLastRevealResult() != null,
-                challenge.getLastRevealResult() == null ? null : toRawId(challenge.getLastRevealResult().winnerAccountId()));
-    }
-
-    private static PlateColorId toPlateColorId(Long rawId) {
-        return rawId == null ? null : new PlateColorId(rawId);
-    }
-
-    private static Long toRawId(PlateColorId colorId) {
-        return colorId == null ? null : colorId.value();
-    }
-
-    private static Long toRawId(AccountId accountId) {
-        return accountId == null ? null : accountId.value();
-    }
-
-    private static RevealResult toRevealResult(boolean hasBeenRevealed, Long winnerRawId) {
-        if (!hasBeenRevealed) {
-            return null;
-        }
-        return new RevealResult(winnerRawId == null ? null : new AccountId(winnerRawId));
+                revealResultMapper.hasBeenRevealed(challenge.getLastRevealResult()),
+                accountIdMapper.toRaw(revealResultMapper.winnerAccountId(challenge.getLastRevealResult())));
     }
 }

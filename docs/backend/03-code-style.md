@@ -47,9 +47,9 @@ public class Customer {
   methods — less boilerplate, compile-time-checked field mapping, and one consistent
   pattern across modules.
 - Declare the mapper as a plain interface annotated `@Mapper(componentModel = "spring")`
-  in `infrastructure/persistence`; MapStruct generates the `Impl` class as a Spring bean
-  at compile time (`org.mapstruct:mapstruct` + `org.mapstruct:mapstruct-processor` on the
-  annotation processor path).
+  in `infrastructure/persistence/mapper`; MapStruct generates the `Impl` class as a Spring
+  bean at compile time (`org.mapstruct:mapstruct` + `org.mapstruct:mapstruct-processor` on
+  the annotation processor path).
 - Typed IDs, VOs, and enums (`AccountId`, `Email`, `SystemRole`) generally map 1:1 by
   field name — let MapStruct infer those. Only add an explicit `@Mapping`/default method
   when the shapes genuinely diverge (e.g. `Challenge`'s `List<CookAssignment>` vs. the
@@ -60,15 +60,67 @@ public class Customer {
   private constructor, so target the aggregate's `reconstitute(...)` factory (via
   `@ObjectFactory` or a `default` method that delegates to it) rather than letting
   MapStruct attempt field injection into the domain class.
-- Never generate a mapper for a JPA entity that isn't in `infrastructure/persistence` —
-  mappers stay next to the entity they convert, per the module structure below.
+- Mappers live in the `mapper` package **of the layer they map for** — persistence mappers in
+  `infrastructure/<adapter>/mapper`, domain → OpenAPI-model mappers in `application/mapper`.
+  A mapper never lives in `service`, `port`, or next to the entity/aggregate it converts.
+- **One mapper per mapped concept.** Every ValueObject, (non-root) Entity, and `@Embeddable`
+  that appears as a sub-object inside an aggregate gets its own dedicated
+  `@Mapper(componentModel = "spring")` interface — even simple single-field wrappers like a
+  typed ID (`PlateColorId ↔ Long`). Don't inline its conversion as a helper method on the
+  aggregate mapper; that's how the same logic ends up duplicated across multiple aggregate
+  mappers (e.g. `PlateColorId` conversion existing independently inside both `ChallengeMapper`
+  and `PlateColorMapper` instead of being shared from one place).
+- **The aggregate root's mapper is a plain constructor-injected `@Component`, not a
+  MapStruct `@Mapper`.** This is the one exception to "every mapper is MapStruct": MapStruct
+  does not forward a hand-declared constructor to its generated `Impl` subclass (it only
+  wires dependencies declared via `@Mapper(uses = {...})`, and those are only reachable from
+  MapStruct's own auto-generated mapping code — never from a hand-written `default` method,
+  since that method is compiled against the abstract class alone, before the `Impl` subclass
+  exists). Since every aggregate mapper here is already 100% hand-written (reconstituting a
+  private-constructor aggregate, flattening/nesting fields that don't line up 1:1 with the
+  entity), there's no MapStruct-generated mapping code for `uses` to help with anyway — so
+  skip `@Mapper` for the aggregate's own mapper and write it exactly like any other Spring
+  bean in this codebase: `@Component` + Lombok `@RequiredArgsConstructor`, with the
+  sub-mappers as constructor-injected fields it calls directly. Sub-object mappers
+  (VO/Entity/Embeddable mappers) keep `@Mapper(componentModel = "spring")` as plain
+  interfaces, since they have no dependencies of their own to inject.
+
+  ```java
+  @Mapper(componentModel = "spring")
+  public interface PlateColorIdMapper {
+      default PlateColorId toDomain(Long raw) {
+          return raw == null ? null : new PlateColorId(raw);
+      }
+
+      default Long toRaw(PlateColorId id) {
+          return id == null ? null : id.value();
+      }
+  }
+
+  @Component
+  @RequiredArgsConstructor
+  public class ChallengeMapper {
+
+      private final PlateColorIdMapper plateColorIdMapper;
+
+      public Challenge toDomain(ChallengeJpaEntity entity) {
+          // ...hand-written reconstitute logic, calling
+          // plateColorIdMapper.toDomain(entity.getCookAColorId()) instead of a
+          // private static helper duplicated per aggregate mapper
+      }
+
+      public ChallengeJpaEntity toEntity(Challenge challenge) {
+          // ...
+      }
+  }
+  ```
 - This also covers domain → generated-OpenAPI-model mappers in the **application** layer
-  (e.g. `auth.application.service.AccountModelMapper`, domain `Account` → the generated
+  (e.g. `auth.application.mapper.AccountModelMapper`, domain `Account` → the generated
   `AccountRestDto` model) — same `@Mapper(componentModel = "spring")` interface,
   hand-written `default` methods where a typed VO or enum needs explicit conversion, same
   reasoning as above. Not just an `infrastructure/persistence` rule despite the section
   title. Where the generated model needs cross-aggregate computed fields MapStruct can't
-  derive from the domain aggregate alone (e.g. `cookoff.application.service.ChallengeMapping`),
+  derive from the domain aggregate alone (e.g. `cookoff.application.mapper.ChallengeModelMapper`),
   fall back to plain static helper methods instead of a `@Mapper` interface — see that
   class's javadoc.
 
@@ -82,6 +134,15 @@ public interface CustomerMapper {
     CustomerJpaEntity toEntity(Customer customer);
 }
 ```
+
+### Data Type Placement
+- Records/DTOs never live in `service` or `port`. App-layer types (commands, query results,
+  port payloads) go in `application/dto`; domain types (aggregates, VOs, enums, domain
+  records) go in `domain/model`; JPA entities and `@Embeddable`s go in
+  `infrastructure/<adapter>/entity`.
+- The single exemption: a use-case-private nested record (e.g. `SubmitScoreService.Result`)
+  may stay nested inside its service, because it is part of that use case's signature and has
+  no independent identity outside it.
 
 ### Records vs Classes
 - Use **records** for DTOs and value objects (immutable, data-only)
@@ -285,24 +346,28 @@ public class CustomerService {
 - Test files: `ClassNameTest.java` or `ClassNameTests.java`
 
 ### Package Structure
+
+See [`docs/backend/02-ddd-modulith.md#module-structure-ddd-bounded-context--spring-modulith-module`](02-ddd-modulith.md#module-structure-ddd-bounded-context--spring-modulith-module)
+for the authoritative module layout. Summary:
+
 ```
-com.cookingchallenge.customer/
+<module>/
 ├── domain/
-│   ├── model/
-│   ├── repository/
-│   ├── service/
+│   ├── model/                     aggregates, VOs, enums, domain records
+│   ├── service/                   domain services only
 │   └── event/
 ├── application/
-│   ├── service/
-│   ├── dto/
-│   └── port/
-├── infrastructure/
-│   ├── persistence/
-│   ├── notification/
-│   └── config/
-└── interface/
-    ├── rest/
-    └── event/
+│   ├── dto/                       commands, query results, port payloads
+│   ├── mapper/                    domain → generated-OpenAPI-model mappers
+│   ├── port/                      interfaces only
+│   ├── service/                   use cases only
+│   ├── event/
+│   └── exception/
+├── infrastructure/<adapter>/      adapters: persistence, image, accesslink, registrationinvite
+│   ├── entity/                    *JpaEntity, @Embeddable
+│   ├── mapper/                    domain ↔ entity mappers
+│   └── <X>RepositoryImpl.java, <X>JpaRepository.java
+└── interfaces/rest/               controllers (request/response DTOs are generated → shared.web.openapi.model)
 ```
 
 ## Performance Considerations

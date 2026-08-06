@@ -1,6 +1,6 @@
 package at.fraihs.cookoff.shared.security;
 
-import at.fraihs.cookoff.shared.web.ApiErrorResponse;
+import at.fraihs.cookoff.shared.web.dto.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

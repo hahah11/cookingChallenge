@@ -2,6 +2,7 @@ package at.fraihs.cookoff.shared.application.service;
 
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
 import at.fraihs.cookoff.cookoff.PlateColors;
+import at.fraihs.cookoff.shared.application.mapper.ConfigModelMapper;
 import at.fraihs.cookoff.shared.web.openapi.model.ConfigRestDto;
 
 import java.util.Map;

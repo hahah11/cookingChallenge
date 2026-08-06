@@ -5,7 +5,7 @@ import at.fraihs.cookoff.cookoff.application.exception.RivalryNotFoundException;
 import at.fraihs.cookoff.cookoff.application.service.RivalriesListService;
 import at.fraihs.cookoff.cookoff.application.service.RivalryDetailService;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
-import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.model.PaginationRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.RivalryDetailRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.RivalryRestDto;

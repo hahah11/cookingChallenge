@@ -1,9 +1,13 @@
 package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.auth.infrastructure.persistence.AccountJpaEntity;
+import at.fraihs.cookoff.auth.infrastructure.persistence.entity.AccountJpaEntity;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalryId;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.CookRivalryJpaEntity;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.AccountIdMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.CookRivalryIdMapperImpl;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.mapper.CookRivalryMapper;
 import jakarta.persistence.PersistenceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +39,8 @@ class CookRivalryRepositoryImplTest {
 
     @BeforeEach
     void setUp() {
-        repository = new CookRivalryRepositoryImpl(jpaRepository, new CookRivalryMapperImpl());
+        repository = new CookRivalryRepositoryImpl(jpaRepository,
+                new CookRivalryMapper(new CookRivalryIdMapperImpl(), new AccountIdMapperImpl()));
     }
 
     @Test

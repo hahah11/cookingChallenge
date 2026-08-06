@@ -3,6 +3,7 @@ package at.fraihs.cookoff.auth.infrastructure.persistence;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
+import at.fraihs.cookoff.auth.infrastructure.persistence.mapper.AccountMapperImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

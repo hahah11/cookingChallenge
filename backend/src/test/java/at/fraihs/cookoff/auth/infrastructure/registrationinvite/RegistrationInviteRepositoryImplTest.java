@@ -1,10 +1,10 @@
 package at.fraihs.cookoff.auth.infrastructure.registrationinvite;
 
-import at.fraihs.cookoff.auth.application.port.RegistrationInvite;
+import at.fraihs.cookoff.auth.application.dto.RegistrationInvite;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
-import at.fraihs.cookoff.auth.infrastructure.persistence.AccountJpaEntity;
+import at.fraihs.cookoff.auth.infrastructure.persistence.entity.AccountJpaEntity;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
-import at.fraihs.cookoff.cookoff.infrastructure.persistence.ChallengeJpaEntity;
+import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ChallengeJpaEntity;
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

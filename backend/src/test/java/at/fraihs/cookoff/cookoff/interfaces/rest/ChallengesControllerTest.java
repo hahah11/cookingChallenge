@@ -1,9 +1,9 @@
 package at.fraihs.cookoff.cookoff.interfaces.rest;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.cookoff.application.dto.StoredImage;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotRevealedException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
-import at.fraihs.cookoff.cookoff.application.port.StoredImage;
 import at.fraihs.cookoff.cookoff.application.service.ChangeChallengeImageService;
 import at.fraihs.cookoff.cookoff.application.service.CreateChallengeService;
 import at.fraihs.cookoff.cookoff.application.service.CreateRegistrationInviteService;
@@ -20,7 +20,7 @@ import at.fraihs.cookoff.cookoff.application.service.SubmitScoreService;
 import at.fraihs.cookoff.cookoff.application.service.UnrevealChallengeService;
 import at.fraihs.cookoff.shared.config.JacksonConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
-import at.fraihs.cookoff.shared.web.PagedResult;
+import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.model.CategoryRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResultRestDto;

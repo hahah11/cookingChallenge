@@ -5,6 +5,7 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotRevealedException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
+import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
@@ -12,7 +13,7 @@ import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
-import at.fraihs.cookoff.cookoff.domain.service.ChallengeResult;
+import at.fraihs.cookoff.cookoff.domain.model.ChallengeResult;
 import at.fraihs.cookoff.cookoff.domain.service.ResultCalculator;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResultRestDto;
 
@@ -54,6 +55,6 @@ public class GetChallengeResultsService {
 
         List<ScoreSubmission> submissions = scoreSubmissionRepository.findByChallengeId(challengeId);
         ChallengeResult result = resultCalculator.calculate(challenge, submissions);
-        return ChallengeMapping.toGeneratedResult(challenge, result, cookRivalryRepository, accountLookup);
+        return ChallengeModelMapper.toGeneratedResult(challenge, result, cookRivalryRepository, accountLookup);
     }
 }
