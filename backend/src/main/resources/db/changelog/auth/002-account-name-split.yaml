@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 008-01-add-account-name-columns
+      id: 002-01-add-account-name-columns
       author: fraihs
       comment: >-
         Split accounts.name into first_name/last_name (frontend-prd.md's Accounts table and
@@ -17,7 +17,7 @@ databaseChangeLog:
                   name: last_name
                   type: VARCHAR(255)
   - changeSet:
-      id: 008-02-backfill-account-name-columns
+      id: 002-02-backfill-account-name-columns
       author: fraihs
       changes:
         - sql:
@@ -33,7 +33,7 @@ databaseChangeLog:
         - sql:
             sql: UPDATE accounts SET first_name = NULL, last_name = NULL
   - changeSet:
-      id: 008-03-account-name-columns-not-null
+      id: 002-03-account-name-columns-not-null
       author: fraihs
       changes:
         - addNotNullConstraint:
@@ -45,7 +45,7 @@ databaseChangeLog:
             columnName: last_name
             columnDataType: VARCHAR(255)
   - changeSet:
-      id: 008-04-drop-account-name-column
+      id: 002-04-drop-account-name-column
       author: fraihs
       changes:
         - dropColumn:

@@ -1,17 +1,19 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/changes/001-initial-schema.yaml
+      file: db/changelog/auth/001-initial-schema.yaml
   - include:
-      file: db/changelog/changes/002-score-points-range.yaml
+      file: db/changelog/auth/002-account-name-split.yaml
   - include:
-      file: db/changelog/changes/003-create-plate-colors.yaml
+      file: db/changelog/cookoff/001-initial-schema.yaml
   - include:
-      file: db/changelog/changes/004-challenge-cook-colors.yaml
+      file: db/changelog/cookoff/002-score-points-range.yaml
   - include:
-      file: db/changelog/changes/005-challenge-image.yaml
+      file: db/changelog/cookoff/003-create-plate-colors.yaml
   - include:
-      file: db/changelog/changes/006-challenge-unreveal.yaml
+      file: db/changelog/cookoff/004-challenge-cook-colors.yaml
   - include:
-      file: db/changelog/changes/007-registration-invites.yaml
+      file: db/changelog/cookoff/005-challenge-image.yaml
   - include:
-      file: db/changelog/changes/008-account-name-split.yaml
+      file: db/changelog/cookoff/006-challenge-unreveal.yaml
+  - include:
+      file: db/changelog/cookoff/007-registration-invites.yaml

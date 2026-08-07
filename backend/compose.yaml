@@ -1,9 +1,9 @@
 services:
   postgres:
-    image: 'postgres:17-alpine'
+    image: postgres:17-alpine
     environment:
-      - 'POSTGRES_DB=cookoff'
-      - 'POSTGRES_PASSWORD=cookoff'
-      - 'POSTGRES_USER=cookoff'
+      POSTGRES_DB: cookoff
+      POSTGRES_PASSWORD: cookoff
+      POSTGRES_USER: cookoff
     ports:
-      - '5432'
+      - '5432:5432'

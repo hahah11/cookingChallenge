@@ -1,120 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 001-01-create-accounts
-      author: fraihs
-      changes:
-        - createTable:
-            tableName: accounts
-            columns:
-              - column:
-                  name: id
-                  type: BIGINT
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: email
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
-                    unique: true
-              - column:
-                  name: name
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: password_hash
-                  type: VARCHAR(255)
-              - column:
-                  name: created_at
-                  type: TIMESTAMP
-                  defaultValueComputed: CURRENT_TIMESTAMP
-                  constraints:
-                    nullable: false
-
-  - changeSet:
-      id: 001-02-create-account-roles
-      author: fraihs
-      changes:
-        - createTable:
-            tableName: account_roles
-            columns:
-              - column:
-                  name: account_id
-                  type: BIGINT
-                  constraints:
-                    nullable: false
-              - column:
-                  name: role
-                  type: VARCHAR(32)
-                  constraints:
-                    nullable: false
-        - addPrimaryKey:
-            tableName: account_roles
-            columnNames: account_id, role
-            constraintName: pk_account_roles
-        - addForeignKeyConstraint:
-            baseTableName: account_roles
-            baseColumnNames: account_id
-            referencedTableName: accounts
-            referencedColumnNames: id
-            constraintName: fk_account_roles_account
-            onDelete: CASCADE
-
-  - changeSet:
-      id: 001-03-create-access-links
-      author: fraihs
-      changes:
-        - createTable:
-            tableName: access_links
-            columns:
-              - column:
-                  name: id
-                  type: BIGINT
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: account_id
-                  type: BIGINT
-                  constraints:
-                    nullable: false
-              - column:
-                  name: challenge_id
-                  type: BIGINT
-                  constraints:
-                    nullable: false
-              - column:
-                  name: token
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
-                    unique: true
-              - column:
-                  name: expires_at
-                  type: TIMESTAMP
-                  constraints:
-                    nullable: false
-              - column:
-                  name: used_at
-                  type: TIMESTAMP
-              - column:
-                  name: created_at
-                  type: TIMESTAMP
-                  defaultValueComputed: CURRENT_TIMESTAMP
-                  constraints:
-                    nullable: false
-        - addForeignKeyConstraint:
-            baseTableName: access_links
-            baseColumnNames: account_id
-            referencedTableName: accounts
-            referencedColumnNames: id
-            constraintName: fk_access_links_account
-            onDelete: CASCADE
-
-  - changeSet:
-      id: 001-04-create-challenges
+      id: 001-01-create-challenges
       author: fraihs
       changes:
         - createTable:
@@ -197,7 +83,7 @@ databaseChangeLog:
             onDelete: CASCADE
 
   - changeSet:
-      id: 001-05-create-challenge-guests
+      id: 001-02-create-challenge-guests
       author: fraihs
       changes:
         - createTable:
@@ -239,7 +125,7 @@ databaseChangeLog:
             constraintName: uq_challenge_guests_challenge_account
 
   - changeSet:
-      id: 001-06-create-score-submissions
+      id: 001-03-create-score-submissions
       author: fraihs
       changes:
         - createTable:
@@ -285,7 +171,7 @@ databaseChangeLog:
             constraintName: uq_score_submissions_challenge_account
 
   - changeSet:
-      id: 001-07-create-scores
+      id: 001-04-create-scores
       author: fraihs
       changes:
         - createTable:
@@ -339,7 +225,7 @@ databaseChangeLog:
               ADD CONSTRAINT chk_scores_points_range CHECK (points BETWEEN 0 AND 5)
 
   - changeSet:
-      id: 001-08-create-cook-rivalries
+      id: 001-05-create-cook-rivalries
       author: fraihs
       changes:
         - createTable:

@@ -31,7 +31,6 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.modulith:spring-modulith-starter-core")
-	implementation("org.springframework.modulith:spring-modulith-starter-jpa")
 	implementation("com.github.f4b6a3:tsid-creator:5.2.6")
 	implementation("org.mapstruct:mapstruct:1.6.3")
 	implementation("org.jmolecules:jmolecules-ddd")
