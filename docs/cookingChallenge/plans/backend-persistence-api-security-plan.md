@@ -616,7 +616,7 @@ constraint rejects `0`.
 - Liquibase: `plate_colors(id BIGINT PK, name VARCHAR(255), hex_code VARCHAR(7), sort_order
   INT, active BOOLEAN)`, plus a data-seed changeset inserting exactly 2 default rows
   (`sort_order` 1 and 2, `active = true`). **Placeholder hex values** — cross-check the
-  actual "Modernist" design-system tokens (`design-reference.md`) for the real Red/Yellow
+  current Material 3 design-system tokens (`design-reference.md`) for the real Red/Yellow
   hex before this ships; don't invent brand colors here.
 - `cookoff.infrastructure.persistence.PlateColorJpaEntity` / `PlateColorMapper` /
   `PlateColorRepositoryImpl` — same hand-written-mapper-via-`reconstitute` pattern as every

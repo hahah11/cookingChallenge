@@ -31,6 +31,17 @@ embeds the opaque, expiring `RegistrationInvite` token. Encoding the raw challen
 instead would let anyone self-register into any challenge by guessing/editing the URL,
 defeating the whole point of the token gate.
 
+**Visual system superseded (2026-08-07).** This PRD's screen structure, copy, and
+interaction rules below are still accurate — the prototype referenced above remains their
+source. But its **visual system is no longer current**: the flat, zero-radius "Modernist"
+design has been replaced by an Angular Material 3 design system, ported in a new Claude
+Design project (`eddd583d…`, `CookingChallenge.dc.html`). See
+[`design-reference.md`](design-reference.md) for both projects and
+[`plans/frontend-implementation-plan.md`](plans/frontend-implementation-plan.md) Phase 1 for
+how the M3 tokens map onto `@angular/material`. Anywhere this PRD describes Modernist-specific
+styling (sharp corners, `.btn`/`.card`/`.tag` classes, Archivo type), treat that as
+superseded by the M3 spec, not the screen/flow/copy content around it.
+
 ## 1. Context
 
 A cook-off app: two cooks blind-prepare the same dish under a plate color so tasters don't
