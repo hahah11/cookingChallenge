@@ -1,7 +1,9 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.port.ImageStoragePort;
@@ -57,6 +59,8 @@ class ChangeChallengeImageServiceTest {
     void should_storeAndSetImage_when_challengeHasNoExistingImage() {
         Challenge challenge = openChallenge();
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
+        when(accountLookup.getById(any())).thenReturn(
+                new AccountSummary(AccountId.generate(), new Email("cook@example.com"), "Cook", "Cook"));
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(imageStoragePort.store(imageBytes, "image/png")).thenReturn("new-ref");
 
@@ -72,6 +76,8 @@ class ChangeChallengeImageServiceTest {
         Challenge challenge = openChallenge();
         challenge.changeImage("old-ref");
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
+        when(accountLookup.getById(any())).thenReturn(
+                new AccountSummary(AccountId.generate(), new Email("cook@example.com"), "Cook", "Cook"));
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(imageStoragePort.store(imageBytes, "image/png")).thenReturn("new-ref");
 

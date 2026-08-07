@@ -978,15 +978,21 @@ components:
 
     Account:
       type: object
-      required: [id, email, name, roles]
+      required: [id, email, firstName, lastName, name, roles]
       properties:
         id:
           $ref: '#/components/schemas/Tsid'
         email:
           type: string
           format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
         name:
           type: string
+          readOnly: true
+          description: Derived as "{firstName} {lastName}" — not settable, see CreateAccountRequest/UpdateAccountRequest.
         roles:
           type: array
           items:
@@ -994,12 +1000,14 @@ components:
 
     CreateAccountRequest:
       type: object
-      required: [email, name]
+      required: [email, firstName, lastName]
       properties:
         email:
           type: string
           format: email
-        name:
+        firstName:
+          type: string
+        lastName:
           type: string
         roles:
           type: array
@@ -1014,7 +1022,9 @@ components:
     UpdateAccountRequest:
       type: object
       properties:
-        name:
+        firstName:
+          type: string
+        lastName:
           type: string
         email:
           type: string
@@ -1060,10 +1070,13 @@ components:
 
     CookAssignment:
       type: object
-      required: [accountId, label, colorId]
+      required: [accountId, name, label, colorId]
       properties:
         accountId:
           $ref: '#/components/schemas/Tsid'
+        name:
+          type: string
+          description: The cook's display name, resolved from their account.
         label:
           $ref: '#/components/schemas/DishLabel'
         colorId:
@@ -1375,7 +1388,7 @@ components:
 
     ParticipantCookAssignment:
       type: object
-      required: [label, accountId, colorId]
+      required: [label, accountId, name, colorId]
       properties:
         label:
           $ref: '#/components/schemas/DishLabel'
@@ -1383,6 +1396,10 @@ components:
           type: string
           nullable: true
           description: Aggregate id, Crockford Base32-encoded TSID. Null until the challenge is REVEALED, so guests can't infer blind assignments early.
+        name:
+          type: string
+          nullable: true
+          description: The cook's display name. Null until the challenge is REVEALED, same rule as accountId, so blind scoring stays blind.
         colorId:
           type: string
           nullable: true
@@ -1522,8 +1539,11 @@ components:
 
     GuestHome:
       type: object
-      required: [open, past]
+      required: [displayName, open, past]
       properties:
+        displayName:
+          type: string
+          description: The current account's first name, for greeting text ("Hi, Felix"). Guests get 403 on /accounts, so this is their only name source.
         open:
           type: array
           items:

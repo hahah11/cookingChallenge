@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Edits name/email/roles on an existing account. {@code roles} is documented as "replaces
+ * Edits firstName/lastName/email/roles on an existing account. {@code roles} is documented as "replaces
  * the account's full role set" but is optional in the request schema and Jackson can't tell
  * an omitted field from an explicitly empty array here (no {@code JsonNullable} wrapper) -
  * an empty list is therefore treated as "roles not being changed", not "clear all roles";
@@ -37,8 +37,11 @@ public class UpdateAccountService {
         at.fraihs.cookoff.auth.domain.model.Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException(id.toString()));
 
-        if (request.getName() != null) {
-            account.rename(request.getName());
+        if (request.getFirstName() != null) {
+            account.renameFirst(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            account.renameLast(request.getLastName());
         }
         if (request.getEmail() != null) {
             changeEmail(account, request.getEmail());

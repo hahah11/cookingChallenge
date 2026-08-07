@@ -39,7 +39,7 @@ public class RegistrationInvitesService implements RegistrationInvites {
             throw new AccountAlreadyExistsException(email);
         }
 
-        Account account = Account.create(accountEmail, (firstName + " " + lastName).trim());
+        Account account = Account.create(accountEmail, firstName, lastName);
         accountRepository.save(account);
         log.info("Account self-registered via QR invite: {} for challenge {}", account.getId(), challengeId);
         return new RegistrationResult(account.getId(), challengeId);

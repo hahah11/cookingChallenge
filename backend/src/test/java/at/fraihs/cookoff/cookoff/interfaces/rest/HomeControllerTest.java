@@ -59,7 +59,7 @@ class HomeControllerTest {
                 "chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatusRestDto.OPEN,
                 List.of(DishLabelRestDto.A, DishLabelRestDto.B), List.of(CategoryRestDto.MUNDGEFUEHL), List.of(),
                 false, false, null, null, true, false);
-        when(homeService.execute(accountId)).thenReturn(new GuestHomeRestDto(List.of(view), List.of()));
+        when(homeService.execute(accountId)).thenReturn(new GuestHomeRestDto("Felix", List.of(view), List.of()));
         Jwt jwt = Jwt.withTokenValue("test-token")
                 .header("alg", "none")
                 .claim("sub", accountId.toString())

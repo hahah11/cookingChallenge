@@ -33,7 +33,8 @@ public class CreateAccountService {
         }
         SystemRole[] initialRoles = toDomainRoles(request);
         at.fraihs.cookoff.auth.domain.model.Account account =
-                at.fraihs.cookoff.auth.domain.model.Account.create(email, request.getName(), initialRoles);
+                at.fraihs.cookoff.auth.domain.model.Account.create(
+                        email, request.getFirstName(), request.getLastName(), initialRoles);
         applyPassword(request.getPassword(), account);
         accountRepository.save(account);
         log.info("Account created: {}", account.getId());

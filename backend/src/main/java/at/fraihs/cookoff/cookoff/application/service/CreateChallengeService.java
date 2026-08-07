@@ -48,6 +48,6 @@ public class CreateChallengeService {
                 organizerAccountId);
         challengeRepository.save(challenge);
         log.info("Challenge created: {}, organizer: {}", challenge.getId(), organizerAccountId);
-        return ChallengeModelMapper.toGenerated(challenge, 0);
+        return ChallengeModelMapper.toGenerated(challenge, 0, accountLookup);
     }
 }

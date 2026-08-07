@@ -1,5 +1,6 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
@@ -19,13 +20,15 @@ public class ListChallengesService {
 
     private final ChallengeRepository challengeRepository;
     private final ScoreSubmissionRepository scoreSubmissionRepository;
+    private final AccountLookup accountLookup;
 
     @Transactional(readOnly = true)
     public PagedResult<ChallengeRestDto> execute(int page, int size) {
         Page<ChallengeRestDto> mapped = challengeRepository
                 .findAll(PageRequest.of(page, size))
                 .map(challenge -> ChallengeModelMapper.toGenerated(
-                        challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository)));
+                        challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository),
+                        accountLookup));
         return PagedResult.of(mapped);
     }
 }

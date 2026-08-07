@@ -1,6 +1,9 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
@@ -26,6 +29,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GetChallengeForParticipantServiceTest {
+
+    @Mock
+    private AccountLookup accountLookup;
 
     @Mock
     private ChallengeRepository challengeRepository;
@@ -79,6 +85,8 @@ class GetChallengeForParticipantServiceTest {
     void should_includeCookMapping_when_revealed() {
         Challenge challenge = challenge();
         challenge.reveal(cookA);
+        when(accountLookup.getById(any())).thenReturn(
+                new AccountSummary(AccountId.generate(), new Email("cook@example.com"), "Cook", "Cook"));
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), guest))
                 .thenReturn(Optional.empty());

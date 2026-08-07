@@ -99,7 +99,7 @@ class CookRivalryRepositoryImplTest {
     private long persistAccount() {
         AccountId id = AccountId.generate();
         entityManager.persistAndFlush(new AccountJpaEntity(
-                id.value(), id + "@example.com", "Account " + id, null, Set.of()));
+                id.value(), id + "@example.com", "Account", "" + id, null, Set.of()));
         return id.value();
     }
 }

@@ -37,14 +37,14 @@ class GetAccountDetailServiceTest {
 
     @Test
     void should_returnAccount_when_itExists() {
-        Account account = Account.create(new Email("host@example.com"), "Host", SystemRole.ORGANIZER);
+        Account account = Account.create(new Email("host@example.com"), "Host", "Person", SystemRole.ORGANIZER);
         when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
 
         AccountRestDto result = service.execute(account.getId());
 
         assertEquals(account.getId().toString(), result.getId());
         assertEquals("host@example.com", result.getEmail());
-        assertEquals("Host", result.getName());
+        assertEquals("Host Person", result.getName());
         assertTrue(result.getRoles().contains(SystemRoleRestDto.ORGANIZER));
     }
 

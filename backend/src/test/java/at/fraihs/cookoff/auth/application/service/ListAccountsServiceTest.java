@@ -36,7 +36,7 @@ class ListAccountsServiceTest {
     @Test
     void should_returnMappedAccounts_when_accountsExist() {
         at.fraihs.cookoff.auth.domain.model.Account account =
-                at.fraihs.cookoff.auth.domain.model.Account.create(new Email("host@example.com"), "Host", SystemRole.ORGANIZER);
+                at.fraihs.cookoff.auth.domain.model.Account.create(new Email("host@example.com"), "Host", "Admin", SystemRole.ORGANIZER);
         PageRequest pageRequest = PageRequest.of(0, 20);
         when(accountRepository.findAll(pageRequest)).thenReturn(new PageImpl<>(List.of(account), pageRequest, 1));
 

@@ -41,11 +41,11 @@ class UpdateAccountServiceTest {
 
     @Test
     void should_renameAccount_when_nameIsGiven() {
-        Account account = Account.create(new Email("host@example.com"), "Host", SystemRole.ORGANIZER);
+        Account account = Account.create(new Email("host@example.com"), "Host", "Original", SystemRole.ORGANIZER);
         when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
 
         AccountRestDto result =
-                service.execute(account.getId(), new UpdateAccountRequestRestDto().name("New Name"));
+                service.execute(account.getId(), new UpdateAccountRequestRestDto().firstName("New").lastName("Name"));
 
         assertEquals("New Name", result.getName());
         assertEquals("host@example.com", result.getEmail());
@@ -54,7 +54,7 @@ class UpdateAccountServiceTest {
 
     @Test
     void should_changeEmail_when_newEmailIsFree() {
-        Account account = Account.create(new Email("host@example.com"), "Host", SystemRole.ORGANIZER);
+        Account account = Account.create(new Email("host@example.com"), "Host", "Original", SystemRole.ORGANIZER);
         when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
         when(accountRepository.existsByEmail(new Email("new@example.com"))).thenReturn(false);
 
@@ -66,7 +66,7 @@ class UpdateAccountServiceTest {
 
     @Test
     void should_throw_when_newEmailIsAlreadyTaken() {
-        Account account = Account.create(new Email("host@example.com"), "Host", SystemRole.ORGANIZER);
+        Account account = Account.create(new Email("host@example.com"), "Host", "Original", SystemRole.ORGANIZER);
         when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
         when(accountRepository.existsByEmail(new Email("taken@example.com"))).thenReturn(true);
 
@@ -76,7 +76,7 @@ class UpdateAccountServiceTest {
 
     @Test
     void should_notCheckUniqueness_when_emailIsUnchanged() {
-        Account account = Account.create(new Email("host@example.com"), "Host", SystemRole.ORGANIZER);
+        Account account = Account.create(new Email("host@example.com"), "Host", "Original", SystemRole.ORGANIZER);
         when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
 
         AccountRestDto result =
@@ -87,7 +87,7 @@ class UpdateAccountServiceTest {
 
     @Test
     void should_replaceRoles_when_rolesAreGiven() {
-        Account account = Account.create(new Email("host@example.com"), "Host", SystemRole.USER);
+        Account account = Account.create(new Email("host@example.com"), "Host", "Original", SystemRole.USER);
         when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
 
         AccountRestDto result = service.execute(account.getId(),
@@ -104,7 +104,7 @@ class UpdateAccountServiceTest {
 
     @Test
     void should_leaveRolesUnchanged_when_rolesListIsEmpty() {
-        Account account = Account.create(new Email("host@example.com"), "Host", SystemRole.USER);
+        Account account = Account.create(new Email("host@example.com"), "Host", "Original", SystemRole.USER);
         when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
 
         service.execute(account.getId(), new UpdateAccountRequestRestDto().roles(List.of()));
@@ -119,6 +119,6 @@ class UpdateAccountServiceTest {
         when(accountRepository.findById(missingId)).thenReturn(Optional.empty());
 
         assertThrows(AccountNotFoundException.class, () -> service.execute(
-                missingId, new UpdateAccountRequestRestDto().name("New Name")));
+                missingId, new UpdateAccountRequestRestDto().firstName("New").lastName("Name")));
     }
 }

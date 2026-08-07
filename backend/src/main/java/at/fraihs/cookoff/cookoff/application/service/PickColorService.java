@@ -1,5 +1,6 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
@@ -29,6 +30,7 @@ public class PickColorService {
     private final ChallengeRepository challengeRepository;
     private final PlateColorRepository plateColorRepository;
     private final ScoreSubmissionRepository scoreSubmissionRepository;
+    private final AccountLookup accountLookup;
 
     @Transactional
     public ParticipantChallengeRestDto execute(
@@ -67,6 +69,6 @@ public class PickColorService {
         ScoreSubmission mySubmission = scoreSubmissionRepository
                 .findByChallengeIdAndGuestAccountId(challengeId, cookAccountId)
                 .orElse(null);
-        return ChallengeModelMapper.toParticipantChallenge(challenge, mySubmission, cookAccountId);
+        return ChallengeModelMapper.toParticipantChallenge(challenge, mySubmission, cookAccountId, accountLookup);
     }
 }

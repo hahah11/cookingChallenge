@@ -45,6 +45,7 @@ public class UnrevealChallengeService {
         eventPublisher.publishEvent(event);
         log.info("Challenge unrevealed: {}", challengeId);
         return ChallengeModelMapper.toGenerated(
-                challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository));
+                challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository),
+                accountLookup);
     }
 }

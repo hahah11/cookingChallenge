@@ -12,14 +12,17 @@ public class Account {
     @Identity
     private final AccountId id;
     private Email email;
-    private String name;
+    private String firstName;
+    private String lastName;
     private String passwordHash;
     private final Set<SystemRole> roles;
 
-    private Account(AccountId id, Email email, String name, String passwordHash, Set<SystemRole> roles) {
+    private Account(AccountId id, Email email, String firstName, String lastName, String passwordHash,
+                     Set<SystemRole> roles) {
         this.id = id;
         this.email = email;
-        this.name = name;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.passwordHash = passwordHash;
         this.roles = roles.isEmpty() ? EnumSet.noneOf(SystemRole.class) : EnumSet.copyOf(roles);
     }
@@ -29,19 +32,22 @@ public class Account {
      * self-registration via a QR registration invite (auth.RegistrationInvites), which also
      * calls this factory with no explicit roles, defaulting to USER.
      */
-    public static Account create(Email email, String name, SystemRole... initialRoles) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Account name must not be blank");
+    public static Account create(Email email, String firstName, String lastName, SystemRole... initialRoles) {
+        if (firstName == null || firstName.isBlank()) {
+            throw new IllegalArgumentException("Account first name must not be blank");
+        }
+        if (lastName == null || lastName.isBlank()) {
+            throw new IllegalArgumentException("Account last name must not be blank");
         }
         Set<SystemRole> roles = initialRoles.length == 0
                 ? EnumSet.of(SystemRole.USER)
                 : EnumSet.copyOf(Set.of(initialRoles));
-        return new Account(AccountId.generate(), email, name, null, roles);
+        return new Account(AccountId.generate(), email, firstName, lastName, null, roles);
     }
 
-    public static Account reconstitute(AccountId id, Email email, String name, String passwordHash,
-                                        Set<SystemRole> roles) {
-        return new Account(id, email, name, passwordHash, roles);
+    public static Account reconstitute(AccountId id, Email email, String firstName, String lastName,
+                                        String passwordHash, Set<SystemRole> roles) {
+        return new Account(id, email, firstName, lastName, passwordHash, roles);
     }
 
     public void grantRole(SystemRole role) {
@@ -64,11 +70,18 @@ public class Account {
         return hasRole(SystemRole.ORGANIZER) || hasRole(SystemRole.ADMIN);
     }
 
-    public void rename(String newName) {
-        if (newName == null || newName.isBlank()) {
-            throw new IllegalArgumentException("Account name must not be blank");
+    public void renameFirst(String newFirstName) {
+        if (newFirstName == null || newFirstName.isBlank()) {
+            throw new IllegalArgumentException("Account first name must not be blank");
         }
-        this.name = newName;
+        this.firstName = newFirstName;
+    }
+
+    public void renameLast(String newLastName) {
+        if (newLastName == null || newLastName.isBlank()) {
+            throw new IllegalArgumentException("Account last name must not be blank");
+        }
+        this.lastName = newLastName;
     }
 
     /** Email uniqueness is a repository-level concern (see AccountRepository#existsByEmail), not checked here. */
@@ -91,8 +104,16 @@ public class Account {
         return email;
     }
 
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
     public String getName() {
-        return name;
+        return firstName + " " + lastName;
     }
 
     public String getPasswordHash() {

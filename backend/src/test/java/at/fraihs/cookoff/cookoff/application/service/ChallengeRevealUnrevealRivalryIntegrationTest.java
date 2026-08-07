@@ -106,8 +106,8 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
     @Test
     void should_endUpWithCorrectRivalryCounters_when_revealingUnrevealingAndReRevealingWithADifferentResult() {
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
-        when(accountLookup.getById(cookAId)).thenReturn(new AccountSummary(cookAId, new Email("a@x.com"), "Cook A"));
-        when(accountLookup.getById(cookBId)).thenReturn(new AccountSummary(cookBId, new Email("b@x.com"), "Cook B"));
+        when(accountLookup.getById(cookAId)).thenReturn(new AccountSummary(cookAId, new Email("a@x.com"), "Cook A", "Cook"));
+        when(accountLookup.getById(cookBId)).thenReturn(new AccountSummary(cookBId, new Email("b@x.com"), "Cook B", "Cook"));
         Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(guestId), organizerId);
         challengeRepository.save(challenge);

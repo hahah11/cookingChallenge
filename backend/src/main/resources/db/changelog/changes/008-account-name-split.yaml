@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-01-add-account-name-columns
+      author: fraihs
+      comment: >-
+        Split accounts.name into first_name/last_name (frontend-prd.md's Accounts table and
+        guest greeting both need the parts separately). Added nullable first, backfilled from
+        the existing name, then tightened to NOT NULL, then the old column is dropped.
+      changes:
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+  - changeSet:
+      id: 008-02-backfill-account-name-columns
+      author: fraihs
+      changes:
+        - sql:
+            sql: >-
+              UPDATE accounts SET
+                first_name = CASE WHEN POSITION(' ' IN name) > 0
+                  THEN SUBSTRING(name FROM 1 FOR POSITION(' ' IN name) - 1)
+                  ELSE name END,
+                last_name = CASE WHEN POSITION(' ' IN name) > 0
+                  THEN SUBSTRING(name FROM POSITION(' ' IN name) + 1)
+                  ELSE '' END
+      rollback:
+        - sql:
+            sql: UPDATE accounts SET first_name = NULL, last_name = NULL
+  - changeSet:
+      id: 008-03-account-name-columns-not-null
+      author: fraihs
+      changes:
+        - addNotNullConstraint:
+            tableName: accounts
+            columnName: first_name
+            columnDataType: VARCHAR(255)
+        - addNotNullConstraint:
+            tableName: accounts
+            columnName: last_name
+            columnDataType: VARCHAR(255)
+  - changeSet:
+      id: 008-04-drop-account-name-column
+      author: fraihs
+      changes:
+        - dropColumn:
+            tableName: accounts
+            columnName: name

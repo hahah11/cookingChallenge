@@ -50,14 +50,15 @@ public final class ChallengeModelMapper {
     private ChallengeModelMapper() {
     }
 
-    public static ChallengeRestDto toGenerated(Challenge challenge, int submittedGuestCount) {
+    public static ChallengeRestDto toGenerated(
+            Challenge challenge, int submittedGuestCount, AccountLookup accountLookup) {
         return new ChallengeRestDto(
                 challenge.getId().toString(),
                 challenge.getDate(),
                 challenge.getTitle(),
                 challenge.getDishName().toString(),
                 ChallengeStatusRestDto.valueOf(challenge.getStatus().name()),
-                cookAssignments(challenge),
+                cookAssignments(challenge, accountLookup),
                 challenge.getGuestAccountIds().stream().map(AccountId::toString).toList(),
                 challenge.getCreatedBy().toString(),
                 submittedGuestCount,
@@ -74,10 +75,11 @@ public final class ChallengeModelMapper {
                 .count();
     }
 
-    public static List<CookAssignmentRestDto> cookAssignments(Challenge challenge) {
+    public static List<CookAssignmentRestDto> cookAssignments(Challenge challenge, AccountLookup accountLookup) {
         return challenge.getCookAssignments().stream()
                 .map(assignment -> new CookAssignmentRestDto(
                         assignment.accountId().toString(),
+                        accountLookup.getById(assignment.accountId()).name(),
                         DishLabelRestDto.valueOf(assignment.label().name()),
                         assignment.colorId() == null ? null : assignment.colorId().toString()))
                 .toList();
@@ -113,13 +115,15 @@ public final class ChallengeModelMapper {
      * openapi-first-api-plan.md's ParticipantChallenge restructuring note.
      */
     public static ParticipantChallengeRestDto toParticipantChallenge(
-            Challenge challenge, ScoreSubmission mySubmission, AccountId requesterAccountId) {
+            Challenge challenge, ScoreSubmission mySubmission, AccountId requesterAccountId,
+            AccountLookup accountLookup) {
         boolean revealed = challenge.getStatus() == ChallengeStatus.REVEALED;
         List<ParticipantCookAssignmentRestDto> assignments =
                 challenge.getCookAssignments().stream()
                         .map(assignment -> new ParticipantCookAssignmentRestDto(
                                 DishLabelRestDto.valueOf(assignment.label().name()),
                                 revealed ? assignment.accountId().toString() : null,
+                                revealed ? accountLookup.getById(assignment.accountId()).name() : null,
                                 assignment.colorId() == null ? null : assignment.colorId().toString()))
                         .toList();
 
@@ -203,7 +207,7 @@ public final class ChallengeModelMapper {
                 categoryWinners,
                 categoryTotals,
                 overallWinnerAccountId,
-                cookAssignments(challenge),
+                cookAssignments(challenge, accountLookup),
                 rivalrySummary(challenge, rivalry, accountLookup));
     }
 

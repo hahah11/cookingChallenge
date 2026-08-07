@@ -52,6 +52,7 @@ public class EditChallengeParticipantsService {
         challengeRepository.save(challenge);
         log.info("Challenge participants edited: {}", challengeId);
         return ChallengeModelMapper.toGenerated(
-                challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository));
+                challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository),
+                accountLookup);
     }
 }

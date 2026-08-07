@@ -33,7 +33,7 @@ class AccountRepositoryImplTest {
 
     @Test
     void should_roundTripFullAggregate_when_savingThenFindingById() {
-        Account account = Account.create(new Email("cook@example.com"), "Cook One",
+        Account account = Account.create(new Email("cook@example.com"), "Cook", "One",
                 SystemRole.ORGANIZER, SystemRole.USER);
 
         Account saved = repository.save(account);
@@ -48,7 +48,7 @@ class AccountRepositoryImplTest {
 
     @Test
     void should_findAccount_when_lookingUpByEmail() {
-        repository.save(Account.create(new Email("guest@example.com"), "Guest One"));
+        repository.save(Account.create(new Email("guest@example.com"), "Guest", "One"));
 
         Optional<Account> found = repository.findByEmail(new Email("guest@example.com"));
 
@@ -58,7 +58,7 @@ class AccountRepositoryImplTest {
 
     @Test
     void should_reportExists_when_emailAlreadySaved() {
-        repository.save(Account.create(new Email("taken@example.com"), "Taken"));
+        repository.save(Account.create(new Email("taken@example.com"), "Taken", "Person"));
 
         assertTrue(repository.existsByEmail(new Email("taken@example.com")));
         assertFalse(repository.existsByEmail(new Email("free@example.com")));

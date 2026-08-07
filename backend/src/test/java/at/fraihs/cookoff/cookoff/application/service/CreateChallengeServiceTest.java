@@ -1,8 +1,10 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
@@ -47,6 +49,8 @@ class CreateChallengeServiceTest {
     @Test
     void should_createChallenge_when_organizerCanOrganize() {
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
+        when(accountLookup.getById(any())).thenReturn(
+                new AccountSummary(AccountId.generate(), new Email("cook@example.com"), "Cook", "Cook"));
         when(challengeRepository.save(any(Challenge.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ChallengeRestDto result = service.execute(request(), organizerId);

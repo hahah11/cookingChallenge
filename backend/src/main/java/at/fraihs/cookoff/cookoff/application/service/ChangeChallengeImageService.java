@@ -49,6 +49,7 @@ public class ChangeChallengeImageService {
         }
         log.info("Challenge image changed: {}", challengeId);
         return ChallengeModelMapper.toGenerated(
-                challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository));
+                challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository),
+                accountLookup);
     }
 }

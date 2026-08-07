@@ -67,7 +67,7 @@ class SendChallengeInvitationsServiceTest {
     }
 
     private AccountSummary accountFor(AccountId id) {
-        return new AccountSummary(id, new Email(id + "@example.com"), "Name " + id);
+        return new AccountSummary(id, new Email(id + "@example.com"), "Name " + id, "Name");
     }
 
     @Test

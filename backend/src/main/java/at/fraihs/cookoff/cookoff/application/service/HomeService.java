@@ -1,5 +1,6 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
@@ -29,6 +30,7 @@ public class HomeService {
 
     private final ChallengeRepository challengeRepository;
     private final ScoreSubmissionRepository scoreSubmissionRepository;
+    private final AccountLookup accountLookup;
 
     @Transactional(readOnly = true)
     public GuestHomeRestDto execute(AccountId accountId) {
@@ -39,7 +41,8 @@ public class HomeService {
             ScoreSubmission mySubmission = scoreSubmissionRepository
                     .findByChallengeIdAndGuestAccountId(challenge.getId(), accountId)
                     .orElse(null);
-            ParticipantChallengeRestDto view = ChallengeModelMapper.toParticipantChallenge(challenge, mySubmission, accountId);
+            ParticipantChallengeRestDto view =
+                    ChallengeModelMapper.toParticipantChallenge(challenge, mySubmission, accountId, accountLookup);
             boolean pendingAction = (view.getCanScore() && !view.getSubmitted()) || view.getCanPickColor();
             if (challenge.getStatus() == ChallengeStatus.OPEN && pendingAction) {
                 open.add(view);
@@ -48,6 +51,7 @@ public class HomeService {
             }
         }
 
-        return new GuestHomeRestDto(open, past);
+        String displayName = accountLookup.getById(accountId).firstName();
+        return new GuestHomeRestDto(displayName, open, past);
     }
 }

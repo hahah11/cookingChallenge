@@ -46,7 +46,7 @@ class LoginServiceTest {
 
     @Test
     void should_issueToken_when_credentialsValid() {
-        Account account = Account.create(new Email("a@b.com"), "Alice", SystemRole.ORGANIZER);
+        Account account = Account.create(new Email("a@b.com"), "Alice", "Cook", SystemRole.ORGANIZER);
         account.changePasswordHash("hashed");
         when(accountRepository.findByEmail(new Email("a@b.com"))).thenReturn(Optional.of(account));
         when(passwordEncoder.matches("secret", "hashed")).thenReturn(true);
@@ -69,7 +69,7 @@ class LoginServiceTest {
 
     @Test
     void should_throw_when_passwordWrong() {
-        Account account = Account.create(new Email("a@b.com"), "Alice", SystemRole.ORGANIZER);
+        Account account = Account.create(new Email("a@b.com"), "Alice", "Cook", SystemRole.ORGANIZER);
         account.changePasswordHash("hashed");
         when(accountRepository.findByEmail(new Email("a@b.com"))).thenReturn(Optional.of(account));
         when(passwordEncoder.matches("wrong", "hashed")).thenReturn(false);
@@ -80,7 +80,7 @@ class LoginServiceTest {
 
     @Test
     void should_throw_when_accountHasNoPasswordSet() {
-        Account account = Account.create(new Email("a@b.com"), "Alice", SystemRole.USER);
+        Account account = Account.create(new Email("a@b.com"), "Alice", "Cook", SystemRole.USER);
         when(accountRepository.findByEmail(new Email("a@b.com"))).thenReturn(Optional.of(account));
 
         assertThrows(InvalidCredentialsException.class,

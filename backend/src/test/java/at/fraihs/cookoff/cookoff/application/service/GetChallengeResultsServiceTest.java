@@ -86,8 +86,8 @@ class GetChallengeResultsServiceTest {
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(scoreSubmissionRepository.findByChallengeId(challenge.getId())).thenReturn(List.of());
         when(cookRivalryRepository.findByPair(any(), any())).thenReturn(Optional.empty());
-        when(accountLookup.getById(cookA)).thenReturn(new AccountSummary(cookA, new Email("a@x.com"), "Cook A"));
-        when(accountLookup.getById(cookB)).thenReturn(new AccountSummary(cookB, new Email("b@x.com"), "Cook B"));
+        when(accountLookup.getById(cookA)).thenReturn(new AccountSummary(cookA, new Email("a@x.com"), "Cook A", "Cook"));
+        when(accountLookup.getById(cookB)).thenReturn(new AccountSummary(cookB, new Email("b@x.com"), "Cook B", "Cook"));
 
         ChallengeResultRestDto result = service.execute(challenge.getId().toString(), cookA);
 

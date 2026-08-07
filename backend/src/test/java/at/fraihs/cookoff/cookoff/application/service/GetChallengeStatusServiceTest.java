@@ -57,8 +57,8 @@ class GetChallengeStatusServiceTest {
         Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
                 cookA, cookB, List.of(guest1, guest2), organizer);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
-        when(accountLookup.getById(guest1)).thenReturn(new AccountSummary(guest1, new Email("g1@x.com"), "Guest One"));
-        when(accountLookup.getById(guest2)).thenReturn(new AccountSummary(guest2, new Email("g2@x.com"), "Guest Two"));
+        when(accountLookup.getById(guest1)).thenReturn(new AccountSummary(guest1, new Email("g1@x.com"), "Guest One", "Guest"));
+        when(accountLookup.getById(guest2)).thenReturn(new AccountSummary(guest2, new Email("g2@x.com"), "Guest Two", "Guest"));
 
         List<Score> scores = List.of(new Score(DishLabel.A, Category.GESCHMACK, 5));
         ScoreSubmission guestSubmission = ScoreSubmission.reconstitute(

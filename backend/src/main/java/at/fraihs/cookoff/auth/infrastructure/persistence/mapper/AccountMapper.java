@@ -18,7 +18,8 @@ public interface AccountMapper {
         return Account.reconstitute(
                 new AccountId(entity.getId()),
                 new Email(entity.getEmail()),
-                entity.getName(),
+                entity.getFirstName(),
+                entity.getLastName(),
                 entity.getPasswordHash(),
                 entity.getRoles());
     }
@@ -27,7 +28,8 @@ public interface AccountMapper {
         return new AccountJpaEntity(
                 account.getId().value(),
                 account.getEmail().value(),
-                account.getName(),
+                account.getFirstName(),
+                account.getLastName(),
                 account.getPasswordHash(),
                 account.getRoles());
     }

@@ -1,6 +1,9 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Category;
@@ -24,10 +27,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class HomeServiceTest {
+
+    @Mock
+    private AccountLookup accountLookup;
 
     @Mock
     private ChallengeRepository challengeRepository;
@@ -53,6 +60,8 @@ class HomeServiceTest {
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
         Challenge alreadySubmitted = Challenge.create(LocalDate.now(), null, new DishName("Goulash"),
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
+        when(accountLookup.getById(any())).thenReturn(
+                new AccountSummary(AccountId.generate(), new Email("guest@example.com"), "Guest", "Guest"));
         when(challengeRepository.findByParticipant(accountId)).thenReturn(List.of(notYetSubmitted, alreadySubmitted));
         when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(notYetSubmitted.getId(), accountId))
                 .thenReturn(Optional.empty());
@@ -74,6 +83,8 @@ class HomeServiceTest {
         Challenge revealed = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
         revealed.reveal(null);
+        when(accountLookup.getById(any())).thenReturn(
+                new AccountSummary(AccountId.generate(), new Email("guest@example.com"), "Guest", "Guest"));
         when(challengeRepository.findByParticipant(accountId)).thenReturn(List.of(revealed));
         when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(revealed.getId(), accountId))
                 .thenReturn(Optional.empty());
@@ -88,6 +99,8 @@ class HomeServiceTest {
     void should_hideCookMapping_when_challengeNotRevealed() {
         Challenge open = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
+        when(accountLookup.getById(any())).thenReturn(
+                new AccountSummary(AccountId.generate(), new Email("guest@example.com"), "Guest", "Guest"));
         when(challengeRepository.findByParticipant(accountId)).thenReturn(List.of(open));
         when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(open.getId(), accountId))
                 .thenReturn(Optional.empty());

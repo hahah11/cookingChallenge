@@ -45,10 +45,11 @@ class CreateAccountServiceTest {
         when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AccountRestDto result = service.execute(
-                new CreateAccountRequestRestDto("host@example.com", "Host").roles(List.of(SystemRoleRestDto.ORGANIZER)));
+                new CreateAccountRequestRestDto("host@example.com", "Host", "Person")
+                        .roles(List.of(SystemRoleRestDto.ORGANIZER)));
 
         assertEquals("host@example.com", result.getEmail());
-        assertEquals("Host", result.getName());
+        assertEquals("Host Person", result.getName());
         assertTrue(result.getRoles().contains(SystemRoleRestDto.ORGANIZER));
     }
 
@@ -57,6 +58,6 @@ class CreateAccountServiceTest {
         when(accountRepository.existsByEmail(new Email("host@example.com"))).thenReturn(true);
 
         assertThrows(AccountAlreadyExistsException.class, () -> service.execute(
-                new CreateAccountRequestRestDto("host@example.com", "Host")));
+                new CreateAccountRequestRestDto("host@example.com", "Host", "Person")));
     }
 }

@@ -50,7 +50,7 @@ class AccessLinkLoginServiceTest {
     @Test
     void should_issueToken_when_linkTokenValid() {
         AccountId accountId = AccountId.generate();
-        Account account = Account.create(new Email("guest@example.com"), "Guest", SystemRole.USER);
+        Account account = Account.create(new Email("guest@example.com"), "Guest", "One", SystemRole.USER);
         AccessLink accessLink = new AccessLink(1L, accountId, 42L, "tok",
                 Instant.now().plus(Duration.ofDays(30)), null, Instant.now());
         when(accessLinkService.verify("tok")).thenReturn(accessLink);
@@ -65,7 +65,7 @@ class AccessLinkLoginServiceTest {
     @Test
     void should_capExpiry_when_linkOutlivesGuestExpirationCap() {
         AccountId accountId = AccountId.generate();
-        Account account = Account.create(new Email("guest@example.com"), "Guest", SystemRole.USER);
+        Account account = Account.create(new Email("guest@example.com"), "Guest", "One", SystemRole.USER);
         Instant farFuture = Instant.now().plus(Duration.ofDays(30));
         AccessLink accessLink = new AccessLink(1L, accountId, 42L, "tok", farFuture, null, Instant.now());
         when(accessLinkService.verify("tok")).thenReturn(accessLink);

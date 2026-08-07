@@ -46,8 +46,8 @@ class RivalryDetailServiceTest {
     private final AccountId organizerId = AccountId.generate();
 
     private void stubNames() {
-        when(accountLookup.getById(aliceId)).thenReturn(new AccountSummary(aliceId, new Email("alice@example.com"), "Alice"));
-        when(accountLookup.getById(bobId)).thenReturn(new AccountSummary(bobId, new Email("bob@example.com"), "Bob"));
+        when(accountLookup.getById(aliceId)).thenReturn(new AccountSummary(aliceId, new Email("alice@example.com"), "Alice", "Alice"));
+        when(accountLookup.getById(bobId)).thenReturn(new AccountSummary(bobId, new Email("bob@example.com"), "Bob", "Bob"));
     }
 
     @Test
