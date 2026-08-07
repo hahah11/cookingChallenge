@@ -1,7 +1,9 @@
 # CookingChallenge Frontend — Implementation Plan
 
-**Status:** Approved 2026-08-06, not started. Design system swapped from Modernist to Angular Material 3 on 2026-08-07 (see [`design-reference.md`](../design-reference.md)) — nothing had been built yet, so this is a pivot, not a rewrite. Implements Phase 7 of
+**Status:** Approved 2026-08-06. Design system swapped from Modernist to Angular Material 3 on 2026-08-07 (see [`design-reference.md`](../design-reference.md)) — nothing had been built yet, so this is a pivot, not a rewrite. Implements Phase 7 of
 [`openapi-first-api-plan.md`](openapi-first-api-plan.md) and everything that follows it.
+
+**Phase 0 and Phase 0b are done (2026-08-07)** — see their sections below for implementation notes and deviations. `frontend/` now has a working, verified OpenAPI client codegen pipeline and the spec/backend name gaps are closed. **Phase 1 (design system) is next, not started.**
 
 ## Context
 
@@ -35,7 +37,13 @@ Both Claude Design projects were read directly during planning, so exact token v
 
 ## Phase 0 — Tooling and client codegen
 
-**Pre-check (blocker):** the backend working tree currently has stale `application.port.StoredImage` imports left over from the in-flight mapper/DTO package refactor — `ChallengesController.java:3`, `GetChallengeImageService.java:7`, `DatabaseImageStorageAdapter.java:5`, and an unqualified reference in `ImageStoragePort.java:14`. The class now lives at `cookoff/application/dto/StoredImage.java`. Fix these four imports and confirm `./gradlew build` is green before anything here is verified against a running backend.
+**Done (2026-08-07).** `frontend/` has a working `npm run generate:api` pipeline: 61 models + 7 services generated from `openapi/cookingchallenge-api.yaml`, gitignored, regenerated automatically via `prestart`/`prebuild`/`pretest`. Verified: `npx tsc -p tsconfig.app.json --noEmit` clean; deleting the generated folder and running `npm start` regenerates it before `ng serve` builds; all spec constructs in the checklist below generated correctly (no manual patching needed).
+
+Implementation notes/deviations:
+- The pre-check blocker below (stale `StoredImage` imports) was **already resolved** in the backend working tree by the time this phase started — all four files already imported `application.dto.StoredImage` correctly, and `./gradlew build` was green. No action was needed; left the note below for history.
+- `generate:api:check` (`npm run generate:api && git diff --exit-code -- src/app/core/api/generated`) is implemented exactly as specified but **does not actually detect spec drift**: the generated directory is gitignored, so `git diff` against an untracked/ignored path always exits 0 regardless of content changes. Confirmed by editing the spec and re-running the check — it passed when it should have failed. Left as-is per this plan's spec; needs a different mechanism (e.g. a committed baseline, or hashing the spec) if drift detection is actually required in CI.
+
+**Pre-check (blocker), as originally written — turned out to be moot, see above:** the backend working tree currently has stale `application.port.StoredImage` imports left over from the in-flight mapper/DTO package refactor — `ChallengesController.java:3`, `GetChallengeImageService.java:7`, `DatabaseImageStorageAdapter.java:5`, and an unqualified reference in `ImageStoragePort.java:14`. The class now lives at `cookoff/application/dto/StoredImage.java`. Fix these four imports and confirm `./gradlew build` is green before anything here is verified against a running backend.
 
 **Move the generator anchor into `frontend/`.** `openapitools.json` sits at the repo root but its `$schema` points at `./node_modules/@openapitools/openapi-generator-cli/config.schema.json`, and there is no root `package.json`. Move it to `frontend/openapitools.json` unchanged (version pin `7.24.0` stays).
 
@@ -93,6 +101,13 @@ If any shape is wrong, **fix the spec and regenerate** — never patch the outpu
 ---
 
 ## Phase 0b — Spec and backend amendments
+
+**Done (2026-08-07).** All three gaps closed in the spec and backend; 268 backend tests pass, `./gradlew build` green.
+
+Implementation notes/deviations:
+- The assumed domain factory `Account.create(email, firstName, lastName, role)` **did not exist** — `Account` had a single `name` field and `Account.create(Email, String name, SystemRole...)`. Splitting to `firstName`/`lastName` was therefore a real domain change (new `renameFirst`/`renameLast` methods, derived `getName()`), not just a DTO/mapper edit as implied below.
+- Because `Account` is persisted, this also needed a **Liquibase migration** (`008-account-name-split.yaml`, not scoped in this doc originally): add `first_name`/`last_name` columns, backfill by splitting the existing `name` value on the first space, `NOT NULL`, then drop `name`.
+- `CookAssignment.name`/`ParticipantCookAssignment.name`/`GuestHome.displayName` resolution required threading `AccountLookup` as a new constructor parameter into `ChallengeModelMapper.cookAssignments(...)` and `.toParticipantChallenge(...)`, and injecting `AccountLookup` into `ListChallengesService`, `PickColorService`, `GetChallengeForParticipantService`, and `HomeService`, which didn't have it before — a wider blast radius than "amend the mappers."
 
 Three display-name gaps block core screens. All are additive; no existing field changes meaning.
 
