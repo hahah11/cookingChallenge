@@ -39,6 +39,21 @@
   min-height: 44px;
 }
 
+// Screen-reader-only text for native-control patterns (star-rating's
+// fieldset legend/per-star labels, loading-skeleton's "Loading…" status)
+// that need an accessible name with no visible duplicate label.
+.cc-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 // Respect prefers-reduced-motion throughout, including the reveal
 // animation's revealScrim/revealPop keyframes (added in the challenge
 // detail feature).

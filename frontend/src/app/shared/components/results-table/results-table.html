@@ -1,0 +1,51 @@
+<table class="results-table">
+  <caption class="cc-visually-hidden">Score results by category and cook</caption>
+  <thead>
+    <tr>
+      <th scope="col"></th>
+      @for (cook of cookAssignments(); track cook.accountId) {
+        <th scope="col" class="results-table__cook plate-tint" [style.--plate-color]="hexFor(cook)">
+          {{ cook.name }}
+          @if (cook.accountId === overallWinnerAccountId()) {
+            <mat-icon class="results-table__trophy" aria-hidden="true">emoji_events</mat-icon>
+            <span class="cc-visually-hidden">(overall winner)</span>
+          }
+        </th>
+      }
+    </tr>
+  </thead>
+  <tbody>
+    @for (row of rows(); track row.category) {
+      <tr>
+        <th scope="row">{{ row.label }}</th>
+        @for (cook of cookAssignments(); track cook.accountId) {
+          <td
+            class="results-table__value"
+            [class.results-table__value--winner]="cook.accountId === row.winnerAccountId"
+          >
+            {{ row.totalByLabel[cook.label] ?? 0 }}
+            @if (cook.accountId === row.winnerAccountId) {
+              <mat-icon class="results-table__check" aria-hidden="true">check_circle</mat-icon>
+              <span class="cc-visually-hidden">(category winner)</span>
+            }
+          </td>
+        }
+      </tr>
+    }
+  </tbody>
+  <tfoot>
+    <tr>
+      <th scope="row">Total</th>
+      @for (cook of cookAssignments(); track cook.accountId) {
+        <td
+          class="results-table__value results-table__value--total"
+          [class.results-table__value--winner]="cook.accountId === overallWinnerAccountId()"
+        >
+          {{ totalByCook()[cook.label] ?? 0 }}
+        </td>
+      }
+    </tr>
+  </tfoot>
+</table>
+
+<p class="results-table__headline">{{ rivalry().headline }}</p>

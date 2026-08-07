@@ -1,0 +1,67 @@
+.star-rating {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+// M3 disabled-content opacity (see docs/.../frontend-implementation-plan.md Phase 1).
+.star-rating:disabled,
+.star-rating[disabled] {
+  opacity: 0.38;
+}
+
+.star-rating__stars {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  width: fit-content;
+}
+
+.star-rating__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.star-rating__star {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+
+.star-rating__star::before {
+  content: '★';
+  font-size: 28px;
+  line-height: 1;
+  color: var(--md-sys-color-outline-variant);
+  transition: color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+// Fill this star and every lower-valued one that follows it in the
+// (deliberately reversed) DOM order.
+.star-rating__star:hover::before,
+.star-rating__star:hover ~ .star-rating__star::before,
+.star-rating__input:checked ~ .star-rating__star::before {
+  color: var(--plate-color, var(--mat-sys-primary));
+}
+
+.star-rating__input:focus-visible + .star-rating__star {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.star-rating:disabled .star-rating__star,
+.star-rating[disabled] .star-rating__star {
+  cursor: not-allowed;
+}

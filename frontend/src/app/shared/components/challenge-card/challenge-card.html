@@ -1,0 +1,51 @@
+<mat-card
+  appearance="outlined"
+  class="challenge-card"
+  role="button"
+  tabindex="0"
+  [attr.aria-label]="'Open ' + challenge().dishName"
+  (click)="onOpen()"
+  (keydown.enter)="onOpen()"
+  (keydown.space)="$event.preventDefault(); onOpen()"
+>
+  <app-challenge-photo
+    class="challenge-card__photo"
+    [challengeId]="challenge().id"
+    [hasImage]="challenge().hasImage"
+    [alt]="challenge().dishName"
+  />
+  <mat-card-content class="challenge-card__content">
+    <p class="challenge-card__kicker">{{ challenge().date | date: 'mediumDate' }}</p>
+    <h3 class="challenge-card__title">{{ challenge().dishName }}</h3>
+    <p class="challenge-card__event">{{ challenge().title }}</p>
+    <p class="challenge-card__cooks">
+      @for (cook of challenge().cookAssignments; track cook.accountId; let last = $last) {
+        <span
+          class="challenge-card__cook"
+          [class.challenge-card__cook--winner]="cook.accountId === challenge().overallWinnerAccountId"
+        >
+          @if (cook.accountId === challenge().overallWinnerAccountId) {
+            <mat-icon class="challenge-card__winner-icon" aria-hidden="true">emoji_events</mat-icon>
+          }
+          {{ cook.name }}
+        </span>
+        @if (!last) {
+          <span aria-hidden="true"> &amp; </span>
+        }
+      }
+    </p>
+    <div class="challenge-card__footer">
+      <app-status-tag [status]="challenge().status" />
+      @if (challenge().status === ChallengeStatus.OPEN) {
+        <div class="challenge-card__progress">
+          <mat-progress-bar mode="determinate" [value]="progressPercent()" />
+          <span class="challenge-card__progress-text">
+            {{ challenge().submittedGuestCount }}/{{ challenge().totalGuestCount }} submitted
+          </span>
+        </div>
+      } @else {
+        <span class="challenge-card__progress-text">Results ready</span>
+      }
+    </div>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,78 @@
+:host {
+  display: block;
+}
+
+.challenge-card {
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.challenge-card:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.challenge-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-1);
+}
+
+.challenge-card__kicker {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.challenge-card__title {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+.challenge-card__event {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.challenge-card__cooks {
+  margin: var(--md-sys-spacing-1) 0 0;
+  font: var(--mat-sys-body-medium);
+}
+
+.challenge-card__cook {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.challenge-card__cook--winner {
+  font-weight: 600;
+}
+
+.challenge-card__winner-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--mat-sys-primary);
+}
+
+.challenge-card__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-2);
+  margin-top: var(--md-sys-spacing-2);
+}
+
+.challenge-card__progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-1);
+}
+
+.challenge-card__progress-text {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}

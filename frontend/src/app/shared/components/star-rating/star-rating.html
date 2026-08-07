@@ -1,0 +1,20 @@
+<fieldset class="star-rating" [style.--plate-color]="colorHex()" [disabled]="disabled()">
+  <legend class="cc-visually-hidden">{{ label() }}</legend>
+  <div class="star-rating__stars">
+    @for (v of stars(); track v) {
+      <input
+        type="radio"
+        class="star-rating__input"
+        [id]="name() + '-' + v"
+        [name]="name()"
+        [value]="v"
+        [checked]="value() === v"
+        [disabled]="disabled()"
+        (change)="select(v)"
+      />
+      <label [for]="name() + '-' + v" class="star-rating__star">
+        <span class="cc-visually-hidden">{{ v }} {{ v === 1 ? 'star' : 'stars' }}</span>
+      </label>
+    }
+  </div>
+</fieldset>

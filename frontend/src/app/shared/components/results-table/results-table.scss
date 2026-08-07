@@ -1,0 +1,62 @@
+:host {
+  display: block;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--mat-sys-body-medium);
+}
+
+.results-table th,
+.results-table td {
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
+  text-align: center;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.results-table thead th[scope='row'],
+.results-table tbody th[scope='row'],
+.results-table tfoot th[scope='row'] {
+  text-align: left;
+}
+
+.results-table__cook {
+  font: var(--mat-sys-title-small);
+}
+
+.results-table__trophy {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  vertical-align: text-bottom;
+  color: var(--mat-sys-primary);
+}
+
+.results-table__value--winner {
+  font-weight: 700;
+}
+
+.results-table__check {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  vertical-align: text-bottom;
+  color: var(--cc-color-success);
+}
+
+.results-table__value--total {
+  font: var(--mat-sys-title-medium);
+  border-bottom: none;
+  border-top: 2px solid var(--mat-sys-outline);
+}
+
+tfoot th[scope='row'] {
+  border-top: 2px solid var(--mat-sys-outline);
+}
+
+.results-table__headline {
+  margin: var(--md-sys-spacing-4) 0 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
