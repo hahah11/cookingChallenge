@@ -1,0 +1,12 @@
+{
+  "ngVersion": "22.1.0",
+  "npmName": "@cookoff/api-client",
+  "providedInRoot": true,
+  "withInterfaces": true,
+  "useSingleRequestParameter": false,
+  "stringEnums": true,
+  "enumPropertyNaming": "UPPERCASE",
+  "fileNaming": "kebab-case",
+  "serviceSuffix": "Api",
+  "supportsES6": true
+}
