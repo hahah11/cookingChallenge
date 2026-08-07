@@ -1,0 +1,54 @@
+// CookOff M3 — project deltas on top of the design system.
+
+// One success color role, for the "Revealed" chip/tag. M3 has no built-in
+// success role (only primary/secondary/tertiary/error). Not sourced from
+// the Claude Design project — it doesn't define one either — so this is a
+// project addition, generated with the same OKLCH tone curve as the error
+// role (same chroma per tone) at a green hue (145°) rather than reusing
+// tertiary, so "success" and "herb-green tertiary accent" stay visually
+// distinct. Tone→role mapping mirrors every other M3 pair (role=40/100/90/10
+// light, 80/20/30/90 dark).
+:root,
+[data-theme='light'] {
+  --cc-color-success: oklch(40% 0.19 145);
+  --cc-color-on-success: oklch(100% 0 145);
+  --cc-color-success-container: oklch(90% 0.0379 145);
+  --cc-color-on-success-container: oklch(10% 0.072 145);
+}
+
+[data-theme='dark'] {
+  --cc-color-success: oklch(80% 0.0707 145);
+  --cc-color-on-success: oklch(20% 0.117 145);
+  --cc-color-success-container: oklch(30% 0.1553 145);
+  --cc-color-on-success-container: oklch(90% 0.0379 145);
+}
+
+// Focus-visible ring for hand-built interactive elements (nav-bar,
+// star-rating, plate-color swatches) that aren't Angular Material
+// components — Material's own controls already implement the M3 state
+// layer/focus ring natively and must not be overridden per component.
+:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+// Opt-in minimum hit target (M3 spec target) for hand-built controls whose
+// visual size is smaller than 44px, e.g. a plate-color swatch button.
+.cc-hit-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+// Respect prefers-reduced-motion throughout, including the reveal
+// animation's revealScrim/revealPop keyframes (added in the challenge
+// detail feature).
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

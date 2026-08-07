@@ -3,7 +3,7 @@
 **Status:** Approved 2026-08-06. Design system swapped from Modernist to Angular Material 3 on 2026-08-07 (see [`design-reference.md`](../design-reference.md)) — nothing had been built yet, so this is a pivot, not a rewrite. Implements Phase 7 of
 [`openapi-first-api-plan.md`](openapi-first-api-plan.md) and everything that follows it.
 
-**Phase 0 and Phase 0b are done (2026-08-07)** — see their sections below for implementation notes and deviations. `frontend/` now has a working, verified OpenAPI client codegen pipeline and the spec/backend name gaps are closed. **Phase 1 (design system) is next, not started.**
+**Phase 0, Phase 0b, and Phase 1 are done (2026-08-07)** — see their sections below for implementation notes and deviations. `frontend/` now has a working, verified OpenAPI client codegen pipeline, the spec/backend name gaps are closed, and the Angular Material 3 design system is wired and building clean. **Phase 2 (core layer) is next, not started.**
 
 ## Context
 
@@ -131,6 +131,16 @@ Backend fills these through the existing `auth.AccountLookup` port — the same 
 ---
 
 ## Phase 1 — Design system (Angular Material 3)
+
+**Done (2026-08-07).** `frontend/src/styles/` has `_theme.scss`, `_typography.scss`, `_icons.scss`, `_plate-color.scss`, `_overrides.scss`, assembled by `styles.scss` exactly as spec'd below. `npx ng build`, `npx tsc -p tsconfig.app.json --noEmit`, and `npm run lint` all pass clean.
+
+Implementation notes/deviations:
+- **Color integration uses `mat.theme-overrides()`, not a reconstructed Sass palette.** Angular Material's M3 color-role generator (`node_modules/@angular/material/core/tokens/m3/_md-sys-color.scss`) turned out to use the exact same role→tone mapping as the CookOff tokens (e.g. `on-primary-container` = primary tone 30 in both), and its typescale/shape/elevation/state generators already emit the exact same values as `tokens/typography.css` / `tokens/shape.css` / `tokens/elevation.css` (verified by reading the generator source, not assumed) — standard, unmodified M3. So instead of converting every OKLCH tone to hex and rebuilding a Sass palette map (error-prone, and against "explicit palette values, not a re-derived seed"), `_theme.scss` calls `mat.theme()` once with a structural placeholder palette (only to emit the typography/shape/elevation/state tokens, which need no further changes), then `mat.theme-overrides()` maps every `--mat-sys-<role>` straight onto the matching `--md-sys-color-<role>` custom property. Because those already switch under `[data-theme="dark"]`, this one mapping keeps light and dark pixel-for-pixel with no second `theme()` call.
+- **Raw `--md-sys-shape-corner-*`, `--md-sys-elevation-level-*`, `--md-sys-motion-*`, and `--md-sys-spacing-*` tokens live in `_theme.scss`'s `:root` block**, copied verbatim from the design project (not spec'd as a separate file in the plan, but needed since `_plate-color.scss` and future hand-built components — nav-bar, star-rating — consume them directly; Material's own components compute shape/elevation from `mat.theme()` internally and don't read these).
+- **Success color triad values are a project invention**, not sourced from the design project (its `tokens/colors.css` has no success role, confirmed by reading the file). Generated at OKLCH hue 145° using the same per-tone chroma curve as the error role, at the same four tones every other M3 pair uses (40/100/90/10 light, 80/20/30/90 dark) — see `_overrides.scss` for the values and reasoning inline. Revisit if a real brand green exists.
+- **`MatIconRegistry.setDefaultFontSetClass('material-symbols-outlined')` was wired into `app.config.ts`** (via `provideAppInitializer`) even though icon registration wasn't explicitly scoped to Phase 1 vs. Phase 2's core layer — icons are inert without it, so it shipped now rather than leaving a half-finished Phase 1.
+- **Two build fixes needed**: `provideAppInitializer`'s callback must return `void`/`Observable`/`Promise` — `MatIconRegistry.setDefaultFontSetClass()` returns `this` for chaining, so the callback needed an explicit block body. `@fontsource/roboto/400.css` (etc.) needed an explicit `@use '...' as roboto-400` — Sass rejects `400` as a default namespace since it isn't a valid identifier.
+- **Material Symbols self-hosting ships the npm package's default full variable font** (`material-symbols-outlined.woff2`, ~3.9MB, no unicode-range subsetting) — it's a lazily-fetched font asset, not part of the JS initial bundle (which built to 73.68 kB estimated transfer, well under the 500kB budget), but flagging it as a possible follow-up if icon-load latency matters later.
 
 Ported from the live tokens in Claude Design project `eddd583d-…`, design system `cookoff-material-3-98ca423e-…`. Values below are exact — do not re-derive them.
 

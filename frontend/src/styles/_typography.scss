@@ -1,0 +1,22 @@
+// CookOff M3 — typography. Roboto is Material 3's reference typeface (the
+// brand's Archivo headline font has no M3 counterpart, per the design
+// system's readme). Self-hosted via @fontsource instead of the design
+// system's Google Fonts @import — the CDN import is render-blocking and
+// leaks visitor IPs.
+//
+// Angular Material's own M3 type-scale generator (node_modules/@angular/
+// material/core/tokens/m3/_md-sys-typescale.scss) already emits the exact
+// standard M3 sizes/line-heights/tracking the CookOff tokens specify, so
+// only the font family needs wiring — done via mat.theme()'s typography
+// config in _theme.scss. --md-sys-typescale-font-mono is a project addition
+// (M3 has no mono type role) for score/code-style displays.
+@use '@fontsource/roboto/400.css' as roboto-400;
+@use '@fontsource/roboto/500.css' as roboto-500;
+@use '@fontsource/roboto/700.css' as roboto-700;
+@use '@fontsource/roboto-mono/400.css' as roboto-mono-400;
+@use '@fontsource/roboto-mono/500.css' as roboto-mono-500;
+
+:root {
+  --md-sys-typescale-font: 'Roboto', system-ui, sans-serif;
+  --md-sys-typescale-font-mono: 'Roboto Mono', ui-monospace, monospace;
+}

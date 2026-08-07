@@ -1,0 +1,26 @@
+// CookOff M3 — iconography. Material Symbols Outlined, self-hosted via the
+// `material-symbols` npm package instead of the design system's Google
+// Fonts CDN import (same privacy/perf reasoning as _typography.scss).
+// 24px default, FILL 0 (outline) with a `.filled` modifier for
+// toggled/selected states (e.g. a filled heart).
+//
+// Register the font-set class once at bootstrap:
+//   inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
+// so `<mat-icon>weekend</mat-icon>` resolves correctly.
+@use 'material-symbols/outlined.css';
+
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.material-symbols-outlined.filled {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}

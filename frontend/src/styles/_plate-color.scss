@@ -1,0 +1,22 @@
+// Plate colors are data, not constants. PlateColor.hexCode comes from
+// GET /api/v1/config — never hardcode RED/YELLOW. Bind the CSS custom
+// property inline per element: [style.--plate-color]="assignment.hexCode".
+//
+// Never conveys meaning by color alone — pair every tint with text or an
+// icon (WCAG AA).
+.plate-solid {
+  background: var(--plate-color);
+  color: var(--md-ref-palette-white);
+  border-radius: var(--md-sys-shape-corner-medium, 12px);
+}
+
+.plate-tint {
+  background: color-mix(in srgb, var(--plate-color) 13%, transparent);
+  border-radius: var(--md-sys-shape-corner-medium, 12px);
+}
+
+.plate-swatch {
+  background: var(--plate-color);
+  border-radius: var(--md-sys-shape-corner-full, 999px);
+  box-shadow: var(--md-sys-elevation-level1);
+}
