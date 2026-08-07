@@ -3,7 +3,7 @@
 **Status:** Approved 2026-08-06. Design system swapped from Modernist to Angular Material 3 on 2026-08-07 (see [`design-reference.md`](../design-reference.md)) — nothing had been built yet, so this is a pivot, not a rewrite. Implements Phase 7 of
 [`openapi-first-api-plan.md`](openapi-first-api-plan.md) and everything that follows it.
 
-**Phase 0, Phase 0b, and Phase 1 are done (2026-08-07)** — see their sections below for implementation notes and deviations. `frontend/` now has a working, verified OpenAPI client codegen pipeline, the spec/backend name gaps are closed, and the Angular Material 3 design system is wired and building clean. **Phase 2 (core layer) is next, not started.**
+**Phase 0, Phase 0b, Phase 1, and Phase 2 are done (2026-08-07)** — see their sections below for implementation notes and deviations. `frontend/` now has a working, verified OpenAPI client codegen pipeline, the spec/backend name gaps are closed, the Angular Material 3 design system is wired and building clean, and the core layer (auth, config, HTTP interceptors, typed errors, notifications) is in place. **Phase 3 (shared UI) is next, not started.**
 
 ## Context
 
@@ -190,6 +190,18 @@ bound as `[style.--plate-color]="assignment.hexCode"`, styled with M3 shape (rou
 ---
 
 ## Phase 2 — Core layer
+
+**Done (2026-08-07).** All files below exist as spec'd. `npx tsc -p tsconfig.app.json --noEmit`, `npx ng build` (77.64 kB estimated transfer, well under budget), `npm run lint`, and `npx ng test` all pass clean.
+
+Implementation notes/deviations:
+- **No `@Service` decorator.** AGENTS.md calls it out as available in Angular v22+, but it doesn't exist in the installed `@angular/core@22.1.0`'s public API (confirmed by grepping the package's `.d.ts` files) — used `@Injectable({ providedIn: 'root' })` throughout instead, matching `docs/frontend/03-services-state.md` and Phase 1's own `app.config.ts`.
+- **`basePath` is a hardcoded empty string** (`provideApi('')` in `api-config.ts`), not read from an Angular `environment.ts` — there's no `environments/` folder or `fileReplacements` config in `angular.json`, and the app only ever talks same-origin (`proxy.conf.json` forwards `/api` in dev; the spec's `servers: [{ url: / }]` implies same-origin in prod too). Revisit if a real multi-environment `basePath` need ever shows up.
+- **JWT claim shape confirmed against `JwtIssuer.java`**: only `iss`, `iat`, `exp`, `sub` (account id), and `roles` (always an array, even for one role) — no `role` singular, no challenge/cook/guest-scoping claims. `jwt-claims.ts` decodes exactly this shape.
+- **`errorInterceptor` branches only on `apiError.code === 'UNAUTHENTICATED'`**, not on raw HTTP 401 status, so a 401 from a failed login (`INVALID_CREDENTIALS`) doesn't trigger a global logout+redirect — only a dead/expired session on an already-authenticated request does. Redirects to `/login` or `/home` based on the role captured *before* `auth.logout()` clears the claims signal; both routes are pinned by Phase 4 already, so referencing them now is safe even though the routes themselves don't exist until Phase 4.
+- **`Notification`'s `success`/`info`/`error` are currently identical** (all a plain `MatSnackBar.open(...)`, 4s duration) — kept as three named methods rather than one, since call-site intent (`notification.error(...)`) matters even before per-severity styling (panel classes, colors) is added in a later phase.
+- **`ApiError` extends the generated `ErrorBody`** (overriding `code` to a narrower union) rather than a hand-duplicated interface, plus an added `status: number` not in the wire envelope, for interceptor logic (e.g. distinguishing network failures, `status: 0`, from server-returned errors). Falls back to a synthetic `UNKNOWN_ERROR` when `httpError.error` isn't the expected `{error: ErrorBody}` shape (network/CORS failures never reach the backend).
+- **`auth-guard.ts`/`organizer-guard.ts` redirect to `/` / `/home` / `/login`** even though none of these routes exist until Phase 4 — `Router.createUrlTree` doesn't validate the route exists at guard-definition time, and the target paths are already contractually pinned by Phase 4's route table.
+- No `admin`-only guard yet — Phase 2's file list only specifies `auth-guard.ts` and `organizer-guard.ts`; the `/accounts` route's admin-only gating (route table marks it `[admin]`, stricter than `[organizer]`) is deferred to Phase 4, reusing `Auth.hasAnyRole(SystemRole.ADMIN)`.
 
 ```
 src/app/core/
