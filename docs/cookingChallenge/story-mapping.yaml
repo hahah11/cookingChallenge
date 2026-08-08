@@ -1,0 +1,90 @@
+name: Cookoff
+id: 353psdwu
+site: storymaps.io
+users:
+  - name: Guest
+    color: "#fca5a5"
+    step: Select CookOff
+  - name: Guest
+    color: "#fca5a5"
+    step: "Select REVEALED CookOff "
+activities:
+  - name: Submit Score
+    color: "#93c5fd"
+    step: Select CookOff
+  - name: Show Results
+    color: "#93c5fd"
+    step: "Select REVEALED CookOff "
+partials:
+  guest-login-partial:
+    name: Guest Login Partial
+    steps:
+      - Receive Email
+      - Login via Link
+    users:
+      - name: Guest
+        color: "#fca5a5"
+        step: Receive Email
+    activities:
+      - name: Login
+        color: "#93c5fd"
+        step: Receive Email
+    stories:
+      Receive Email:
+        - name: Get invitation email with unique link
+      Login via Link:
+        - name: Click link to be logged in automatically
+steps:
+  - partial: guest-login-partial
+  - Select CookOff
+  - Rate Plates
+  - Confirm Submission
+  - spacer
+  - partial: guest-login-partial
+  - "Select REVEALED CookOff "
+  - Look at Results
+legend:
+  - color: "#fef08a"
+    label: Tasks
+  - color: "#a5f3fc"
+    label: Notes
+  - color: "#bef264"
+    label: Questions
+  - color: "#fecdd3"
+    label: Edge cases
+slices:
+  - name: V1
+    stories:
+      Select CookOff:
+        - name: Choose open Cookoff on Guest Home page
+          body: Only those where he is invited to are visible
+        - name: Correct selection if wrongly clicked
+      Rate Plates:
+        - name: Rate dishes from 1 to 5
+          body: |-
+            There are 3 Categories
+            - Mundgefühl
+            - Tellersprache
+            - Geschmack
+
+            In each Category for each cook, you can give 1 to 5 stars
+      Confirm Submission:
+        - name: Ask Guest if he is really sure about his ranking
+        - name: Show thank you page
+        - name: Get back to home screen
+      "Select REVEALED CookOff ":
+        - name: Choose REVEALED CookOff on Guest Home page
+          body: only ones the guest took part of
+        - name: Correct selection if wrongly clicked
+      Look at Results:
+        - name: Show winner and scores per category
+        - name: Show names of cooks
+        - name: Show plate colors
+        - name: Show points of cook rivalries
+        - name: Get Back to guests home page
+notes: |-
+  Thanks for trying Storymaps.io! 
+
+  If you find it useful, please consider starring the open-source repo: https://github.com/jackgleeson/storymaps.io
+
+  Have a great day!
