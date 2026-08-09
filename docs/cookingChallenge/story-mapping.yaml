@@ -32,9 +32,6 @@ users:
   - name: Admin
     color: "#fca5a5"
     step: Show Rivalries
-  - name: Admin
-    color: "#fca5a5"
-    step: Show Accounts
 activities:
   - name: Submit Score
     color: "#93c5fd"
@@ -66,9 +63,6 @@ activities:
   - name: View Cook Rivalries
     color: "#93c5fd"
     step: Show Rivalries
-  - name: Manage Accounts
-    color: "#93c5fd"
-    step: Show Accounts
 partials:
   guest-or-cook-login-partial:
     name: Guest Or Cook Login Partial
@@ -114,6 +108,21 @@ partials:
     stories:
       Select Own CookOff:
         - name: See only Cookoffs organized by him
+  show-accounts-partial:
+    name: Show Accounts Partial
+    steps:
+      - Show Accounts
+    users:
+      - name: Admin
+        color: "#fca5a5"
+        step: Show Accounts
+    activities:
+      - name: Manage Accounts
+        color: "#93c5fd"
+        step: Show Accounts
+    stories:
+      Show Accounts:
+        - name: See combined name, email and role for each account
 steps:
   - partial: guest-or-cook-login-partial
   - Select CookOff
@@ -163,8 +172,13 @@ steps:
   - View Rivalry History
   - spacer
   - partial: organizer-or-admin-login-partial
-  - Show Accounts
+  - partial: show-accounts-partial
   - Add Account
+  - spacer
+  - partial: organizer-or-admin-login-partial
+  - partial: show-accounts-partial
+  - Select Account
+  - Edit Account
 legend:
   - color: "#fef08a"
     label: Tasks
@@ -266,13 +280,18 @@ slices:
       View Rivalry History:
         - name: Show open Cookoffs between the two cooks
         - name: Show closed Cookoffs between the two cooks
-      Show Accounts:
-        - name: List all accounts with name, mail and role
       Add Account:
         - name: Enter first name
         - name: Enter last name
         - name: Enter mail address
         - name: Choose role (Admin, Organizer or User)
+      Select Account:
+        - name: Choose an account to edit
+      Edit Account:
+        - name: Change first name
+        - name: Change last name
+        - name: Change mail address
+        - name: Change role (Admin, Organizer or User)
 notes: |-
   Thanks for trying Storymaps.io! 
 
