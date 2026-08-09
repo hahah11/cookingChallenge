@@ -7,22 +7,46 @@ users:
     step: Select CookOff
   - name: Guest
     color: "#fca5a5"
-    step: "Select REVEALED CookOff "
+    step: Select REVEALED CookOff
+  - name: Cook
+    color: "#fca5a5"
+    step: Select Open CookOff
+  - name: Cook
+    color: "#fca5a5"
+    step: Select REVEALED CookOff[1]
+  - name: Organizer
+    color: "#fca5a5"
+    step: View Voting Status
+  - name: Organizer
+    color: "#fca5a5"
+    step: Edit Guests
 activities:
   - name: Submit Score
     color: "#93c5fd"
     step: Select CookOff
   - name: Show Results
     color: "#93c5fd"
-    step: "Select REVEALED CookOff "
+    step: Select REVEALED CookOff
+  - name: " Choose Plate Color"
+    color: "#93c5fd"
+    step: Select Open CookOff
+  - name: Show Results
+    color: "#93c5fd"
+    step: Select REVEALED CookOff[1]
+  - name: Monitor Voting Progress
+    color: "#93c5fd"
+    step: View Voting Status
+  - name: Manage Participants
+    color: "#93c5fd"
+    step: Edit Guests
 partials:
-  guest-login-partial:
-    name: Guest Login Partial
+  guest-or-cook-login-partial:
+    name: Guest Or Cook Login Partial
     steps:
       - Receive Email
       - Login via Link
     users:
-      - name: Guest
+      - name: Guest Or Cook
         color: "#fca5a5"
         step: Receive Email
     activities:
@@ -34,15 +58,59 @@ partials:
         - name: Get invitation email with unique link
       Login via Link:
         - name: Click link to be logged in automatically
+  organizer-or-admin-login-partial:
+    name: Organizer Or Admin Login Partial
+    steps:
+      - Login via username and password
+    users:
+      - name: Organizer Or Admin
+        color: "#fca5a5"
+        step: Login via username and password
+    activities:
+      - name: Login
+        color: "#93c5fd"
+        step: Login via username and password
+    stories:
+      Login via username and password:
+        - name: Enter username and password
+  organizer-select-own-cookoff-partial:
+    name: Organizer Select Own CookOff Partial
+    steps:
+      - Select Own CookOff
+    users:
+      - name: Organizer
+        color: "#fca5a5"
+        step: Select Own CookOff
+    stories:
+      Select Own CookOff:
+        - name: See only Cookoffs organized by him
 steps:
-  - partial: guest-login-partial
+  - partial: guest-or-cook-login-partial
   - Select CookOff
   - Rate Plates
   - Confirm Submission
   - spacer
-  - partial: guest-login-partial
-  - "Select REVEALED CookOff "
-  - Look at Results
+  - partial: guest-or-cook-login-partial
+  - Select REVEALED CookOff
+  - Show Results:[0] Look at Results
+  - spacer
+  - partial: guest-or-cook-login-partial
+  - Select Open CookOff
+  - View Available Plate Colors
+  - Assign Plate Color
+  - spacer
+  - partial: guest-or-cook-login-partial
+  - Select REVEALED CookOff[1]
+  - Show Results:[1] Look at Results
+  - spacer
+  - partial: organizer-or-admin-login-partial
+  - partial: organizer-select-own-cookoff-partial
+  - View Voting Status
+  - spacer
+  - partial: organizer-or-admin-login-partial
+  - partial: organizer-select-own-cookoff-partial
+  - Edit Guests
+  - Edit Cooks
 legend:
   - color: "#fef08a"
     label: Tasks
@@ -72,16 +140,41 @@ slices:
         - name: Ask Guest if he is really sure about his ranking
         - name: Show thank you page
         - name: Get back to home screen
-      "Select REVEALED CookOff ":
+      Select REVEALED CookOff:
         - name: Choose REVEALED CookOff on Guest Home page
           body: only ones the guest took part of
         - name: Correct selection if wrongly clicked
-      Look at Results:
+      Show Results:[0] Look at Results:
         - name: Show winner and scores per category
         - name: Show names of cooks
         - name: Show plate colors
         - name: Show points of cook rivalries
         - name: Get Back to guests home page
+      Select Open CookOff:
+        - name: Choose Open Cookoff where Cook is assigned
+        - name: Correct wrongly click selection
+      View Available Plate Colors:
+        - name: Show available Plate colors
+      Assign Plate Color:
+        - name: Ask if he is really sure to choose plate color
+        - name: ""
+      Select REVEALED CookOff[1]:
+        - name: Show only REVEALED cookoffs where he took part
+        - name: Correct selection if wrongly clicked
+      Show Results:[1] Look at Results:
+        - name: Show winner and scores per category
+        - name: Show names of cooks
+        - name: Show plate colors
+        - name: Show points of cook rivalries
+        - name: Get Back to guests home page
+      View Voting Status:
+        - name: See who already submitted and who didn't submit yet
+      Edit Guests:
+        - name: Add guests
+        - name: Remove guests
+      Edit Cooks:
+        - name: Add cook
+        - name: Remove cook
 notes: |-
   Thanks for trying Storymaps.io! 
 
