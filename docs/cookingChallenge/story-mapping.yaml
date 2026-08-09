@@ -14,21 +14,27 @@ users:
   - name: Cook
     color: "#fca5a5"
     step: Select REVEALED CookOff[1]
-  - name: Organizer
+  - name: Organizer Or Admin
     color: "#fca5a5"
     step: View Voting Status
-  - name: Organizer
+  - name: Organizer Or Admin
     color: "#fca5a5"
     step: Edit Guests
-  - name: Organizer
+  - name: Organizer Or Admin
     color: "#fca5a5"
     step: Enter Cookoff Details
-  - name: Organizer
+  - name: Organizer Or Admin
     color: "#fca5a5"
     step: Select REVEALED CookOff[2]
-  - name: Organizer
+  - name: Organizer Or Admin
     color: "#fca5a5"
     step: Select REVEALED CookOff[3]
+  - name: Admin
+    color: "#fca5a5"
+    step: Show Rivalries
+  - name: Admin
+    color: "#fca5a5"
+    step: Show Accounts
 activities:
   - name: Submit Score
     color: "#93c5fd"
@@ -57,6 +63,12 @@ activities:
   - name: Unreveal Cookoff
     color: "#93c5fd"
     step: Select REVEALED CookOff[3]
+  - name: View Cook Rivalries
+    color: "#93c5fd"
+    step: Show Rivalries
+  - name: Manage Accounts
+    color: "#93c5fd"
+    step: Show Accounts
 partials:
   guest-or-cook-login-partial:
     name: Guest Or Cook Login Partial
@@ -96,7 +108,7 @@ partials:
     steps:
       - Select Own CookOff
     users:
-      - name: Organizer
+      - name: Organizer Or Admin
         color: "#fca5a5"
         step: Select Own CookOff
     stories:
@@ -144,6 +156,15 @@ steps:
   - partial: organizer-or-admin-login-partial
   - Select REVEALED CookOff[3]
   - Unreveal Cookoff
+  - spacer
+  - partial: organizer-or-admin-login-partial
+  - Show Rivalries
+  - Select Rivalry
+  - View Rivalry History
+  - spacer
+  - partial: organizer-or-admin-login-partial
+  - Show Accounts
+  - Add Account
 legend:
   - color: "#fef08a"
     label: Tasks
@@ -238,6 +259,20 @@ slices:
       Unreveal Cookoff:
         - name: Ask if he is really sure to unreveal the Cookoff
         - name: Set Cookoff status back to not revealed
+      Show Rivalries:
+        - name: List all cook rivalries with overall score
+      Select Rivalry:
+        - name: Choose a rivalry between two specific cooks
+      View Rivalry History:
+        - name: Show open Cookoffs between the two cooks
+        - name: Show closed Cookoffs between the two cooks
+      Show Accounts:
+        - name: List all accounts with name, mail and role
+      Add Account:
+        - name: Enter first name
+        - name: Enter last name
+        - name: Enter mail address
+        - name: Choose role (Admin, Organizer or User)
 notes: |-
   Thanks for trying Storymaps.io! 
 
