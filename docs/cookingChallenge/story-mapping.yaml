@@ -20,6 +20,15 @@ users:
   - name: Organizer
     color: "#fca5a5"
     step: Edit Guests
+  - name: Organizer
+    color: "#fca5a5"
+    step: Enter Cookoff Details
+  - name: Organizer
+    color: "#fca5a5"
+    step: Select REVEALED CookOff[2]
+  - name: Organizer
+    color: "#fca5a5"
+    step: Select REVEALED CookOff[3]
 activities:
   - name: Submit Score
     color: "#93c5fd"
@@ -36,9 +45,18 @@ activities:
   - name: Monitor Voting Progress
     color: "#93c5fd"
     step: View Voting Status
-  - name: Manage Participants
+  - name: Manage & onboard Cookoff participants
     color: "#93c5fd"
     step: Edit Guests
+  - name: Create Cookoff
+    color: "#93c5fd"
+    step: Enter Cookoff Details
+  - name: Show Results
+    color: "#93c5fd"
+    step: Select REVEALED CookOff[2]
+  - name: Unreveal Cookoff
+    color: "#93c5fd"
+    step: Select REVEALED CookOff[3]
 partials:
   guest-or-cook-login-partial:
     name: Guest Or Cook Login Partial
@@ -111,6 +129,21 @@ steps:
   - partial: organizer-select-own-cookoff-partial
   - Edit Guests
   - Edit Cooks
+  - Invite Participants
+  - spacer
+  - partial: organizer-or-admin-login-partial
+  - Enter Cookoff Details
+  - Assign Cooks
+  - Assign Guests
+  - Confirm Creation
+  - spacer
+  - partial: organizer-or-admin-login-partial
+  - Select REVEALED CookOff[2]
+  - Show Results:[2] Look at Results
+  - spacer
+  - partial: organizer-or-admin-login-partial
+  - Select REVEALED CookOff[3]
+  - Unreveal Cookoff
 legend:
   - color: "#fef08a"
     label: Tasks
@@ -175,6 +208,36 @@ slices:
       Edit Cooks:
         - name: Add cook
         - name: Remove cook
+      Invite Participants:
+        - name: Generate registration QR code
+        - name: Send email invite links to guests and cooks
+      Enter Cookoff Details:
+        - name: Choose a picture
+        - name: Enter a title
+        - name: Enter a dish name
+      Assign Cooks:
+        - name: Choose the 2 cooks
+      Assign Guests:
+        - name: Choose the guests
+      Confirm Creation:
+        - name: Save the Cookoff
+      Select REVEALED CookOff[2]:
+        - name: Choose REVEALED CookOff organized by him
+          body: only ones he organized
+        - name: Correct selection if wrongly clicked
+      Show Results:[2] Look at Results:
+        - name: Show winner and scores per category
+        - name: Show names of cooks
+        - name: Show plate colors
+        - name: Show points of cook rivalries
+        - name: Get back to organizer home page
+      Select REVEALED CookOff[3]:
+        - name: Choose REVEALED CookOff organized by him
+          body: only ones he organized
+        - name: Correct selection if wrongly clicked
+      Unreveal Cookoff:
+        - name: Ask if he is really sure to unreveal the Cookoff
+        - name: Set Cookoff status back to not revealed
 notes: |-
   Thanks for trying Storymaps.io! 
 
