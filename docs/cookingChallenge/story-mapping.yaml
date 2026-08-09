@@ -35,6 +35,9 @@ users:
   - name: Admin
     color: "#fca5a5"
     step: Show Rivalries
+  - name: Guest
+    color: "#fca5a5"
+    step: Scan QR Code
   - name: Admin
     color: "#fca5a5"
     step: Add Account
@@ -75,6 +78,9 @@ activities:
   - name: View Cook Rivalries
     color: "#93c5fd"
     step: Show Rivalries
+  - name: Self-Register For Cookoff
+    color: "#93c5fd"
+    step: Scan QR Code
   - name: Create User
     color: "#93c5fd"
     step: Add Account
@@ -181,6 +187,9 @@ steps:
   - Assign Guests
   - Confirm Creation
   - spacer
+  - Scan QR Code
+  - Register Guest Details
+  - spacer
   - partial: organizer-or-admin-login-partial
   - Show Results:[2] Select REVEALED CookOff
   - "Show Results:[2] Show Results: Look at Results"
@@ -280,7 +289,7 @@ slices:
         - name: Remove cook
       Invite Participants:
         - name: Generate registration QR code
-        - name: Send email invite links to guests and cooks
+        - name: Open scoring by clicking "Send Links" to email invite links to guests and cooks
         - name: "[Edge case] Show error if QR code or invite link has expired"
           color: "#fecdd3"
       Enter Cookoff Details:
@@ -293,6 +302,16 @@ slices:
         - name: Choose the guests
       Confirm Creation:
         - name: Save the Cookoff
+      Scan QR Code:
+        - name: Scan QR code provided by organizer or admin
+        - name: "[Edge case] Show error if QR code has expired or is invalid"
+      Register Guest Details:
+        - name: Enter first name
+        - name: Enter last name
+        - name: Enter email address
+        - name: Automatically assign guest to the Cookoff
+        - name: Show message that he will get a mail once the organizer opens scoring for the Cookoff
+        - name: "[Edge case] Prevent duplicate registration if guest already registered for this Cookoff"
       Show Results:[2] Select REVEALED CookOff:
         - name: Choose REVEALED CookOff organized by him
           body: only ones he organized
