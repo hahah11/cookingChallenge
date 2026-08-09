@@ -7,16 +7,19 @@ users:
     step: Select CookOff
   - name: Guest
     color: "#fca5a5"
-    step: Select REVEALED CookOff
+    step: Show Results:[0] Select REVEALED CookOff
   - name: Cook
     color: "#fca5a5"
     step: Select Open CookOff
   - name: Cook
     color: "#fca5a5"
-    step: Select REVEALED CookOff[1]
+    step: Show Results:[1] Select REVEALED CookOff
   - name: Organizer Or Admin
     color: "#fca5a5"
     step: View Voting Status
+  - name: Organizer Or Admin
+    color: "#fca5a5"
+    step: Reveal Cookoff
   - name: Organizer Or Admin
     color: "#fca5a5"
     step: Edit Guests
@@ -25,29 +28,38 @@ users:
     step: Enter Cookoff Details
   - name: Organizer Or Admin
     color: "#fca5a5"
-    step: Select REVEALED CookOff[2]
+    step: Show Results:[2] Select REVEALED CookOff
   - name: Organizer Or Admin
     color: "#fca5a5"
-    step: Select REVEALED CookOff[3]
+    step: "Unreveal Cookoff: Select REVEALED CookOff"
   - name: Admin
     color: "#fca5a5"
     step: Show Rivalries
+  - name: Admin
+    color: "#fca5a5"
+    step: Add Account
+  - name: Admin
+    color: "#fca5a5"
+    step: Select Account
 activities:
   - name: Submit Score
     color: "#93c5fd"
     step: Select CookOff
   - name: Show Results
     color: "#93c5fd"
-    step: Select REVEALED CookOff
+    step: Show Results:[0] Select REVEALED CookOff
   - name: " Choose Plate Color"
     color: "#93c5fd"
     step: Select Open CookOff
   - name: Show Results
     color: "#93c5fd"
-    step: Select REVEALED CookOff[1]
+    step: Show Results:[1] Select REVEALED CookOff
   - name: Monitor Voting Progress
     color: "#93c5fd"
     step: View Voting Status
+  - name: Reveal Cookoff
+    color: "#93c5fd"
+    step: Reveal Cookoff
   - name: Manage & onboard Cookoff participants
     color: "#93c5fd"
     step: Edit Guests
@@ -56,13 +68,19 @@ activities:
     step: Enter Cookoff Details
   - name: Show Results
     color: "#93c5fd"
-    step: Select REVEALED CookOff[2]
+    step: Show Results:[2] Select REVEALED CookOff
   - name: Unreveal Cookoff
     color: "#93c5fd"
-    step: Select REVEALED CookOff[3]
+    step: "Unreveal Cookoff: Select REVEALED CookOff"
   - name: View Cook Rivalries
     color: "#93c5fd"
     step: Show Rivalries
+  - name: Create User
+    color: "#93c5fd"
+    step: Add Account
+  - name: Manage users
+    color: "#93c5fd"
+    step: Select Account
 partials:
   guest-or-cook-login-partial:
     name: Guest Or Cook Login Partial
@@ -82,6 +100,8 @@ partials:
         - name: Get invitation email with unique link
       Login via Link:
         - name: Click link to be logged in automatically
+        - name: "[Edge case] Show error if link is expired or already used"
+          color: "#fecdd3"
   organizer-or-admin-login-partial:
     name: Organizer Or Admin Login Partial
     steps:
@@ -97,6 +117,8 @@ partials:
     stories:
       Login via username and password:
         - name: Enter username and password
+        - name: "[Edge case] Show error on invalid credentials"
+          color: "#fecdd3"
   organizer-select-own-cookoff-partial:
     name: Organizer Select Own CookOff Partial
     steps:
@@ -130,8 +152,8 @@ steps:
   - Confirm Submission
   - spacer
   - partial: guest-or-cook-login-partial
-  - Select REVEALED CookOff
-  - Show Results:[0] Look at Results
+  - Show Results:[0] Select REVEALED CookOff
+  - "Show Results:[0] Show Results: Look at Results"
   - spacer
   - partial: guest-or-cook-login-partial
   - Select Open CookOff
@@ -139,12 +161,13 @@ steps:
   - Assign Plate Color
   - spacer
   - partial: guest-or-cook-login-partial
-  - Select REVEALED CookOff[1]
-  - Show Results:[1] Look at Results
+  - Show Results:[1] Select REVEALED CookOff
+  - "Show Results:[1] Show Results: Look at Results"
   - spacer
   - partial: organizer-or-admin-login-partial
   - partial: organizer-select-own-cookoff-partial
   - View Voting Status
+  - Reveal Cookoff
   - spacer
   - partial: organizer-or-admin-login-partial
   - partial: organizer-select-own-cookoff-partial
@@ -159,11 +182,11 @@ steps:
   - Confirm Creation
   - spacer
   - partial: organizer-or-admin-login-partial
-  - Select REVEALED CookOff[2]
-  - Show Results:[2] Look at Results
+  - Show Results:[2] Select REVEALED CookOff
+  - "Show Results:[2] Show Results: Look at Results"
   - spacer
   - partial: organizer-or-admin-login-partial
-  - Select REVEALED CookOff[3]
+  - "Unreveal Cookoff: Select REVEALED CookOff"
   - Unreveal Cookoff
   - spacer
   - partial: organizer-or-admin-login-partial
@@ -204,15 +227,19 @@ slices:
             - Geschmack
 
             In each Category for each cook, you can give 1 to 5 stars
+        - name: Edit already submitted scores
+          body: Allowed as long as the Cookoff has not been revealed yet
       Confirm Submission:
         - name: Ask Guest if he is really sure about his ranking
         - name: Show thank you page
         - name: Get back to home screen
-      Select REVEALED CookOff:
+        - name: "[Edge case] Block resubmission if guest already voted for this Cookoff"
+          color: "#fecdd3"
+      Show Results:[0] Select REVEALED CookOff:
         - name: Choose REVEALED CookOff on Guest Home page
           body: only ones the guest took part of
         - name: Correct selection if wrongly clicked
-      Show Results:[0] Look at Results:
+      "Show Results:[0] Show Results: Look at Results":
         - name: Show winner and scores per category
         - name: Show names of cooks
         - name: Show plate colors
@@ -226,10 +253,12 @@ slices:
       Assign Plate Color:
         - name: Ask if he is really sure to choose plate color
         - name: ""
-      Select REVEALED CookOff[1]:
+        - name: "[Edge case] Prevent choosing a color already taken by the other cook"
+          color: "#fecdd3"
+      Show Results:[1] Select REVEALED CookOff:
         - name: Show only REVEALED cookoffs where he took part
         - name: Correct selection if wrongly clicked
-      Show Results:[1] Look at Results:
+      "Show Results:[1] Show Results: Look at Results":
         - name: Show winner and scores per category
         - name: Show names of cooks
         - name: Show plate colors
@@ -237,6 +266,12 @@ slices:
         - name: Get Back to guests home page
       View Voting Status:
         - name: See who already submitted and who didn't submit yet
+      Reveal Cookoff:
+        - name: Ask organizer to confirm before revealing results
+        - name: Set Cookoff status to revealed
+        - name: Notify guests and cooks that results are available
+        - name: "[Edge case] Warn organizer if not all guests have submitted votes yet"
+          color: "#fecdd3"
       Edit Guests:
         - name: Add guests
         - name: Remove guests
@@ -246,6 +281,8 @@ slices:
       Invite Participants:
         - name: Generate registration QR code
         - name: Send email invite links to guests and cooks
+        - name: "[Edge case] Show error if QR code or invite link has expired"
+          color: "#fecdd3"
       Enter Cookoff Details:
         - name: Choose a picture
         - name: Enter a title
@@ -256,17 +293,17 @@ slices:
         - name: Choose the guests
       Confirm Creation:
         - name: Save the Cookoff
-      Select REVEALED CookOff[2]:
+      Show Results:[2] Select REVEALED CookOff:
         - name: Choose REVEALED CookOff organized by him
           body: only ones he organized
         - name: Correct selection if wrongly clicked
-      Show Results:[2] Look at Results:
+      "Show Results:[2] Show Results: Look at Results":
         - name: Show winner and scores per category
         - name: Show names of cooks
         - name: Show plate colors
         - name: Show points of cook rivalries
         - name: Get back to organizer home page
-      Select REVEALED CookOff[3]:
+      "Unreveal Cookoff: Select REVEALED CookOff":
         - name: Choose REVEALED CookOff organized by him
           body: only ones he organized
         - name: Correct selection if wrongly clicked
@@ -292,9 +329,317 @@ slices:
         - name: Change last name
         - name: Change mail address
         - name: Change role (Admin, Organizer or User)
+        - name: "[Question] Should admins be able to deactivate or delete an account?"
+          color: "#bef264"
 notes: |-
   Thanks for trying Storymaps.io! 
 
   If you find it useful, please consider starring the open-source repo: https://github.com/jackgleeson/storymaps.io
 
   Have a great day!
+backups:
+  - id: e612e36d577b
+    timestamp: "2026-08-09T12:49:35.168Z"
+    note: "Auto: before import"
+    data: >-
+      {"app":"storymap","v":1,"name":"Cookoff","users":[[],[{"name":"Guest","color":"#fca5a5"}],[],[],[],[],[{"name":"Guest","color":"#fca5a5"}],[],[],[],[{"name":"Cook","color":"#fca5a5"}],[],[],[],[],[{"name":"Cook","color":"#fca5a5"}],[],[],[],[{"name":"Organizer","color":"#fca5a5"}],[]],"activities":[[],[{"name":"Submit
+      Score","color":"#93c5fd"}],[],[],[],[],[{"name":"Show Results","color":"#93c5fd"}],[],[],[],[{"name":" Choose
+      Plate Color","color":"#93c5fd"}],[],[],[],[],[{"name":"Show
+      Results","color":"#93c5fd"}],[],[],[],[{"name":"Monitor Voting
+      Progress","color":"#93c5fd"}],[]],"steps":[{"partialMapId":"jn44e9sf","partialMapOrigin":true},{"name":"Select
+      CookOff","color":"#86efac"},{"name":"Rate Plates","color":"#86efac"},{"name":"Confirm
+      Submission","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"jn44e9sf"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"jn44e9sf"},{"name":"Select
+      Open CookOff","color":"#86efac"},{"name":"View Available Plate Colors","color":"#86efac"},{"name":"Assign Plate
+      Color","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"jn44e9sf"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"f5kr7qvu","partialMapOrigin":true},{"name":"Select
+      Own CookOff","color":"#86efac"},{"name":"View Voting
+      Status","color":"#86efac"}],"slices":[{"name":"V1","stories":[[],[{"name":"Choose open Cookoff on Guest Home
+      page","body":"Only those where he is invited to are visible"},{"name":"Correct selection if wrongly
+      clicked"}],[{"name":"Rate dishes from 1 to 5","body":"There are 3 Categories\n- Mundgefühl\n- Tellersprache\n-
+      Geschmack\n\nIn each Category for each cook, you can give 1 to 5 stars"}],[{"name":"Ask Guest if he is really sure
+      about his ranking"},{"name":"Show thank you page"},{"name":"Get back to home screen"}],[],[],[{"name":"Choose
+      REVEALED CookOff on Guest Home page","body":"only ones the guest took part of"},{"name":"Correct selection if
+      wrongly clicked"}],[{"name":"Show winner and scores per category"},{"name":"Show names of cooks"},{"name":"Show
+      plate colors"},{"name":"Show points of cook rivalries"},{"name":"Get Back to guests home
+      page"}],[],[],[{"name":"Choose Open Cookoff where Cook is assigned"},{"name":"Correct wrongly click
+      selection"}],[{"name":"Show available Plate colors"}],[{"name":"Ask if he is really sure to choose plate
+      color"},{"name":""}],[],[],[{"name":"Show only REVEALED cookoffs where he took part"},{"name":"Correct selection
+      if wrongly clicked"}],[{"name":"Show winner and scores per category"},{"name":"Show names of cooks"},{"name":"Show
+      plate colors"},{"name":"Show points of cook rivalries"},{"name":"Get Back to guests home
+      page"}],[],[],[{"name":"See only Cookoffs organized by him"}],[{"name":"See who already submitted and who didn't
+      submit
+      yet"}]]}],"legend":[{"color":"#fef08a","label":"Tasks"},{"color":"#a5f3fc","label":"Notes"},{"color":"#bef264","label":"Questions"},{"color":"#fecdd3","label":"Edge
+      cases"}],"notes":"Thanks for trying Storymaps.io! \n\nIf you find it useful, please consider starring the
+      open-source repo: https://github.com/jackgleeson/storymaps.io\n\nHave a great
+      day!","partialMaps":[{"id":"jn44e9sf","name":"Guest Or Cook Login Partial","users":[[{"name":"Guest Or
+      Cook","color":"#fca5a5"}],[]],"activities":[[{"name":"Login","color":"#93c5fd"}],[]],"steps":[{"name":"Receive
+      Email","color":"#86efac"},{"name":"Login via Link","color":"#86efac"}],"stories":[[[{"name":"Get invitation email
+      with unique link"}],[{"name":"Click link to be logged in automatically"}]]]},{"id":"f5kr7qvu","name":"Organizer Or
+      Admin Login Partial","users":[[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}]],"activities":[[{"name":"Login","color":"#93c5fd"}]],"steps":[{"name":"Login via
+      username and password","color":"#86efac"}],"stories":[[[{"name":"Enter username and password"}]]]}]}
+  - id: 07985243ced1
+    timestamp: "2026-08-09T12:55:33.534Z"
+    note: "Auto: before import"
+    data: >-
+      {"app":"storymap","v":1,"name":"Cookoff","users":[[],[{"name":"Guest","color":"#fca5a5"}],[],[],[],[],[{"name":"Guest","color":"#fca5a5"}],[],[],[],[{"name":"Cook","color":"#fca5a5"}],[],[],[],[],[{"name":"Cook","color":"#fca5a5"}],[],[],[],[],[{"name":"Organizer","color":"#fca5a5"}],[],[],[],[{"name":"Organizer","color":"#fca5a5"}],[]],"activities":[[],[{"name":"Submit
+      Score","color":"#93c5fd"}],[],[],[],[],[{"name":"Show Results","color":"#93c5fd"}],[],[],[],[{"name":" Choose
+      Plate Color","color":"#93c5fd"}],[],[],[],[],[{"name":"Show
+      Results","color":"#93c5fd"}],[],[],[],[],[{"name":"Monitor Voting
+      Progress","color":"#93c5fd"}],[],[],[],[{"name":"Manage
+      Participants","color":"#93c5fd"}],[]],"steps":[{"partialMapId":"bca6dr2o","partialMapOrigin":true},{"name":"Select
+      CookOff","color":"#86efac"},{"name":"Rate Plates","color":"#86efac"},{"name":"Confirm
+      Submission","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"bca6dr2o"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"bca6dr2o"},{"name":"Select
+      Open CookOff","color":"#86efac"},{"name":"View Available Plate Colors","color":"#86efac"},{"name":"Assign Plate
+      Color","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"bca6dr2o"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"z1s41y1j","partialMapOrigin":true},{"partialMapId":"iurluez5","partialMapOrigin":true},{"name":"View
+      Voting
+      Status","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"z1s41y1j"},{"partialMapId":"iurluez5"},{"name":"Edit
+      Guests","color":"#86efac"},{"name":"Edit
+      Cooks","color":"#86efac"}],"slices":[{"name":"V1","stories":[[],[{"name":"Choose open Cookoff on Guest Home
+      page","body":"Only those where he is invited to are visible"},{"name":"Correct selection if wrongly
+      clicked"}],[{"name":"Rate dishes from 1 to 5","body":"There are 3 Categories\n- Mundgefühl\n- Tellersprache\n-
+      Geschmack\n\nIn each Category for each cook, you can give 1 to 5 stars"}],[{"name":"Ask Guest if he is really sure
+      about his ranking"},{"name":"Show thank you page"},{"name":"Get back to home screen"}],[],[],[{"name":"Choose
+      REVEALED CookOff on Guest Home page","body":"only ones the guest took part of"},{"name":"Correct selection if
+      wrongly clicked"}],[{"name":"Show winner and scores per category"},{"name":"Show names of cooks"},{"name":"Show
+      plate colors"},{"name":"Show points of cook rivalries"},{"name":"Get Back to guests home
+      page"}],[],[],[{"name":"Choose Open Cookoff where Cook is assigned"},{"name":"Correct wrongly click
+      selection"}],[{"name":"Show available Plate colors"}],[{"name":"Ask if he is really sure to choose plate
+      color"},{"name":""}],[],[],[{"name":"Show only REVEALED cookoffs where he took part"},{"name":"Correct selection
+      if wrongly clicked"}],[{"name":"Show winner and scores per category"},{"name":"Show names of cooks"},{"name":"Show
+      plate colors"},{"name":"Show points of cook rivalries"},{"name":"Get Back to guests home
+      page"}],[],[],[],[{"name":"See who already submitted and who didn't submit yet"}],[],[],[],[{"name":"Add
+      guests"},{"name":"Remove guests"}],[{"name":"Add cook"},{"name":"Remove
+      cook"}]]}],"legend":[{"color":"#fef08a","label":"Tasks"},{"color":"#a5f3fc","label":"Notes"},{"color":"#bef264","label":"Questions"},{"color":"#fecdd3","label":"Edge
+      cases"}],"notes":"Thanks for trying Storymaps.io! \n\nIf you find it useful, please consider starring the
+      open-source repo: https://github.com/jackgleeson/storymaps.io\n\nHave a great
+      day!","partialMaps":[{"id":"bca6dr2o","name":"Guest Or Cook Login Partial","users":[[{"name":"Guest Or
+      Cook","color":"#fca5a5"}],[]],"activities":[[{"name":"Login","color":"#93c5fd"}],[]],"steps":[{"name":"Receive
+      Email","color":"#86efac"},{"name":"Login via Link","color":"#86efac"}],"stories":[[[{"name":"Get invitation email
+      with unique link"}],[{"name":"Click link to be logged in automatically"}]]]},{"id":"z1s41y1j","name":"Organizer Or
+      Admin Login Partial","users":[[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}]],"activities":[[{"name":"Login","color":"#93c5fd"}]],"steps":[{"name":"Login via
+      username and password","color":"#86efac"}],"stories":[[[{"name":"Enter username and
+      password"}]]]},{"id":"iurluez5","name":"Organizer Select Own CookOff
+      Partial","users":[[{"name":"Organizer","color":"#fca5a5"}]],"activities":[[]],"steps":[{"name":"Select Own
+      CookOff","color":"#86efac"}],"stories":[[[{"name":"See only Cookoffs organized by him"}]]]}]}
+  - id: ff215736b7f0
+    timestamp: "2026-08-09T13:25:39.259Z"
+    note: "Auto: before import"
+    data: >-
+      {"app":"storymap","v":1,"name":"Cookoff","users":[[],[{"name":"Guest","color":"#fca5a5"}],[],[],[],[],[{"name":"Guest","color":"#fca5a5"}],[],[],[],[{"name":"Cook","color":"#fca5a5"}],[],[],[],[],[{"name":"Cook","color":"#fca5a5"}],[],[],[],[],[{"name":"Organizer","color":"#fca5a5"}],[],[],[],[{"name":"Organizer","color":"#fca5a5"}],[],[]],"activities":[[],[{"name":"Submit
+      Score","color":"#93c5fd"}],[],[],[],[],[{"name":"Show Results","color":"#93c5fd"}],[],[],[],[{"name":" Choose
+      Plate Color","color":"#93c5fd"}],[],[],[],[],[{"name":"Show
+      Results","color":"#93c5fd"}],[],[],[],[],[{"name":"Monitor Voting
+      Progress","color":"#93c5fd"}],[],[],[],[{"name":"Manage & onboard Cookoff
+      participants","color":"#93c5fd"}],[],[]],"steps":[{"partialMapId":"ram5ddi7","partialMapOrigin":true},{"name":"Select
+      CookOff","color":"#86efac"},{"name":"Rate Plates","color":"#86efac"},{"name":"Confirm
+      Submission","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"ram5ddi7"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"ram5ddi7"},{"name":"Select
+      Open CookOff","color":"#86efac"},{"name":"View Available Plate Colors","color":"#86efac"},{"name":"Assign Plate
+      Color","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"ram5ddi7"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"m8f7n9v8","partialMapOrigin":true},{"partialMapId":"pra4kyt0","partialMapOrigin":true},{"name":"View
+      Voting
+      Status","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"m8f7n9v8"},{"partialMapId":"pra4kyt0"},{"name":"Edit
+      Guests","color":"#86efac"},{"name":"Edit Cooks","color":"#86efac"},{"name":"Invite
+      Participants","color":"#86efac"}],"slices":[{"name":"V1","stories":[[],[{"name":"Choose open Cookoff on Guest Home
+      page","body":"Only those where he is invited to are visible"},{"name":"Correct selection if wrongly
+      clicked"}],[{"name":"Rate dishes from 1 to 5","body":"There are 3 Categories\n- Mundgefühl\n- Tellersprache\n-
+      Geschmack\n\nIn each Category for each cook, you can give 1 to 5 stars"}],[{"name":"Ask Guest if he is really sure
+      about his ranking"},{"name":"Show thank you page"},{"name":"Get back to home screen"}],[],[],[{"name":"Choose
+      REVEALED CookOff on Guest Home page","body":"only ones the guest took part of"},{"name":"Correct selection if
+      wrongly clicked"}],[{"name":"Show winner and scores per category"},{"name":"Show names of cooks"},{"name":"Show
+      plate colors"},{"name":"Show points of cook rivalries"},{"name":"Get Back to guests home
+      page"}],[],[],[{"name":"Choose Open Cookoff where Cook is assigned"},{"name":"Correct wrongly click
+      selection"}],[{"name":"Show available Plate colors"}],[{"name":"Ask if he is really sure to choose plate
+      color"},{"name":""}],[],[],[{"name":"Show only REVEALED cookoffs where he took part"},{"name":"Correct selection
+      if wrongly clicked"}],[{"name":"Show winner and scores per category"},{"name":"Show names of cooks"},{"name":"Show
+      plate colors"},{"name":"Show points of cook rivalries"},{"name":"Get Back to guests home
+      page"}],[],[],[],[{"name":"See who already submitted and who didn't submit yet"}],[],[],[],[{"name":"Add
+      guests"},{"name":"Remove guests"}],[{"name":"Add cook"},{"name":"Remove cook"}],[{"name":"Generate registration QR
+      code"},{"name":"Send email invite links to guests and
+      cooks"}]]}],"legend":[{"color":"#fef08a","label":"Tasks"},{"color":"#a5f3fc","label":"Notes"},{"color":"#bef264","label":"Questions"},{"color":"#fecdd3","label":"Edge
+      cases"}],"notes":"Thanks for trying Storymaps.io! \n\nIf you find it useful, please consider starring the
+      open-source repo: https://github.com/jackgleeson/storymaps.io\n\nHave a great
+      day!","partialMaps":[{"id":"ram5ddi7","name":"Guest Or Cook Login Partial","users":[[{"name":"Guest Or
+      Cook","color":"#fca5a5"}],[]],"activities":[[{"name":"Login","color":"#93c5fd"}],[]],"steps":[{"name":"Receive
+      Email","color":"#86efac"},{"name":"Login via Link","color":"#86efac"}],"stories":[[[{"name":"Get invitation email
+      with unique link"}],[{"name":"Click link to be logged in automatically"}]]]},{"id":"m8f7n9v8","name":"Organizer Or
+      Admin Login Partial","users":[[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}]],"activities":[[{"name":"Login","color":"#93c5fd"}]],"steps":[{"name":"Login via
+      username and password","color":"#86efac"}],"stories":[[[{"name":"Enter username and
+      password"}]]]},{"id":"pra4kyt0","name":"Organizer Select Own CookOff
+      Partial","users":[[{"name":"Organizer","color":"#fca5a5"}]],"activities":[[]],"steps":[{"name":"Select Own
+      CookOff","color":"#86efac"}],"stories":[[[{"name":"See only Cookoffs organized by him"}]]]}]}
+  - id: f92eb21c3483
+    timestamp: "2026-08-09T13:31:09.129Z"
+    note: "Auto: before import"
+    data: >-
+      {"app":"storymap","v":1,"name":"Cookoff","users":[[],[{"name":"Guest","color":"#fca5a5"}],[],[],[],[],[{"name":"Guest","color":"#fca5a5"}],[],[],[],[{"name":"Cook","color":"#fca5a5"}],[],[],[],[],[{"name":"Cook","color":"#fca5a5"}],[],[],[],[],[{"name":"Organizer
+      Or Admin","color":"#fca5a5"}],[],[],[],[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}],[],[],[],[],[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}],[],[],[],[],[],[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}],[],[],[],[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}],[],[],[],[{"name":"Admin","color":"#fca5a5"}],[],[]],"activities":[[],[{"name":"Submit
+      Score","color":"#93c5fd"}],[],[],[],[],[{"name":"Show Results","color":"#93c5fd"}],[],[],[],[{"name":" Choose
+      Plate Color","color":"#93c5fd"}],[],[],[],[],[{"name":"Show
+      Results","color":"#93c5fd"}],[],[],[],[],[{"name":"Monitor Voting
+      Progress","color":"#93c5fd"}],[],[],[],[{"name":"Manage & onboard Cookoff
+      participants","color":"#93c5fd"}],[],[],[],[],[{"name":"Create
+      Cookoff","color":"#93c5fd"}],[],[],[],[],[],[{"name":"Show
+      Results","color":"#93c5fd"}],[],[],[],[{"name":"Unreveal Cookoff","color":"#93c5fd"}],[],[],[],[{"name":"View Cook
+      Rivalries","color":"#93c5fd"}],[],[]],"steps":[{"partialMapId":"spjn54i2","partialMapOrigin":true},{"name":"Select
+      CookOff","color":"#86efac"},{"name":"Rate Plates","color":"#86efac"},{"name":"Confirm
+      Submission","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"spjn54i2"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"spjn54i2"},{"name":"Select
+      Open CookOff","color":"#86efac"},{"name":"View Available Plate Colors","color":"#86efac"},{"name":"Assign Plate
+      Color","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"spjn54i2"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"zqqpizg6","partialMapOrigin":true},{"partialMapId":"6tv2x81c","partialMapOrigin":true},{"name":"View
+      Voting
+      Status","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"zqqpizg6"},{"partialMapId":"6tv2x81c"},{"name":"Edit
+      Guests","color":"#86efac"},{"name":"Edit Cooks","color":"#86efac"},{"name":"Invite
+      Participants","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"zqqpizg6"},{"name":"Enter
+      Cookoff Details","color":"#86efac"},{"name":"Assign Cooks","color":"#86efac"},{"name":"Assign
+      Guests","color":"#86efac"},{"name":"Confirm
+      Creation","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"zqqpizg6"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"zqqpizg6"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Unreveal
+      Cookoff","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"zqqpizg6"},{"name":"Show
+      Rivalries","color":"#86efac"},{"name":"Select Rivalry","color":"#86efac"},{"name":"View Rivalry
+      History","color":"#86efac"}],"slices":[{"name":"V1","stories":[[],[{"name":"Choose open Cookoff on Guest Home
+      page","body":"Only those where he is invited to are visible"},{"name":"Correct selection if wrongly
+      clicked"}],[{"name":"Rate dishes from 1 to 5","body":"There are 3 Categories\n- Mundgefühl\n- Tellersprache\n-
+      Geschmack\n\nIn each Category for each cook, you can give 1 to 5 stars"}],[{"name":"Ask Guest if he is really sure
+      about his ranking"},{"name":"Show thank you page"},{"name":"Get back to home screen"}],[],[],[{"name":"Choose
+      REVEALED CookOff on Guest Home page","body":"only ones the guest took part of"},{"name":"Correct selection if
+      wrongly clicked"}],[{"name":"Show winner and scores per category"},{"name":"Show names of cooks"},{"name":"Show
+      plate colors"},{"name":"Show points of cook rivalries"},{"name":"Get Back to guests home
+      page"}],[],[],[{"name":"Choose Open Cookoff where Cook is assigned"},{"name":"Correct wrongly click
+      selection"}],[{"name":"Show available Plate colors"}],[{"name":"Ask if he is really sure to choose plate
+      color"},{"name":""}],[],[],[{"name":"Show only REVEALED cookoffs where he took part"},{"name":"Correct selection
+      if wrongly clicked"}],[{"name":"Show winner and scores per category"},{"name":"Show names of cooks"},{"name":"Show
+      plate colors"},{"name":"Show points of cook rivalries"},{"name":"Get Back to guests home
+      page"}],[],[],[],[{"name":"See who already submitted and who didn't submit yet"}],[],[],[],[{"name":"Add
+      guests"},{"name":"Remove guests"}],[{"name":"Add cook"},{"name":"Remove cook"}],[{"name":"Generate registration QR
+      code"},{"name":"Send email invite links to guests and cooks"}],[],[],[{"name":"Choose a picture"},{"name":"Enter a
+      title"},{"name":"Enter a dish name"}],[{"name":"Choose the 2 cooks"}],[{"name":"Choose the
+      guests"}],[{"name":"Save the Cookoff"}],[],[],[{"name":"Choose REVEALED CookOff organized by him","body":"only
+      ones he organized"},{"name":"Correct selection if wrongly clicked"}],[{"name":"Show winner and scores per
+      category"},{"name":"Show names of cooks"},{"name":"Show plate colors"},{"name":"Show points of cook
+      rivalries"},{"name":"Get back to organizer home page"}],[],[],[{"name":"Choose REVEALED CookOff organized by
+      him","body":"only ones he organized"},{"name":"Correct selection if wrongly clicked"}],[{"name":"Ask if he is
+      really sure to unreveal the Cookoff"},{"name":"Set Cookoff status back to not revealed"}],[],[],[{"name":"List all
+      cook rivalries with overall score"}],[{"name":"Choose a rivalry between two specific cooks"}],[{"name":"Show open
+      Cookoffs between the two cooks"},{"name":"Show closed Cookoffs between the two
+      cooks"}]]}],"legend":[{"color":"#fef08a","label":"Tasks"},{"color":"#a5f3fc","label":"Notes"},{"color":"#bef264","label":"Questions"},{"color":"#fecdd3","label":"Edge
+      cases"}],"notes":"Thanks for trying Storymaps.io! \n\nIf you find it useful, please consider starring the
+      open-source repo: https://github.com/jackgleeson/storymaps.io\n\nHave a great
+      day!","partialMaps":[{"id":"spjn54i2","name":"Guest Or Cook Login Partial","users":[[{"name":"Guest Or
+      Cook","color":"#fca5a5"}],[]],"activities":[[{"name":"Login","color":"#93c5fd"}],[]],"steps":[{"name":"Receive
+      Email","color":"#86efac"},{"name":"Login via Link","color":"#86efac"}],"stories":[[[{"name":"Get invitation email
+      with unique link"}],[{"name":"Click link to be logged in automatically"}]]]},{"id":"zqqpizg6","name":"Organizer Or
+      Admin Login Partial","users":[[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}]],"activities":[[{"name":"Login","color":"#93c5fd"}]],"steps":[{"name":"Login via
+      username and password","color":"#86efac"}],"stories":[[[{"name":"Enter username and
+      password"}]]]},{"id":"6tv2x81c","name":"Organizer Select Own CookOff Partial","users":[[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}]],"activities":[[]],"steps":[{"name":"Select Own
+      CookOff","color":"#86efac"}],"stories":[[[{"name":"See only Cookoffs organized by him"}]]]}]}
+  - id: c702087705f4
+    timestamp: "2026-08-09T13:42:38.039Z"
+    note: "Auto: before import"
+    data: >-
+      {"app":"storymap","v":1,"name":"Cookoff","users":[[],[{"name":"Guest","color":"#fca5a5"}],[],[],[],[],[{"name":"Guest","color":"#fca5a5"}],[],[],[],[{"name":"Cook","color":"#fca5a5"}],[],[],[],[],[{"name":"Cook","color":"#fca5a5"}],[],[],[],[],[{"name":"Organizer
+      Or Admin","color":"#fca5a5"}],[],[],[],[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}],[],[],[],[],[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}],[],[],[],[],[],[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}],[],[],[],[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}],[],[],[],[{"name":"Admin","color":"#fca5a5"}],[],[],[],[],[],[{"name":"Admin","color":"#fca5a5"}],[],[],[],[{"name":"Admin","color":"#fca5a5"}],[]],"activities":[[],[{"name":"Submit
+      Score","color":"#93c5fd"}],[],[],[],[],[{"name":"Show Results","color":"#93c5fd"}],[],[],[],[{"name":" Choose
+      Plate Color","color":"#93c5fd"}],[],[],[],[],[{"name":"Show
+      Results","color":"#93c5fd"}],[],[],[],[],[{"name":"Monitor Voting
+      Progress","color":"#93c5fd"}],[],[],[],[{"name":"Manage & onboard Cookoff
+      participants","color":"#93c5fd"}],[],[],[],[],[{"name":"Create
+      Cookoff","color":"#93c5fd"}],[],[],[],[],[],[{"name":"Show
+      Results","color":"#93c5fd"}],[],[],[],[{"name":"Unreveal Cookoff","color":"#93c5fd"}],[],[],[],[{"name":"View Cook
+      Rivalries","color":"#93c5fd"}],[],[],[],[],[],[{"name":"Create User","color":"#93c5fd"}],[],[],[],[{"name":"Manage
+      Users","color":"#93c5fd"}],[]],"steps":[{"partialMapId":"19o5fvyx","partialMapOrigin":true},{"name":"Select
+      CookOff","color":"#86efac"},{"name":"Rate Plates","color":"#86efac"},{"name":"Confirm
+      Submission","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"19o5fvyx"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"19o5fvyx"},{"name":"Select
+      Open CookOff","color":"#86efac"},{"name":"View Available Plate Colors","color":"#86efac"},{"name":"Assign Plate
+      Color","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"19o5fvyx"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"fpxaj9l6","partialMapOrigin":true},{"partialMapId":"l82v6vxu","partialMapOrigin":true},{"name":"View
+      Voting
+      Status","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"fpxaj9l6"},{"partialMapId":"l82v6vxu"},{"name":"Edit
+      Guests","color":"#86efac"},{"name":"Edit Cooks","color":"#86efac"},{"name":"Invite
+      Participants","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"fpxaj9l6"},{"name":"Enter
+      Cookoff Details","color":"#86efac"},{"name":"Assign Cooks","color":"#86efac"},{"name":"Assign
+      Guests","color":"#86efac"},{"name":"Confirm
+      Creation","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"fpxaj9l6"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Show Results: Look at
+      Results","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"fpxaj9l6"},{"name":"Select
+      REVEALED CookOff","color":"#86efac"},{"name":"Unreveal
+      Cookoff","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"fpxaj9l6"},{"name":"Show
+      Rivalries","color":"#86efac"},{"name":"Select Rivalry","color":"#86efac"},{"name":"View Rivalry
+      History","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"fpxaj9l6"},{"partialMapId":"idzug5ah","partialMapOrigin":true},{"name":"Add
+      Account","color":"#86efac"},{"name":"","color":"#e5e7eb","hidden":true},{"partialMapId":"fpxaj9l6"},{"partialMapId":"idzug5ah"},{"name":"Select
+      Account","color":"#86efac"},{"name":"Edit
+      Account","color":"#86efac"}],"slices":[{"name":"V1","stories":[[],[{"name":"Choose open Cookoff on Guest Home
+      page","body":"Only those where he is invited to are visible"},{"name":"Correct selection if wrongly
+      clicked"}],[{"name":"Rate dishes from 1 to 5","body":"There are 3 Categories\n- Mundgefühl\n- Tellersprache\n-
+      Geschmack\n\nIn each Category for each cook, you can give 1 to 5 stars"}],[{"name":"Ask Guest if he is really sure
+      about his ranking"},{"name":"Show thank you page"},{"name":"Get back to home screen"}],[],[],[{"name":"Choose
+      REVEALED CookOff on Guest Home page","body":"only ones the guest took part of"},{"name":"Correct selection if
+      wrongly clicked"}],[{"name":"Show winner and scores per category"},{"name":"Show names of cooks"},{"name":"Show
+      plate colors"},{"name":"Show points of cook rivalries"},{"name":"Get Back to guests home
+      page"}],[],[],[{"name":"Choose Open Cookoff where Cook is assigned"},{"name":"Correct wrongly click
+      selection"}],[{"name":"Show available Plate colors"}],[{"name":"Ask if he is really sure to choose plate
+      color"},{"name":""}],[],[],[{"name":"Show only REVEALED cookoffs where he took part"},{"name":"Correct selection
+      if wrongly clicked"}],[{"name":"Show winner and scores per category"},{"name":"Show names of cooks"},{"name":"Show
+      plate colors"},{"name":"Show points of cook rivalries"},{"name":"Get Back to guests home
+      page"}],[],[],[],[{"name":"See who already submitted and who didn't submit yet"}],[],[],[],[{"name":"Add
+      guests"},{"name":"Remove guests"}],[{"name":"Add cook"},{"name":"Remove cook"}],[{"name":"Generate registration QR
+      code"},{"name":"Send email invite links to guests and cooks"}],[],[],[{"name":"Choose a picture"},{"name":"Enter a
+      title"},{"name":"Enter a dish name"}],[{"name":"Choose the 2 cooks"}],[{"name":"Choose the
+      guests"}],[{"name":"Save the Cookoff"}],[],[],[{"name":"Choose REVEALED CookOff organized by him","body":"only
+      ones he organized"},{"name":"Correct selection if wrongly clicked"}],[{"name":"Show winner and scores per
+      category"},{"name":"Show names of cooks"},{"name":"Show plate colors"},{"name":"Show points of cook
+      rivalries"},{"name":"Get back to organizer home page"}],[],[],[{"name":"Choose REVEALED CookOff organized by
+      him","body":"only ones he organized"},{"name":"Correct selection if wrongly clicked"}],[{"name":"Ask if he is
+      really sure to unreveal the Cookoff"},{"name":"Set Cookoff status back to not revealed"}],[],[],[{"name":"List all
+      cook rivalries with overall score"}],[{"name":"Choose a rivalry between two specific cooks"}],[{"name":"Show open
+      Cookoffs between the two cooks"},{"name":"Show closed Cookoffs between the two cooks"}],[],[],[],[{"name":"Enter
+      first name"},{"name":"Enter last name"},{"name":"Enter mail address"},{"name":"Choose role (Admin, Organizer or
+      User)"}],[],[],[],[{"name":"Choose an account to edit"}],[{"name":"Change first name"},{"name":"Change last
+      name"},{"name":"Change mail address"},{"name":"Change role (Admin, Organizer or
+      User)"}]]}],"legend":[{"color":"#fef08a","label":"Tasks"},{"color":"#a5f3fc","label":"Notes"},{"color":"#bef264","label":"Questions"},{"color":"#fecdd3","label":"Edge
+      cases"}],"notes":"Thanks for trying Storymaps.io! \n\nIf you find it useful, please consider starring the
+      open-source repo: https://github.com/jackgleeson/storymaps.io\n\nHave a great
+      day!","partialMaps":[{"id":"19o5fvyx","name":"Guest Or Cook Login Partial","users":[[{"name":"Guest Or
+      Cook","color":"#fca5a5"}],[]],"activities":[[{"name":"Login","color":"#93c5fd"}],[]],"steps":[{"name":"Receive
+      Email","color":"#86efac"},{"name":"Login via Link","color":"#86efac"}],"stories":[[[{"name":"Get invitation email
+      with unique link"}],[{"name":"Click link to be logged in automatically"}]]]},{"id":"fpxaj9l6","name":"Organizer Or
+      Admin Login Partial","users":[[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}]],"activities":[[{"name":"Login","color":"#93c5fd"}]],"steps":[{"name":"Login via
+      username and password","color":"#86efac"}],"stories":[[[{"name":"Enter username and
+      password"}]]]},{"id":"l82v6vxu","name":"Organizer Select Own CookOff Partial","users":[[{"name":"Organizer Or
+      Admin","color":"#fca5a5"}]],"activities":[[]],"steps":[{"name":"Select Own
+      CookOff","color":"#86efac"}],"stories":[[[{"name":"See only Cookoffs organized by
+      him"}]]]},{"id":"idzug5ah","name":"Show Accounts
+      Partial","users":[[{"name":"Admin","color":"#fca5a5"}]],"activities":[[{"name":"Manage
+      Accounts","color":"#93c5fd"}]],"steps":[{"name":"Show Accounts","color":"#86efac"}],"stories":[[[{"name":"See
+      combined name, email and role for each account"}]]]}]}
