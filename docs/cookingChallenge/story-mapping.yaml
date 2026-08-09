@@ -221,7 +221,7 @@ legend:
   - color: "#fecdd3"
     label: Edge cases
 slices:
-  - name: V1
+  - name: Walking Skeleton
     stories:
       Select CookOff:
         - name: Choose open Cookoff on Guest Home page
@@ -236,14 +236,10 @@ slices:
             - Geschmack
 
             In each Category for each cook, you can give 1 to 5 stars
-        - name: Edit already submitted scores
-          body: Allowed as long as the Cookoff has not been revealed yet
       Confirm Submission:
         - name: Ask Guest if he is really sure about his ranking
         - name: Show thank you page
         - name: Get back to home screen
-        - name: "[Edge case] Block resubmission if guest already voted for this Cookoff"
-          color: "#fecdd3"
       Show Results:[0] Select REVEALED CookOff:
         - name: Choose REVEALED CookOff on Guest Home page
           body: only ones the guest took part of
@@ -279,8 +275,6 @@ slices:
         - name: Ask organizer to confirm before revealing results
         - name: Set Cookoff status to revealed
         - name: Notify guests and cooks that results are available
-        - name: "[Edge case] Warn organizer if not all guests have submitted votes yet"
-          color: "#fecdd3"
       Edit Guests:
         - name: Add guests
         - name: Remove guests
@@ -288,10 +282,7 @@ slices:
         - name: Add cook
         - name: Remove cook
       Invite Participants:
-        - name: Generate registration QR code
         - name: Open scoring by clicking "Send Links" to email invite links to guests and cooks
-        - name: "[Edge case] Show error if QR code or invite link has expired"
-          color: "#fecdd3"
       Enter Cookoff Details:
         - name: Choose a picture
         - name: Enter a title
@@ -302,16 +293,6 @@ slices:
         - name: Choose the guests
       Confirm Creation:
         - name: Save the Cookoff
-      Scan QR Code:
-        - name: Scan QR code provided by organizer or admin
-        - name: "[Edge case] Show error if QR code has expired or is invalid"
-      Register Guest Details:
-        - name: Enter first name
-        - name: Enter last name
-        - name: Enter email address
-        - name: Automatically assign guest to the Cookoff
-        - name: Show message that he will get a mail once the organizer opens scoring for the Cookoff
-        - name: "[Edge case] Prevent duplicate registration if guest already registered for this Cookoff"
       Show Results:[2] Select REVEALED CookOff:
         - name: Choose REVEALED CookOff organized by him
           body: only ones he organized
@@ -322,6 +303,20 @@ slices:
         - name: Show plate colors
         - name: Show points of cook rivalries
         - name: Get back to organizer home page
+  - name: V1
+    stories:
+      Rate Plates:
+        - name: Edit already submitted scores
+          body: Allowed as long as the Cookoff has not been revealed yet
+      Confirm Submission:
+        - name: "[Edge case] Block resubmission if guest already voted for this Cookoff"
+          color: "#fecdd3"
+      Reveal Cookoff:
+        - name: "[Edge case] Warn organizer if not all guests have submitted votes yet"
+          color: "#fecdd3"
+      Invite Participants:
+        - name: "[Edge case] Show error if invite link has expired"
+          color: "#fecdd3"
       "Unreveal Cookoff: Select REVEALED CookOff":
         - name: Choose REVEALED CookOff organized by him
           body: only ones he organized
@@ -329,13 +324,6 @@ slices:
       Unreveal Cookoff:
         - name: Ask if he is really sure to unreveal the Cookoff
         - name: Set Cookoff status back to not revealed
-      Show Rivalries:
-        - name: List all cook rivalries with overall score
-      Select Rivalry:
-        - name: Choose a rivalry between two specific cooks
-      View Rivalry History:
-        - name: Show open Cookoffs between the two cooks
-        - name: Show closed Cookoffs between the two cooks
       Add Account:
         - name: Enter first name
         - name: Enter last name
@@ -350,6 +338,29 @@ slices:
         - name: Change role (Admin, Organizer or User)
         - name: "[Question] Should admins be able to deactivate or delete an account?"
           color: "#bef264"
+  - name: V2
+    stories:
+      Invite Participants:
+        - name: Generate registration QR code
+      Scan QR Code:
+        - name: Scan QR code provided by organizer or admin
+        - name: "[Edge case] Show error if QR code has expired or is invalid"
+          color: "#fecdd3"
+      Register Guest Details:
+        - name: Enter first name
+        - name: Enter last name
+        - name: Enter email address
+        - name: Automatically assign guest to the Cookoff
+        - name: Show message that he will get a mail once the organizer opens scoring for the Cookoff
+        - name: "[Edge case] Prevent duplicate registration if guest already registered for this Cookoff"
+          color: "#fecdd3"
+      Show Rivalries:
+        - name: List all cook rivalries with overall score
+      Select Rivalry:
+        - name: Choose a rivalry between two specific cooks
+      View Rivalry History:
+        - name: Show open Cookoffs between the two cooks
+        - name: Show closed Cookoffs between the two cooks
 notes: |-
   Thanks for trying Storymaps.io! 
 
