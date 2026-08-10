@@ -1,3 +1,8 @@
+# Progress convention (added 2026-08-10, not a storymaps.io field): a "✅ " prefix on a
+# story's name means it's verified shipped, checked against the actual API/backend/frontend,
+# not just planned. Stories with no prefix are either not yet built, marked
+# "[Not implemented]"/"[Descoped ...]" with an explanation, or a "[Question]"/"[Edge case]"
+# still open. See the story-mapping-audit commits for the underlying investigation.
 name: Cookoff
 id: 353psdwu
 site: storymaps.io
@@ -103,10 +108,10 @@ partials:
         step: Receive Email
     stories:
       Receive Email:
-        - name: Get invitation email with unique link
+        - name: "✅ Get invitation email with unique link"
       Login via Link:
-        - name: Click link to be logged in automatically
-        - name: "[Edge case] Show error if link is expired or already used"
+        - name: "✅ Click link to be logged in automatically"
+        - name: "✅ [Edge case] Show error if link is expired or already used"
           color: "#fecdd3"
   organizer-or-admin-login-partial:
     name: Organizer Or Admin Login Partial
@@ -122,8 +127,8 @@ partials:
         step: Login via username and password
     stories:
       Login via username and password:
-        - name: Enter username and password
-        - name: "[Edge case] Show error on invalid credentials"
+        - name: "✅ Enter username and password"
+        - name: "✅ [Edge case] Show error on invalid credentials"
           color: "#fecdd3"
   organizer-select-own-cookoff-partial:
     name: Organizer Select Own CookOff Partial
@@ -135,7 +140,8 @@ partials:
         step: Select Own CookOff
     stories:
       Select Own CookOff:
-        - name: See only Cookoffs organized by him
+        - name: "✅ See only Cookoffs organized by him"
+          body: "Fixed 2026-08-10 — see the story-mapping-audit commit."
   show-accounts-partial:
     name: Show Accounts Partial
     steps:
@@ -150,7 +156,7 @@ partials:
         step: Show Accounts
     stories:
       Show Accounts:
-        - name: See combined name, email and role for each account
+        - name: "✅ See combined name, email and role for each account"
 steps:
   - partial: guest-or-cook-login-partial
   - Select CookOff
@@ -224,11 +230,11 @@ slices:
   - name: Walking Skeleton
     stories:
       Select CookOff:
-        - name: Choose open Cookoff on Guest Home page
+        - name: "✅ Choose open Cookoff on Guest Home page"
           body: Only those where he is invited to are visible
-        - name: Correct selection if wrongly clicked
+        - name: "✅ Correct selection if wrongly clicked"
       Rate Plates:
-        - name: Rate dishes from 1 to 5
+        - name: "✅ Rate dishes from 1 to 5"
           body: |-
             There are 3 Categories
             - Mundgefühl
@@ -237,79 +243,85 @@ slices:
 
             In each Category for each cook, you can give 1 to 5 stars
       Confirm Submission:
-        - name: Ask Guest if he is really sure about his ranking
-        - name: Show thank you page
-        - name: Get back to home screen
+        - name: "[Not implemented] Ask Guest if he is really sure about his ranking"
+          body: Audited 2026-08-10 — Submit scores posts immediately, no confirm dialog.
+        - name: "[Not implemented] Show thank you page"
+          body: Audited 2026-08-10 — a toast notification + redirect to /home, no dedicated page.
+        - name: "✅ Get back to home screen"
       Show Results:[0] Select REVEALED CookOff:
-        - name: Choose REVEALED CookOff on Guest Home page
+        - name: "✅ Choose REVEALED CookOff on Guest Home page"
           body: only ones the guest took part of
-        - name: Correct selection if wrongly clicked
+        - name: "✅ Correct selection if wrongly clicked"
       "Show Results:[0] Show Results: Look at Results":
-        - name: Show winner and scores per category
-        - name: Show names of cooks
-        - name: Show plate colors
-        - name: Show points of cook rivalries
-        - name: Get Back to guests home page
+        - name: "✅ Show winner and scores per category"
+        - name: "✅ Show names of cooks"
+        - name: "✅ Show plate colors"
+        - name: "✅ Show points of cook rivalries"
+        - name: "[Not implemented] Get Back to guests home page"
+          body: Audited 2026-08-10 — ParticipantShell has no nav chrome and this screen has no back link; only the browser back button works.
       Select Open CookOff:
-        - name: Choose Open Cookoff where Cook is assigned
-        - name: Correct wrongly click selection
+        - name: "✅ Choose Open Cookoff where Cook is assigned"
+        - name: "✅ Correct wrongly click selection"
       View Available Plate Colors:
-        - name: Show available Plate colors
+        - name: "✅ Show available Plate colors"
       Assign Plate Color:
-        - name: Ask if he is really sure to choose plate color
+        - name: "✅ Ask if he is really sure to choose plate color"
         - name: ""
-        - name: "[Edge case] Prevent choosing a color already taken by the other cook"
+        - name: "✅ [Edge case] Prevent choosing a color already taken by the other cook"
           color: "#fecdd3"
       Show Results:[1] Select REVEALED CookOff:
-        - name: Show only REVEALED cookoffs where he took part
-        - name: Correct selection if wrongly clicked
+        - name: "✅ Show only REVEALED cookoffs where he took part"
+        - name: "✅ Correct selection if wrongly clicked"
       "Show Results:[1] Show Results: Look at Results":
-        - name: Show winner and scores per category
-        - name: Show names of cooks
-        - name: Show plate colors
-        - name: Show points of cook rivalries
-        - name: Get Back to guests home page
+        - name: "✅ Show winner and scores per category"
+        - name: "✅ Show names of cooks"
+        - name: "✅ Show plate colors"
+        - name: "✅ Show points of cook rivalries"
+        - name: "[Not implemented] Get Back to guests home page"
+          body: Audited 2026-08-10 — same gap as Show Results:[0] above.
       View Voting Status:
-        - name: See who already submitted and who didn't submit yet
+        - name: "✅ See who already submitted and who didn't submit yet"
       Reveal Cookoff:
-        - name: Ask organizer to confirm before revealing results
-        - name: Set Cookoff status to revealed
+        - name: "✅ Ask organizer to confirm before revealing results"
+        - name: "✅ Set Cookoff status to revealed"
         - name: "[Descoped 2026-08-10, see Backlog slice] Notify guests and cooks that results are available"
       Edit Guests:
-        - name: Add guests
-        - name: Remove guests
+        - name: "✅ Add guests"
+        - name: "✅ Remove guests"
       Edit Cooks:
-        - name: Add cook
-        - name: Remove cook
+        - name: "✅ Add cook"
+        - name: "✅ Remove cook"
+          body: Implemented as reassignment (swap the cook in a slot), not removal to an empty slot — a Challenge always has exactly two cook slots.
       Invite Participants:
-        - name: Open scoring by clicking "Send Links" to email invite links to guests and cooks
+        - name: "✅ Open scoring by clicking \"Send Links\" to email invite links to guests and cooks"
       Enter Cookoff Details:
-        - name: Choose a picture
-        - name: Enter a title
-        - name: Enter a dish name
+        - name: "✅ Choose a picture"
+        - name: "✅ Enter a title"
+        - name: "✅ Enter a dish name"
       Assign Cooks:
-        - name: Choose the 2 cooks
+        - name: "✅ Choose the 2 cooks"
       Assign Guests:
-        - name: Choose the guests
+        - name: "✅ Choose the guests"
       Confirm Creation:
-        - name: Save the Cookoff
+        - name: "✅ Save the Cookoff"
       Show Results:[2] Select REVEALED CookOff:
-        - name: Choose REVEALED CookOff organized by him
-          body: only ones he organized
-        - name: Correct selection if wrongly clicked
+        - name: "✅ Choose REVEALED CookOff organized by him"
+          body: "only ones he organized — fixed 2026-08-10, see the story-mapping-audit commit"
+        - name: "✅ Correct selection if wrongly clicked"
       "Show Results:[2] Show Results: Look at Results":
-        - name: Show winner and scores per category
-        - name: Show names of cooks
-        - name: Show plate colors
-        - name: Show points of cook rivalries
-        - name: Get back to organizer home page
+        - name: "✅ Show winner and scores per category"
+        - name: "✅ Show names of cooks"
+        - name: "✅ Show plate colors"
+        - name: "✅ Show points of cook rivalries"
+        - name: "✅ Get back to organizer home page"
+          body: Via the persistent OrganizerShell toolbar (History/Accounts/Rivalries), not a dedicated back link.
   - name: V1
     stories:
       Rate Plates:
-        - name: Edit already submitted scores
+        - name: "✅ Edit already submitted scores"
           body: Allowed as long as the Cookoff has not been revealed yet
       Confirm Submission:
-        - name: "[Edge case] Block resubmission once the Cookoff has been revealed"
+        - name: "✅ [Edge case] Block resubmission once the Cookoff has been revealed"
           body: |-
             Corrected 2026-08-10: this used to say "if guest already voted", which
             contradicted the "Edit already submitted scores" story above (edit-until-reveal
@@ -320,52 +332,54 @@ slices:
         - name: "[Descoped 2026-08-10, see Backlog slice] [Edge case] Warn organizer if not all guests have submitted votes yet"
           color: "#fecdd3"
       Invite Participants:
-        - name: "[Edge case] Show error if invite link has expired"
+        - name: "✅ [Edge case] Show error if invite link has expired"
           color: "#fecdd3"
       "Unreveal Cookoff: Select REVEALED CookOff":
-        - name: Choose REVEALED CookOff organized by him
-          body: only ones he organized
-        - name: Correct selection if wrongly clicked
+        - name: "✅ Choose REVEALED CookOff organized by him"
+          body: "only ones he organized — fixed 2026-08-10, see the story-mapping-audit commit"
+        - name: "✅ Correct selection if wrongly clicked"
       Unreveal Cookoff:
-        - name: Ask if he is really sure to unreveal the Cookoff
-        - name: Set Cookoff status back to not revealed
+        - name: "✅ Ask if he is really sure to unreveal the Cookoff"
+        - name: "✅ Set Cookoff status back to not revealed"
       Add Account:
-        - name: Enter first name
-        - name: Enter last name
-        - name: Enter mail address
-        - name: Choose role (Admin, Organizer or User)
+        - name: "✅ Enter first name"
+        - name: "✅ Enter last name"
+        - name: "✅ Enter mail address"
+        - name: "✅ Choose role (Admin, Organizer or User)"
       Select Account:
-        - name: Choose an account to edit
+        - name: "✅ Choose an account to edit"
       Edit Account:
-        - name: Change first name
-        - name: Change last name
-        - name: Change mail address
-        - name: Change role (Admin, Organizer or User)
+        - name: "✅ Change first name"
+        - name: "✅ Change last name"
+        - name: "✅ Change mail address"
+        - name: "✅ Change role (Admin, Organizer or User)"
         - name: "[Question] Should admins be able to deactivate or delete an account?"
           color: "#bef264"
   - name: V2
     stories:
       Invite Participants:
-        - name: Generate registration QR code
+        - name: "✅ Generate registration QR code"
       Scan QR Code:
-        - name: Scan QR code provided by organizer or admin
-        - name: "[Edge case] Show error if QR code has expired or is invalid"
+        - name: "✅ Scan QR code provided by organizer or admin"
+        - name: "✅ [Edge case] Show error if QR code has expired or is invalid"
           color: "#fecdd3"
       Register Guest Details:
-        - name: Enter first name
-        - name: Enter last name
-        - name: Enter email address
-        - name: Automatically assign guest to the Cookoff
-        - name: Show message that he will get a mail once the organizer opens scoring for the Cookoff
-        - name: "[Edge case] Prevent duplicate registration if guest already registered for this Cookoff"
+        - name: "✅ Enter first name"
+        - name: "✅ Enter last name"
+        - name: "✅ Enter email address"
+        - name: "✅ Automatically assign guest to the Cookoff"
+        - name: "✅ Show message that he will get a mail once the organizer opens scoring for the Cookoff"
+          body: "Copy fixed 2026-08-10 to match this wording — see the story-mapping-audit commit."
+        - name: "✅ [Edge case] Prevent duplicate registration if guest already registered for this Cookoff"
           color: "#fecdd3"
       Show Rivalries:
-        - name: List all cook rivalries with overall score
+        - name: "✅ List all cook rivalries with overall score"
+          body: "Feature works; the access-scope gap (should be Admin-only) is tracked separately in the Backlog slice."
       Select Rivalry:
-        - name: Choose a rivalry between two specific cooks
+        - name: "✅ Choose a rivalry between two specific cooks"
       View Rivalry History:
-        - name: Show open Cookoffs between the two cooks
-        - name: Show closed Cookoffs between the two cooks
+        - name: "✅ Show open Cookoffs between the two cooks"
+        - name: "✅ Show closed Cookoffs between the two cooks"
   - name: Backlog (not yet scheduled)
     stories:
       Reveal Cookoff:
