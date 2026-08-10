@@ -1,0 +1,49 @@
+@switch (state()) {
+  @case ('loading') {
+    <app-page-header title="Rivalry" />
+    <app-loading-skeleton [lines]="4" />
+  }
+  @case ('error') {
+    <app-page-header title="Rivalry" />
+    <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="load()" />
+  }
+  @case ('loaded') {
+    @if (rivalry(); as rivalry) {
+      <app-page-header kicker="Head-to-head" [title]="rivalry.cookAName + ' vs ' + rivalry.cookBName" />
+
+      <p class="rivalry-detail__headline">{{ rivalry.headline }}</p>
+      <dl class="rivalry-detail__record">
+        <div>
+          <dt>{{ rivalry.cookAName }}</dt>
+          <dd>{{ rivalry.cookAWins }}</dd>
+        </div>
+        <div>
+          <dt>Draws</dt>
+          <dd>{{ rivalry.draws }}</dd>
+        </div>
+        <div>
+          <dt>{{ rivalry.cookBName }}</dt>
+          <dd>{{ rivalry.cookBWins }}</dd>
+        </div>
+      </dl>
+
+      <ul class="rivalry-detail__challenges">
+        @for (challenge of rivalry.challenges; track challenge.id) {
+          <li class="rivalry-detail__challenge">
+            <a [routerLink]="['/challenges', challenge.id]" class="rivalry-detail__challenge-link">
+              <span class="rivalry-detail__challenge-title">{{ challenge.title }}</span>
+              <span class="rivalry-detail__challenge-date">{{ challenge.date }}</span>
+            </a>
+            <app-status-tag [status]="challenge.status" />
+            @if (winnerName(rivalry, challenge.overallWinnerAccountId); as winner) {
+              <span class="rivalry-detail__winner">
+                <mat-icon aria-hidden="true">emoji_events</mat-icon>
+                {{ winner }}
+              </span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  }
+}

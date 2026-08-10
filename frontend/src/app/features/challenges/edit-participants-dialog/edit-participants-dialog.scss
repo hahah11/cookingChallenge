@@ -1,0 +1,36 @@
+.edit-participants-dialog__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-2);
+  min-width: min(480px, 90vw);
+}
+
+.edit-participants-dialog__cooks {
+  display: flex;
+  gap: var(--md-sys-spacing-3);
+}
+
+.edit-participants-dialog__cooks mat-form-field {
+  flex: 1;
+}
+
+.edit-participants-dialog__guests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.edit-participants-dialog__guests legend {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+  padding: 0 0 var(--md-sys-spacing-1);
+}
+
+.edit-participants-dialog__error {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-error);
+}

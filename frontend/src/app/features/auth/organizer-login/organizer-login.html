@@ -1,0 +1,35 @@
+<app-page-header kicker="CookingChallenge" title="Organizer log in" />
+
+<p class="organizer-login__note">
+  Cooks and guests don't log in here — they get a personalized link by email for each challenge.
+</p>
+
+<form class="organizer-login__form" (submit)="$event.preventDefault(); onSubmit()" novalidate>
+  <mat-form-field appearance="outline">
+    <mat-label>Email</mat-label>
+    <input matInput type="email" autocomplete="email" [formField]="loginForm.email" />
+    @if (loginForm.email().touched() && loginForm.email().invalid()) {
+      <mat-error>{{ loginForm.email().errors()[0]?.message }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Password</mat-label>
+    <input matInput type="password" autocomplete="current-password" [formField]="loginForm.password" />
+    @if (loginForm.password().touched() && loginForm.password().invalid()) {
+      <mat-error>{{ loginForm.password().errors()[0]?.message }}</mat-error>
+    }
+  </mat-form-field>
+
+  @if (loginError(); as message) {
+    <p class="organizer-login__error" role="alert">{{ message }}</p>
+  }
+
+  <button mat-flat-button type="submit" class="organizer-login__submit" [disabled]="submitting()">
+    @if (submitting()) {
+      <mat-spinner diameter="20" />
+    } @else {
+      Log in
+    }
+  </button>
+</form>

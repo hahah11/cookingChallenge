@@ -1,0 +1,35 @@
+<app-page-header kicker="Cook-off history" title="Challenges">
+  <button mat-flat-button type="button" actions (click)="openNewChallengeDialog()">
+    <mat-icon aria-hidden="true">add</mat-icon>
+    New challenge
+  </button>
+</app-page-header>
+
+@switch (state()) {
+  @case ('loading') {
+    <app-loading-skeleton variant="card" [lines]="3" />
+  }
+  @case ('error') {
+    <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="load()" />
+  }
+  @case ('loaded') {
+    @if (challenges().length === 0) {
+      <app-empty-state icon="restaurant_menu" message="No challenges yet — start your first cook-off.">
+        <button mat-flat-button type="button" (click)="openNewChallengeDialog()">New challenge</button>
+      </app-empty-state>
+    } @else {
+      <div class="challenge-history__grid">
+        @for (challenge of challenges(); track challenge.id) {
+          <app-challenge-card [challenge]="challenge" (open)="openChallenge($event)" />
+        }
+      </div>
+      <mat-paginator
+        [length]="totalElements()"
+        [pageSize]="pageSize"
+        [pageIndex]="page()"
+        [hidePageSize]="true"
+        (page)="onPage($event)"
+      />
+    }
+  }
+}

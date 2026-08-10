@@ -1,0 +1,126 @@
+@if (revealing()) {
+  <div class="challenge-detail__reveal-overlay" role="status" aria-live="polite">
+    <span class="challenge-detail__reveal-text">Revealed!</span>
+  </div>
+}
+
+@switch (loadState()) {
+  @case ('loading') {
+    <app-loading-skeleton [lines]="4" />
+  }
+  @case ('error') {
+    <app-error-state [message]="loadErrorMessage()" [retryable]="true" (retry)="loadChallenge()" />
+  }
+  @case ('loaded') {
+    @if (challenge(); as challenge) {
+      <app-page-header [title]="challenge.dishName" [kicker]="challenge.date">
+        <app-status-tag actions [status]="challenge.status" />
+      </app-page-header>
+
+      <div class="challenge-detail__header">
+        <app-challenge-photo
+          class="challenge-detail__photo"
+          [challengeId]="challenge.id"
+          [hasImage]="challenge.hasImage"
+          [alt]="challenge.dishName"
+        />
+        <div class="challenge-detail__meta">
+          <p class="challenge-detail__event">{{ challenge.title }}</p>
+          <p class="challenge-detail__cooks">
+            @for (cook of challenge.cookAssignments; track cook.accountId; let last = $last) {
+              {{ cook.name }}{{ !last ? ' & ' : '' }}
+            }
+          </p>
+        </div>
+      </div>
+
+      @if (challenge.status === ChallengeStatus.OPEN) {
+        <div class="challenge-detail__actions">
+          <button mat-tonal-button type="button" (click)="openSendLinksDialog()">
+            <mat-icon aria-hidden="true">send</mat-icon>
+            Send links
+          </button>
+          <button mat-tonal-button type="button" (click)="openEditParticipantsDialog()">
+            <mat-icon aria-hidden="true">group</mat-icon>
+            Edit cooks & guests
+          </button>
+          <button mat-tonal-button type="button" (click)="openQrDialog()">
+            <mat-icon aria-hidden="true">qr_code</mat-icon>
+            Registration QR code
+          </button>
+          <button mat-flat-button type="button" [disabled]="revealBusy()" (click)="confirmReveal()">
+            <mat-icon aria-hidden="true">visibility</mat-icon>
+            Reveal results
+          </button>
+          @if (linksSentFlash()) {
+            <span class="challenge-detail__links-sent" role="status">Links sent ✓</span>
+          }
+        </div>
+
+        @switch (submissionState()) {
+          @case ('loading') {
+            <app-loading-skeleton [lines]="3" />
+          }
+          @case ('error') {
+            <app-error-state [message]="submissionErrorMessage()" [retryable]="true" (retry)="retrySubmissionStatus()" />
+          }
+          @case ('loaded') {
+            @if (submissionStatus(); as status) {
+              <table class="challenge-detail__guests">
+                <caption class="cc-visually-hidden">Guest submission status</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Guest</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (guest of status.guests; track guest.accountId) {
+                    <tr>
+                      <td>{{ guest.name }}</td>
+                      <td>
+                        <span
+                          class="challenge-detail__guest-tag"
+                          [class.challenge-detail__guest-tag--submitted]="guest.submitted"
+                        >
+                          {{ guest.submitted ? 'Submitted' : 'Pending' }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          }
+        }
+      } @else {
+        @switch (resultState()) {
+          @case ('loading') {
+            <app-loading-skeleton [lines]="4" />
+          }
+          @case ('error') {
+            <app-error-state [message]="resultErrorMessage()" [retryable]="true" (retry)="retryResults()" />
+          }
+          @case ('loaded') {
+            @if (result(); as result) {
+              <app-results-table
+                [cookAssignments]="result.cookAssignments"
+                [categoryTotals]="result.categoryTotals"
+                [categoryWinners]="result.categoryWinners"
+                [overallWinnerAccountId]="result.overallWinnerAccountId"
+                [rivalry]="result.rivalry"
+                [plateColorHex]="plateColorHex()"
+              />
+              <div class="challenge-detail__unreveal">
+                <p>Made a mistake? You can reopen scoring and hide the results again.</p>
+                <button mat-tonal-button type="button" [disabled]="unrevealBusy()" (click)="confirmUnreveal()">
+                  Unreveal
+                </button>
+              </div>
+            }
+          }
+        }
+      }
+    }
+  }
+}

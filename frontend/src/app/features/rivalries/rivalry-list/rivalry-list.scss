@@ -1,0 +1,26 @@
+.rivalry-list__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--md-sys-spacing-4);
+  margin-bottom: var(--md-sys-spacing-6);
+}
+
+.rivalry-list__card {
+  cursor: pointer;
+}
+
+.rivalry-list__card:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.rivalry-list__names {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+.rivalry-list__headline {
+  margin: var(--md-sys-spacing-1) 0 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}

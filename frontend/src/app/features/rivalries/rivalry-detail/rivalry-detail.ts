@@ -1,15 +1,62 @@
-import { Component } from '@angular/core';
+import { Component, effect, inject, input, signal } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 
-import { EmptyState } from '../../../shared/components/empty-state/empty-state';
+import { RivalriesApi, RivalryDetail as RivalryDetailModel } from '../../../core/api/generated';
+import { ApiError } from '../../../core/errors/api-error';
+import { ErrorState } from '../../../shared/components/error-state/error-state';
+import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { StatusTag } from '../../../shared/components/status-tag/status-tag';
 
-/** Placeholder — the rivalry detail screen ships in Phase 5. */
+type LoadState = 'loading' | 'loaded' | 'error';
+
+/** `GET /rivalries/{cookA}/{cookB}` — the pair is canonicalized server-side. */
 @Component({
   selector: 'app-rivalry-detail',
-  imports: [PageHeader, EmptyState],
-  template: `
-    <app-page-header title="Rivalry" />
-    <app-empty-state icon="construction" message="Coming soon." />
-  `
+  imports: [ErrorState, LoadingSkeleton, MatIconModule, PageHeader, RouterLink, StatusTag],
+  templateUrl: './rivalry-detail.html',
+  styleUrl: './rivalry-detail.scss'
 })
-export class RivalryDetail {}
+export class RivalryDetail {
+  private readonly rivalriesApi = inject(RivalriesApi);
+
+  readonly cookA = input.required<string>();
+  readonly cookB = input.required<string>();
+
+  protected readonly state = signal<LoadState>('loading');
+  protected readonly errorMessage = signal('');
+  protected readonly rivalry = signal<RivalryDetailModel | null>(null);
+
+  constructor() {
+    effect(() => {
+      this.cookA();
+      this.cookB();
+      this.load();
+    });
+  }
+
+  protected load(): void {
+    this.state.set('loading');
+    this.rivalriesApi.getRivalryDetail(this.cookA(), this.cookB()).subscribe({
+      next: (response) => {
+        this.rivalry.set(response.data);
+        this.state.set('loaded');
+      },
+      error: (error: ApiError) => {
+        this.errorMessage.set(error.message);
+        this.state.set('error');
+      }
+    });
+  }
+
+  protected winnerName(rivalry: RivalryDetailModel, overallWinnerAccountId: string | null): string | null {
+    if (overallWinnerAccountId === rivalry.cookAAccountId) {
+      return rivalry.cookAName;
+    }
+    if (overallWinnerAccountId === rivalry.cookBAccountId) {
+      return rivalry.cookBName;
+    }
+    return null;
+  }
+}

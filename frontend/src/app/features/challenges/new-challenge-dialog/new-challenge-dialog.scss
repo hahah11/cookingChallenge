@@ -1,0 +1,69 @@
+.new-challenge-dialog__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-2);
+  min-width: min(480px, 90vw);
+}
+
+.new-challenge-dialog__photo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--md-sys-spacing-2);
+  aspect-ratio: 4 / 3;
+  border: 2px dashed var(--mat-sys-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  color: var(--mat-sys-on-surface-variant);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.new-challenge-dialog__photo:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.new-challenge-dialog__photo-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.new-challenge-dialog__photo-remove {
+  position: absolute;
+  top: var(--md-sys-spacing-2);
+  right: var(--md-sys-spacing-2);
+  background: var(--mat-sys-surface);
+}
+
+.new-challenge-dialog__cooks {
+  display: flex;
+  gap: var(--md-sys-spacing-3);
+}
+
+.new-challenge-dialog__cooks mat-form-field {
+  flex: 1;
+}
+
+.new-challenge-dialog__guests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.new-challenge-dialog__guests legend {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+  padding: 0 0 var(--md-sys-spacing-1);
+}
+
+.new-challenge-dialog__error {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-error);
+}

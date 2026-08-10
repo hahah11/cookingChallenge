@@ -1,0 +1,77 @@
+.rivalry-detail__headline {
+  margin: 0 0 var(--md-sys-spacing-4);
+  font: var(--mat-sys-title-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.rivalry-detail__record {
+  display: flex;
+  gap: var(--md-sys-spacing-6);
+  margin: 0 0 var(--md-sys-spacing-6);
+}
+
+.rivalry-detail__record dt {
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.rivalry-detail__record dd {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.rivalry-detail__challenges {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-2);
+}
+
+.rivalry-detail__challenge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--md-sys-spacing-3);
+  padding: var(--md-sys-spacing-3);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+
+.rivalry-detail__challenge-link {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+}
+
+.rivalry-detail__challenge-link:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.rivalry-detail__challenge-title {
+  font: var(--mat-sys-title-medium);
+}
+
+.rivalry-detail__challenge-date {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.rivalry-detail__winner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--md-sys-spacing-1);
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+}
+
+.rivalry-detail__winner mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--mat-sys-primary);
+}

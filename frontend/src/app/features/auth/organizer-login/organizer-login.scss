@@ -1,0 +1,28 @@
+:host {
+  display: block;
+  max-width: 400px;
+  margin-inline: auto;
+}
+
+.organizer-login__note {
+  margin: 0 0 var(--md-sys-spacing-6);
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.organizer-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-1);
+}
+
+.organizer-login__error {
+  margin: 0 0 var(--md-sys-spacing-2);
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-error);
+}
+
+.organizer-login__submit {
+  align-self: flex-start;
+  margin-top: var(--md-sys-spacing-2);
+}

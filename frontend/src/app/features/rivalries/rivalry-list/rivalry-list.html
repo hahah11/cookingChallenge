@@ -1,0 +1,45 @@
+<app-page-header kicker="Head-to-head" title="Rivalries" />
+
+@switch (state()) {
+  @case ('loading') {
+    <app-loading-skeleton variant="card" [lines]="3" />
+  }
+  @case ('error') {
+    <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="load()" />
+  }
+  @case ('loaded') {
+    @if (rivalries().length === 0) {
+      <app-empty-state
+        icon="social_leaderboard"
+        message="No revealed challenges yet — rivalries build up once results come in."
+      />
+    } @else {
+      <div class="rivalry-list__grid">
+        @for (rivalry of rivalries(); track rivalry.cookAAccountId + rivalry.cookBAccountId) {
+          <mat-card
+            appearance="outlined"
+            class="rivalry-list__card"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="'Open ' + rivalry.cookAName + ' vs ' + rivalry.cookBName"
+            (click)="openRivalry(rivalry)"
+            (keydown.enter)="openRivalry(rivalry)"
+            (keydown.space)="$event.preventDefault(); openRivalry(rivalry)"
+          >
+            <mat-card-content>
+              <p class="rivalry-list__names">{{ rivalry.cookAName }} vs {{ rivalry.cookBName }}</p>
+              <p class="rivalry-list__headline">{{ rivalry.headline }}</p>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+      <mat-paginator
+        [length]="totalElements()"
+        [pageSize]="pageSize"
+        [pageIndex]="page()"
+        [hidePageSize]="true"
+        (page)="onPage($event)"
+      />
+    }
+  }
+}

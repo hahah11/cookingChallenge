@@ -1,0 +1,21 @@
+.edit-account-dialog__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-1);
+  min-width: min(420px, 90vw);
+}
+
+.edit-account-dialog__roles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-1);
+  margin: var(--md-sys-spacing-2) 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.edit-account-dialog__roles legend {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+  padding: 0 0 var(--md-sys-spacing-1);
+}

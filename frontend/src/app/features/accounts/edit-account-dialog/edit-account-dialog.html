@@ -1,0 +1,59 @@
+<h2 mat-dialog-title>Edit account</h2>
+<mat-dialog-content class="edit-account-dialog__content">
+  @switch (state()) {
+    @case ('loading') {
+      <app-loading-skeleton [lines]="4" />
+    }
+    @case ('error') {
+      <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="load()" />
+    }
+    @case ('loaded') {
+      <mat-form-field appearance="outline">
+        <mat-label>First name</mat-label>
+        <input matInput [formField]="accountForm.firstName" />
+        @if (accountForm.firstName().touched() && accountForm.firstName().invalid()) {
+          <mat-error>{{ accountForm.firstName().errors()[0]?.message }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Last name</mat-label>
+        <input matInput [formField]="accountForm.lastName" />
+        @if (accountForm.lastName().touched() && accountForm.lastName().invalid()) {
+          <mat-error>{{ accountForm.lastName().errors()[0]?.message }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" [formField]="accountForm.email" />
+        @if (accountForm.email().touched() && accountForm.email().invalid()) {
+          <mat-error>{{ accountForm.email().errors()[0]?.message }}</mat-error>
+        }
+      </mat-form-field>
+
+      <fieldset class="edit-account-dialog__roles">
+        <legend>Roles</legend>
+        @for (role of availableRoles(); track role) {
+          <mat-checkbox
+            [checked]="roles().has(role) || role === SystemRole.USER"
+            [disabled]="role === SystemRole.USER"
+            (change)="toggleRole(role, $event.checked)"
+          >
+            {{ role }}
+          </mat-checkbox>
+        }
+      </fieldset>
+    }
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()">Cancel</button>
+  <button mat-flat-button type="button" [disabled]="state() !== 'loaded' || submitting()" (click)="onSubmit()">
+    @if (submitting()) {
+      <mat-spinner diameter="20" />
+    } @else {
+      Save changes
+    }
+  </button>
+</mat-dialog-actions>

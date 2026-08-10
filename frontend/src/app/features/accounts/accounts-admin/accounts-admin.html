@@ -1,0 +1,48 @@
+<app-page-header title="Accounts" />
+
+@switch (state()) {
+  @case ('loading') {
+    <app-loading-skeleton [lines]="5" />
+  }
+  @case ('error') {
+    <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="load()" />
+  }
+  @case ('loaded') {
+    @if (accounts().length === 0) {
+      <app-empty-state icon="group" message="No accounts yet." />
+    } @else {
+      <table class="accounts-admin__table">
+        <caption class="cc-visually-hidden">Accounts</caption>
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Roles</th>
+            <th scope="col"><span class="cc-visually-hidden">Edit</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (account of accounts(); track account.id) {
+            <tr>
+              <td>{{ account.name }}</td>
+              <td>{{ account.email }}</td>
+              <td>{{ account.roles.join(', ') }}</td>
+              <td>
+                <button mat-icon-button type="button" [attr.aria-label]="'Edit ' + account.name" (click)="openEditDialog(account.id)">
+                  <mat-icon aria-hidden="true">edit</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <mat-paginator
+        [length]="totalElements()"
+        [pageSize]="pageSize"
+        [pageIndex]="page()"
+        [hidePageSize]="true"
+        (page)="onPage($event)"
+      />
+    }
+  }
+}

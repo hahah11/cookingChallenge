@@ -1,0 +1,12 @@
+.accounts-admin__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--md-sys-spacing-4);
+}
+
+.accounts-admin__table th,
+.accounts-admin__table td {
+  text-align: left;
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}

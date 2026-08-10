@@ -1,0 +1,18 @@
+.send-links-dialog__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-2);
+  min-width: min(400px, 90vw);
+}
+
+.send-links-dialog__hint {
+  margin: 0 0 var(--md-sys-spacing-1);
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.send-links-dialog__submitted {
+  margin-left: var(--md-sys-spacing-2);
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
