@@ -1,6 +1,8 @@
 package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 
 import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ChallengeJpaEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 interface ChallengeJpaRepository extends JpaRepository<ChallengeJpaEntity, Long> {
+
+    Page<ChallengeJpaEntity> findAllByCreatedByAccountId(Long createdByAccountId, Pageable pageable);
 
     @Query("SELECT DISTINCT c FROM ChallengeJpaEntity c LEFT JOIN c.guestAccountIds g "
             + "WHERE c.cookAAccountId = :accountId OR c.cookBAccountId = :accountId OR g = :accountId")

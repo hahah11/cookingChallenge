@@ -93,4 +93,32 @@ class GetChallengeResultsServiceTest {
 
         assertEquals(challenge.getId().toString(), result.getChallengeId());
     }
+
+    @Test
+    void should_returnResults_when_requesterIsTheChallengeCreator() {
+        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+                cookA, cookB, List.of(), organizer);
+        challenge.reveal(cookA);
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(scoreSubmissionRepository.findByChallengeId(challenge.getId())).thenReturn(List.of());
+        when(cookRivalryRepository.findByPair(any(), any())).thenReturn(Optional.empty());
+        when(accountLookup.getById(cookA)).thenReturn(new AccountSummary(cookA, new Email("a@x.com"), "Cook A", "Cook"));
+        when(accountLookup.getById(cookB)).thenReturn(new AccountSummary(cookB, new Email("b@x.com"), "Cook B", "Cook"));
+
+        ChallengeResultRestDto result = service.execute(challenge.getId().toString(), organizer);
+
+        assertEquals(challenge.getId().toString(), result.getChallengeId());
+    }
+
+    @Test
+    void should_throw_when_requesterIsAnotherOrganizerWhoDidNotCreateTheChallenge() {
+        AccountId otherOrganizer = AccountId.generate();
+        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+                cookA, cookB, List.of(), organizer);
+        challenge.reveal(cookA);
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+
+        assertThrows(NotAParticipantException.class,
+                () -> service.execute(challenge.getId().toString(), otherOrganizer));
+    }
 }

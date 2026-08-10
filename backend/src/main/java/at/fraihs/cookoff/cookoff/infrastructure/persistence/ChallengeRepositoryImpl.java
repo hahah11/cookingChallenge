@@ -32,6 +32,11 @@ class ChallengeRepositoryImpl implements ChallengeRepository {
     }
 
     @Override
+    public Page<Challenge> findAllByCreatedBy(AccountId createdBy, Pageable pageable) {
+        return jpaRepository.findAllByCreatedByAccountId(createdBy.value(), pageable).map(mapper::toDomain);
+    }
+
+    @Override
     public List<Challenge> findByParticipant(AccountId accountId) {
         return jpaRepository.findByParticipant(accountId.value()).stream()
                 .map(mapper::toDomain)

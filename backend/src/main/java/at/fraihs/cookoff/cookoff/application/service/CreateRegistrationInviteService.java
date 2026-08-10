@@ -49,6 +49,10 @@ public class CreateRegistrationInviteService {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
+        if (!challenge.isOwnedBy(organizerAccountId) && !accountLookup.isAdmin(organizerAccountId)) {
+            log.warn("Registration invite rejected, account {} does not own challenge {}", organizerAccountId, challengeId);
+            throw new ForbiddenException("Account is not allowed to manage this challenge: " + organizerAccountId);
+        }
         if (challenge.getStatus() != ChallengeStatus.OPEN) {
             throw new ChallengeNotOpenException(challengeIdString);
         }

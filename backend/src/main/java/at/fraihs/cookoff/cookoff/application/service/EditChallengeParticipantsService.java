@@ -38,6 +38,10 @@ public class EditChallengeParticipantsService {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
+        if (!challenge.isOwnedBy(organizerAccountId) && !accountLookup.isAdmin(organizerAccountId)) {
+            log.warn("Edit participants rejected, account {} does not own challenge {}", organizerAccountId, challengeId);
+            throw new ForbiddenException("Account is not allowed to manage this challenge: " + organizerAccountId);
+        }
 
         AccountId newCookAAccountId = request.getCookAAccountId() != null
                 ? AccountId.fromString(request.getCookAAccountId()) : null;

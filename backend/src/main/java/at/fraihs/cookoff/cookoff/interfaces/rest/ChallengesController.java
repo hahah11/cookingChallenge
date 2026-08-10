@@ -78,7 +78,7 @@ public class ChallengesController implements ChallengesApi {
 
     @Override
     public ResponseEntity<ChallengeListResponseRestDto> listChallenges(Integer page, Integer size) {
-        PagedResult<ChallengeRestDto> result = listChallengesService.execute(page, size);
+        PagedResult<ChallengeRestDto> result = listChallengesService.execute(CurrentAccount.id(), page, size);
         return ResponseEntity.ok(new ChallengeListResponseRestDto(result.content(), result.pagination(), meta()));
     }
 
@@ -90,7 +90,7 @@ public class ChallengesController implements ChallengesApi {
 
     @Override
     public ResponseEntity<ChallengeDetailResponseRestDto> getChallengeStatus(String challengeId) {
-        var status = getChallengeStatusService.execute(challengeId);
+        var status = getChallengeStatusService.execute(challengeId, CurrentAccount.id());
         return ResponseEntity.ok(new ChallengeDetailResponseRestDto(status, meta()));
     }
 
@@ -139,13 +139,13 @@ public class ChallengesController implements ChallengesApi {
     @Override
     public ResponseEntity<InvitationsSentResponseRestDto> sendInvitations(
             String challengeId, SendInvitationsRequestRestDto sendInvitationsRequest) {
-        var sent = sendChallengeInvitationsService.execute(challengeId, sendInvitationsRequest);
+        var sent = sendChallengeInvitationsService.execute(challengeId, CurrentAccount.id(), sendInvitationsRequest);
         return ResponseEntity.ok(new InvitationsSentResponseRestDto(sent, meta()));
     }
 
     @Override
     public ResponseEntity<ChallengeResultResponseRestDto> revealChallenge(String challengeId) {
-        var result = revealChallengeService.execute(challengeId);
+        var result = revealChallengeService.execute(challengeId, CurrentAccount.id());
         return ResponseEntity.ok(new ChallengeResultResponseRestDto(result, meta()));
     }
 

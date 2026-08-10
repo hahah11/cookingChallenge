@@ -47,7 +47,7 @@ public class PublicRegistrationService {
 
         log.info("Account {} self-registered for challenge {} (joined={})", result.accountId(), challengeId, joined);
         String message = joined
-                ? "You're registered and joined!"
+                ? "You're registered! You'll get an email once the organizer opens scoring for this cook-off."
                 : "You're registered, but this event has already closed.";
         return new PublicRegistrationResultRestDto(result.accountId().toString(), joined, message);
     }

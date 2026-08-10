@@ -186,6 +186,11 @@ public class Challenge {
         return isGuest(accountId) || accountId.equals(createdBy);
     }
 
+    /** The organizer/admin who created this challenge — the account allowed to manage it (see canScore above). */
+    public boolean isOwnedBy(AccountId accountId) {
+        return accountId.equals(createdBy);
+    }
+
     private void requireOpen() {
         if (status != ChallengeStatus.OPEN) {
             throw new IllegalStateException("Challenge is not open (status=" + status + ")");

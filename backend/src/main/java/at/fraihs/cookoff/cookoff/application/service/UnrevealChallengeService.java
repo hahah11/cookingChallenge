@@ -39,6 +39,10 @@ public class UnrevealChallengeService {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
+        if (!challenge.isOwnedBy(organizerAccountId) && !accountLookup.isAdmin(organizerAccountId)) {
+            log.warn("Unreveal rejected, account {} does not own challenge {}", organizerAccountId, challengeId);
+            throw new ForbiddenException("Account is not allowed to manage this challenge: " + organizerAccountId);
+        }
 
         ChallengeUnrevealed event = challenge.unreveal();
         challengeRepository.save(challenge);

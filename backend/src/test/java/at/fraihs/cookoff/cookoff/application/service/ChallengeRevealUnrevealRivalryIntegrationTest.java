@@ -114,7 +114,7 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         scoreSubmissionRepository.replace(challenge.getId(), cookAWinsSubmission(challenge.getId()));
 
         ChallengeResultRestDto firstRevealResponse =
-                revealChallengeService.execute(challenge.getId().toString());
+                revealChallengeService.execute(challenge.getId().toString(), organizerId);
         // The response must already reflect this reveal's own rivalry update, even though
         // ChallengeRevealedRivalryUpdater (AFTER_COMMIT) hasn't run yet - commit() below is
         // still pending. This is the specific bug this test guards against.
@@ -139,7 +139,7 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         // scores edited in between (guest resubmits, now favoring cook B)
         scoreSubmissionRepository.replace(challenge.getId(), cookBWinsSubmission(challenge.getId()));
 
-        revealChallengeService.execute(challenge.getId().toString());
+        revealChallengeService.execute(challenge.getId().toString(), organizerId);
         commit();
 
         CookRivalry afterSecondReveal = cookRivalryRepository.findByPair(cookAId, cookBId).orElseThrow();
@@ -182,6 +182,12 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         @Override
         public Page<Challenge> findAll(Pageable pageable) {
             return new PageImpl<>(List.copyOf(store.values()), pageable, store.size());
+        }
+
+        @Override
+        public Page<Challenge> findAllByCreatedBy(AccountId createdBy, Pageable pageable) {
+            List<Challenge> owned = store.values().stream().filter(c -> c.isOwnedBy(createdBy)).toList();
+            return new PageImpl<>(owned, pageable, owned.size());
         }
 
         @Override

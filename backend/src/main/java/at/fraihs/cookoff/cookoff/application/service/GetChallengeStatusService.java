@@ -4,6 +4,7 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
@@ -18,6 +19,7 @@ import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
  * pre-added guest list only, not the two cooks, matching that row's literal wording even
  * though SubmitScoreService also accepts the challenge creator's own submission.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GetChallengeStatusService {
@@ -37,10 +40,14 @@ public class GetChallengeStatusService {
     private final AccountLookup accountLookup;
 
     @Transactional(readOnly = true)
-    public ChallengeDetailRestDto execute(String challengeIdString) {
+    public ChallengeDetailRestDto execute(String challengeIdString, AccountId requesterAccountId) {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
+        if (!challenge.isOwnedBy(requesterAccountId) && !accountLookup.isAdmin(requesterAccountId)) {
+            log.warn("Get status rejected, account {} does not own challenge {}", requesterAccountId, challengeId);
+            throw new ForbiddenException("Account is not allowed to manage this challenge: " + requesterAccountId);
+        }
 
         Map<AccountId, ScoreSubmission> submissionsByGuest = scoreSubmissionRepository.findByChallengeId(challengeId)
                 .stream()

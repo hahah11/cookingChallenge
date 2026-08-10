@@ -100,4 +100,17 @@ class UnrevealChallengeServiceTest {
         verify(challengeRepository, never()).findById(any());
         verifyNoInteractions(eventPublisher);
     }
+
+    @Test
+    void should_throw_when_requesterDidNotCreateTheChallenge() {
+        Challenge challenge = revealedChallenge();
+        AccountId otherOrganizerId = AccountId.generate();
+        when(accountLookup.canOrganize(otherOrganizerId)).thenReturn(true);
+        when(accountLookup.isAdmin(otherOrganizerId)).thenReturn(false);
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+
+        assertThrows(ForbiddenException.class, () -> service.execute(challenge.getId().toString(), otherOrganizerId));
+        verify(challengeRepository, never()).save(any());
+        verifyNoInteractions(eventPublisher);
+    }
 }

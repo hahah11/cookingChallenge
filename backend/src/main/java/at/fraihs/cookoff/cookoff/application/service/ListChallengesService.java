@@ -1,19 +1,26 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
+import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Organizer-facing history list — always includes the cook↔label mapping. */
+/**
+ * Organizer-facing history list — always includes the cook↔label mapping. Scoped to
+ * challenges the requester created; an ADMIN sees every challenge (see
+ * docs/cookingChallenge/story-mapping.yaml's "select own cookoff" partial).
+ */
 @Service
 @RequiredArgsConstructor
 public class ListChallengesService {
@@ -23,12 +30,14 @@ public class ListChallengesService {
     private final AccountLookup accountLookup;
 
     @Transactional(readOnly = true)
-    public PagedResult<ChallengeRestDto> execute(int page, int size) {
-        Page<ChallengeRestDto> mapped = challengeRepository
-                .findAll(PageRequest.of(page, size))
-                .map(challenge -> ChallengeModelMapper.toGenerated(
-                        challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository),
-                        accountLookup));
+    public PagedResult<ChallengeRestDto> execute(AccountId requesterAccountId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Challenge> challenges = accountLookup.isAdmin(requesterAccountId)
+                ? challengeRepository.findAll(pageable)
+                : challengeRepository.findAllByCreatedBy(requesterAccountId, pageable);
+        Page<ChallengeRestDto> mapped = challenges.map(challenge -> ChallengeModelMapper.toGenerated(
+                challenge, ChallengeModelMapper.submittedGuestCount(challenge, scoreSubmissionRepository),
+                accountLookup));
         return PagedResult.of(mapped);
     }
 }

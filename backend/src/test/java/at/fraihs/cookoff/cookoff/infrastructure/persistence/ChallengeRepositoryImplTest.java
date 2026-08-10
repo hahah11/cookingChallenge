@@ -90,6 +90,21 @@ class ChallengeRepositoryImplTest {
     }
 
     @Test
+    void should_returnOnlyChallengesCreatedByThatAccount_when_findingAllByCreatedBy() {
+        AccountId organizerA = new AccountId(persistAccount());
+        AccountId organizerB = new AccountId(persistAccount());
+        Challenge byA = repository.save(Challenge.create(LocalDate.now(), null, new DishName("Goulash"),
+                new AccountId(persistAccount()), new AccountId(persistAccount()), List.of(), organizerA));
+        repository.save(Challenge.create(LocalDate.now(), null, new DishName("Kaiserschmarrn"),
+                new AccountId(persistAccount()), new AccountId(persistAccount()), List.of(), organizerB));
+
+        var result = repository.findAllByCreatedBy(organizerA, Pageable.unpaged());
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(byA.getId(), result.getContent().get(0).getId());
+    }
+
+    @Test
     void should_returnEveryChallengeForParticipant_regardlessOfStatus_butNotUnrelatedChallenges() {
         AccountId organizer = new AccountId(persistAccount());
         AccountId cookA = new AccountId(persistAccount());

@@ -23,8 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Reachable by either the organizer (bearer token) or a participant (access-link token) -
- * only once REVEALED (409 before that, per docs/cookingChallenge/first-plan.md Step 3).
+ * Reachable by either the challenge's own creator/an admin (bearer token) or a participant
+ * (access-link token) - only once REVEALED (409 before that, per
+ * docs/cookingChallenge/first-plan.md Step 3). Other organizers cannot view a challenge they
+ * didn't create (see docs/cookingChallenge/story-mapping.yaml's "select own cookoff" partial).
  * Category/overall winners aren't persisted separately from the ChallengeRevealed event's
  * one-time CookRivalry update, so this recomputes them from the (now-immutable, since
  * Challenge.reveal() closes scoring) stored submissions via ResultCalculator - deterministic,
@@ -46,7 +48,10 @@ public class GetChallengeResultsService {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
-        if (!challenge.isParticipant(requesterAccountId) && !accountLookup.canOrganize(requesterAccountId)) {
+        boolean allowed = challenge.isParticipant(requesterAccountId)
+                || challenge.isOwnedBy(requesterAccountId)
+                || accountLookup.isAdmin(requesterAccountId);
+        if (!allowed) {
             throw new NotAParticipantException(requesterAccountId.toString(), challengeIdString);
         }
         if (challenge.getStatus() != ChallengeStatus.REVEALED) {

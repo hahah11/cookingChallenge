@@ -93,4 +93,17 @@ class CreateRegistrationInviteServiceTest {
                 () -> service.execute(challenge.getId().toString(), organizerId));
         verify(registrationInvites, never()).issue(any(), org.mockito.ArgumentMatchers.anyLong(), any());
     }
+
+    @Test
+    void should_throw_when_requesterDidNotCreateTheChallenge() {
+        Challenge challenge = openChallenge();
+        AccountId otherOrganizerId = AccountId.generate();
+        when(accountLookup.canOrganize(otherOrganizerId)).thenReturn(true);
+        when(accountLookup.isAdmin(otherOrganizerId)).thenReturn(false);
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+
+        assertThrows(ForbiddenException.class,
+                () -> service.execute(challenge.getId().toString(), otherOrganizerId));
+        verify(registrationInvites, never()).issue(any(), org.mockito.ArgumentMatchers.anyLong(), any());
+    }
 }

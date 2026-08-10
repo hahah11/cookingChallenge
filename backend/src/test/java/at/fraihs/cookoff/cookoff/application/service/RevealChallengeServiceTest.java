@@ -5,6 +5,7 @@ import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
@@ -33,6 +34,8 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -88,7 +91,7 @@ class RevealChallengeServiceTest {
         when(accountLookup.getById(cookAId)).thenReturn(new AccountSummary(cookAId, new Email("a@x.com"), "Cook A", "Cook"));
         when(accountLookup.getById(cookBId)).thenReturn(new AccountSummary(cookBId, new Email("b@x.com"), "Cook B", "Cook"));
 
-        ChallengeResultRestDto result = service.execute(challenge.getId().toString());
+        ChallengeResultRestDto result = service.execute(challenge.getId().toString(), organizerId);
 
         assertEquals(cookAId.toString(), result.getOverallWinnerAccountId().get());
         assertEquals(ChallengeStatus.REVEALED, challenge.getStatus());
@@ -103,6 +106,42 @@ class RevealChallengeServiceTest {
         ChallengeId missingId = ChallengeId.generate();
         when(challengeRepository.findById(missingId)).thenReturn(Optional.empty());
 
-        assertThrows(ChallengeNotFoundException.class, () -> service.execute(missingId.toString()));
+        assertThrows(ChallengeNotFoundException.class, () -> service.execute(missingId.toString(), organizerId));
+    }
+
+    @Test
+    void should_throw_when_requesterDidNotCreateTheChallenge() {
+        Challenge challenge = openChallenge();
+        AccountId otherOrganizerId = AccountId.generate();
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(accountLookup.isAdmin(otherOrganizerId)).thenReturn(false);
+
+        assertThrows(ForbiddenException.class, () -> service.execute(challenge.getId().toString(), otherOrganizerId));
+        verify(challengeRepository, never()).save(any());
+    }
+
+    @Test
+    void should_allowReveal_when_requesterIsAdminButNotTheCreator() {
+        Challenge challenge = openChallenge();
+        AccountId adminId = AccountId.generate();
+        ScoreSubmission submission = ScoreSubmission.submit(challenge.getId(), guestId, List.of(
+                score(DishLabel.A, Category.MUNDGEFUEHL, 5),
+                score(DishLabel.A, Category.TELLERSPRACHE, 5),
+                score(DishLabel.A, Category.GESCHMACK, 5),
+                score(DishLabel.B, Category.MUNDGEFUEHL, 1),
+                score(DishLabel.B, Category.TELLERSPRACHE, 1),
+                score(DishLabel.B, Category.GESCHMACK, 1)
+        ), Instant.now());
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(accountLookup.isAdmin(adminId)).thenReturn(true);
+        when(scoreSubmissionRepository.findByChallengeId(challenge.getId())).thenReturn(List.of(submission));
+        when(cookRivalryRepository.findByPair(cookAId, cookBId)).thenReturn(Optional.empty());
+        when(accountLookup.getById(cookAId)).thenReturn(new AccountSummary(cookAId, new Email("a@x.com"), "Cook A", "Cook"));
+        when(accountLookup.getById(cookBId)).thenReturn(new AccountSummary(cookBId, new Email("b@x.com"), "Cook B", "Cook"));
+
+        ChallengeResultRestDto result = service.execute(challenge.getId().toString(), adminId);
+
+        assertEquals(ChallengeStatus.REVEALED, challenge.getStatus());
+        assertEquals(cookAId.toString(), result.getOverallWinnerAccountId().get());
     }
 }

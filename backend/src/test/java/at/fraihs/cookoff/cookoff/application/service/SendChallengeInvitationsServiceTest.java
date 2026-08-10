@@ -7,6 +7,7 @@ import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.NotificationPort;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
@@ -78,7 +79,7 @@ class SendChallengeInvitationsServiceTest {
         when(accountLookup.getById(guestId)).thenReturn(accountFor(guestId));
         when(accessLinkService.issue(eq(guestId), anyLong(), any(Duration.class))).thenReturn("token");
 
-        InvitationsSentRestDto sent = service.execute(challenge.getId().toString(), null);
+        InvitationsSentRestDto sent = service.execute(challenge.getId().toString(), organizerId, null);
 
         assertEquals(1, sent.getCount());
         verify(accessLinkService, times(1)).issue(eq(guestId), anyLong(), any(Duration.class));
@@ -92,7 +93,7 @@ class SendChallengeInvitationsServiceTest {
         when(accountLookup.getById(guestId)).thenReturn(accountFor(guestId));
         when(accessLinkService.issue(eq(guestId), anyLong(), any(Duration.class))).thenReturn("token");
 
-        InvitationsSentRestDto sent = service.execute(challenge.getId().toString(),
+        InvitationsSentRestDto sent = service.execute(challenge.getId().toString(), organizerId,
                 new SendInvitationsRequestRestDto().guestAccountIds(List.of(guestId.toString())));
 
         assertEquals(1, sent.getCount());
@@ -102,7 +103,7 @@ class SendChallengeInvitationsServiceTest {
     void should_throw_when_challengeDoesNotExist() {
         when(challengeRepository.findById(any())).thenReturn(Optional.empty());
 
-        assertThrows(ChallengeNotFoundException.class, () -> service.execute(cookAId.toString(), null));
+        assertThrows(ChallengeNotFoundException.class, () -> service.execute(cookAId.toString(), organizerId, null));
     }
 
     @Test
@@ -113,6 +114,18 @@ class SendChallengeInvitationsServiceTest {
         when(accountLookup.getById(any(AccountId.class)))
                 .thenThrow(new AccountNotFoundException("missing"));
 
-        assertThrows(AccountNotFoundException.class, () -> service.execute(challenge.getId().toString(), null));
+        assertThrows(AccountNotFoundException.class,
+                () -> service.execute(challenge.getId().toString(), organizerId, null));
+    }
+
+    @Test
+    void should_throw_when_requesterDidNotCreateTheChallenge() {
+        Challenge challenge = challenge();
+        AccountId otherOrganizerId = AccountId.generate();
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(accountLookup.isAdmin(otherOrganizerId)).thenReturn(false);
+
+        assertThrows(ForbiddenException.class, () -> service.execute(challenge.getId().toString(), otherOrganizerId, null));
+        verify(notificationPort, org.mockito.Mockito.never()).sendAccessLink(any(Email.class), anyString());
     }
 }

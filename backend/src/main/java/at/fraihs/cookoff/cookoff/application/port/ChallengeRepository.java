@@ -22,6 +22,9 @@ public interface ChallengeRepository {
     /** See docs/cookingChallenge/adr/0003-spring-data-pageable-in-repository-ports.md. */
     Page<Challenge> findAll(Pageable pageable);
 
+    /** Every challenge this account created — backs the organizer-scoped History list. */
+    Page<Challenge> findAllByCreatedBy(AccountId createdBy, Pageable pageable);
+
     /** Every challenge, any status, where the account is a cook or a pre-added guest — backs GET /me/home. */
     List<Challenge> findByParticipant(AccountId accountId);
 

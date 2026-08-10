@@ -169,8 +169,11 @@ class ChallengesControllerTest {
 
     @Test
     void should_return200_when_listingChallenges() throws Exception {
+        AccountId organizer = AccountId.generate();
         PaginationRestDto pagination = new PaginationRestDto(0, 20, 1L, 1, true, true);
-        when(listChallengesService.execute(0, 20)).thenReturn(new PagedResult<>(List.of(sampleChallenge()), pagination));
+        when(listChallengesService.execute(organizer, 0, 20))
+                .thenReturn(new PagedResult<>(List.of(sampleChallenge()), pagination));
+        authenticateAs(organizer);
 
         mockMvc.perform(get("/api/v1/challenges"))
                 .andExpect(status().isOk())
@@ -201,10 +204,12 @@ class ChallengesControllerTest {
 
     @Test
     void should_return200_when_gettingStatus() throws Exception {
-        when(getChallengeStatusService.execute("chal-1")).thenReturn(new ChallengeDetailRestDto(
+        AccountId organizer = AccountId.generate();
+        when(getChallengeStatusService.execute("chal-1", organizer)).thenReturn(new ChallengeDetailRestDto(
                 "chal-1", 2, 1, List.of(), "Title", "Schnitzel", LocalDate.now(), ChallengeStatusRestDto.OPEN, false,
                 List.of(new CookAssignmentRestDto("acc-a", "Cook A", DishLabelRestDto.A, null),
                         new CookAssignmentRestDto("acc-b", "Cook B", DishLabelRestDto.B, null))));
+        authenticateAs(organizer);
 
         mockMvc.perform(get("/api/v1/challenges/chal-1/status"))
                 .andExpect(status().isOk())
@@ -271,7 +276,10 @@ class ChallengesControllerTest {
 
     @Test
     void should_return200_when_sendingInvitations() throws Exception {
-        when(sendChallengeInvitationsService.execute(eq("chal-1"), any())).thenReturn(new InvitationsSentRestDto(3));
+        AccountId organizer = AccountId.generate();
+        when(sendChallengeInvitationsService.execute(eq("chal-1"), eq(organizer), any()))
+                .thenReturn(new InvitationsSentRestDto(3));
+        authenticateAs(organizer);
 
         mockMvc.perform(post("/api/v1/challenges/chal-1/invitations"))
                 .andExpect(status().isOk())
@@ -280,9 +288,11 @@ class ChallengesControllerTest {
 
     @Test
     void should_return200_when_revealing() throws Exception {
+        AccountId organizer = AccountId.generate();
         ChallengeResultRestDto result = new ChallengeResultRestDto("chal-1", Map.of(), List.of(), null, List.of(),
                 new RivalrySummaryRestDto("acc-a", "acc-b", 0, 0, 0, 0, "headline"));
-        when(revealChallengeService.execute("chal-1")).thenReturn(result);
+        when(revealChallengeService.execute("chal-1", organizer)).thenReturn(result);
+        authenticateAs(organizer);
 
         mockMvc.perform(post("/api/v1/challenges/chal-1/reveal"))
                 .andExpect(status().isOk())

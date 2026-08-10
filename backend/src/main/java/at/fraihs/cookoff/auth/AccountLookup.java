@@ -14,4 +14,7 @@ public interface AccountLookup {
 
     /** @throws at.fraihs.cookoff.auth.application.exception.AccountNotFoundException if no account has this id */
     boolean canOrganize(AccountId id);
+
+    /** @throws at.fraihs.cookoff.auth.application.exception.AccountNotFoundException if no account has this id */
+    boolean isAdmin(AccountId id);
 }

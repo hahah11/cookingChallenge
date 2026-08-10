@@ -5,6 +5,7 @@ import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.domain.model.SystemRole;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,12 @@ public class AccountLookupService implements AccountLookup {
     @Transactional(readOnly = true)
     public boolean canOrganize(AccountId id) {
         return findOrThrow(id).canOrganize();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isAdmin(AccountId id) {
+        return findOrThrow(id).hasRole(SystemRole.ADMIN);
     }
 
     private Account findOrThrow(AccountId id) {

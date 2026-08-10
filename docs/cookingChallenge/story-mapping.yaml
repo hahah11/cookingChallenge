@@ -274,7 +274,7 @@ slices:
       Reveal Cookoff:
         - name: Ask organizer to confirm before revealing results
         - name: Set Cookoff status to revealed
-        - name: Notify guests and cooks that results are available
+        - name: "[Descoped 2026-08-10, see Backlog slice] Notify guests and cooks that results are available"
       Edit Guests:
         - name: Add guests
         - name: Remove guests
@@ -309,10 +309,15 @@ slices:
         - name: Edit already submitted scores
           body: Allowed as long as the Cookoff has not been revealed yet
       Confirm Submission:
-        - name: "[Edge case] Block resubmission if guest already voted for this Cookoff"
+        - name: "[Edge case] Block resubmission once the Cookoff has been revealed"
+          body: |-
+            Corrected 2026-08-10: this used to say "if guest already voted", which
+            contradicted the "Edit already submitted scores" story above (edit-until-reveal
+            is the intended design, confirmed by the shipped implementation). The real edge
+            case is scoring closing at reveal, not a one-shot-per-guest rule.
           color: "#fecdd3"
       Reveal Cookoff:
-        - name: "[Edge case] Warn organizer if not all guests have submitted votes yet"
+        - name: "[Descoped 2026-08-10, see Backlog slice] [Edge case] Warn organizer if not all guests have submitted votes yet"
           color: "#fecdd3"
       Invite Participants:
         - name: "[Edge case] Show error if invite link has expired"
@@ -361,6 +366,34 @@ slices:
       View Rivalry History:
         - name: Show open Cookoffs between the two cooks
         - name: Show closed Cookoffs between the two cooks
+  - name: Backlog (not yet scheduled)
+    stories:
+      Reveal Cookoff:
+        - name: Notify guests and cooks that results are available
+          body: |-
+            Added 2026-08-10. Originally scoped in the Walking Skeleton slice but never
+            implemented — NotificationPort only supports sendAccessLink today, so guests/cooks
+            currently learn about a reveal only by checking their home page again. Needs a
+            new NotificationPort method (e.g. sendResultsAvailable) wired into a listener on
+            the ChallengeRevealed domain event, the same pattern ChallengeRevealedRivalryUpdater
+            already uses.
+        - name: "[Edge case] Warn organizer if not all guests have submitted votes yet"
+          body: |-
+            Added 2026-08-10. Originally scoped in V1 but never implemented — the reveal
+            confirm dialog (challenge-detail.ts confirmReveal()) shows a fixed message
+            regardless of submittedGuestCount vs totalGuestCount. Needs the dialog copy to
+            branch on those two counts, which challenge-detail.ts already has in hand.
+          color: "#fecdd3"
+      Show Rivalries:
+        - name: Restrict to Admin only
+          body: |-
+            Added 2026-08-10. The story map's own users list ties "Show Rivalries" to Admin
+            specifically (unlike every other organizer step, which says "Organizer Or Admin") —
+            consistent with Add/Edit Account, which really are Admin-only. But the shipped
+            route (/rivalries) is gated by organizerGuard, so any Organizer can view it today.
+            Needs the frontend route guard changed to adminGuard and the backend SecurityConfig
+            matcher for GET /api/v1/rivalries(/*/*)  changed from hasAnyRole("ORGANIZER","ADMIN")
+            to hasRole("ADMIN"), plus removing the organizer-side nav link.
 notes: |-
   Thanks for trying Storymaps.io! 
 

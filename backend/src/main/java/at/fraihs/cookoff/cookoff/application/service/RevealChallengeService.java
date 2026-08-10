@@ -1,7 +1,9 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
 import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
@@ -35,10 +37,14 @@ public class RevealChallengeService {
     private final ResultCalculator resultCalculator = new ResultCalculator();
 
     @Transactional
-    public ChallengeResultRestDto execute(String challengeIdString) {
+    public ChallengeResultRestDto execute(String challengeIdString, AccountId requesterAccountId) {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
+        if (!challenge.isOwnedBy(requesterAccountId) && !accountLookup.isAdmin(requesterAccountId)) {
+            log.warn("Reveal rejected, account {} does not own challenge {}", requesterAccountId, challengeId);
+            throw new ForbiddenException("Account is not allowed to manage this challenge: " + requesterAccountId);
+        }
 
         List<ScoreSubmission> submissions = scoreSubmissionRepository.findByChallengeId(challengeId);
         ChallengeResult result = resultCalculator.calculate(challenge, submissions);

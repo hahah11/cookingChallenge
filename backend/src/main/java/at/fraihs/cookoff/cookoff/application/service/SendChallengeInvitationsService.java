@@ -5,6 +5,7 @@ import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.NotificationPort;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
@@ -49,10 +50,15 @@ public class SendChallengeInvitationsService {
     private String frontendBaseUrl;
 
     @Transactional
-    public InvitationsSentRestDto execute(String challengeIdString, SendInvitationsRequestRestDto request) {
+    public InvitationsSentRestDto execute(
+            String challengeIdString, AccountId requesterAccountId, SendInvitationsRequestRestDto request) {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
+        if (!challenge.isOwnedBy(requesterAccountId) && !accountLookup.isAdmin(requesterAccountId)) {
+            log.warn("Send invitations rejected, account {} does not own challenge {}", requesterAccountId, challengeId);
+            throw new ForbiddenException("Account is not allowed to manage this challenge: " + requesterAccountId);
+        }
 
         List<AccountId> targets = resolveTargets(challenge, challengeId, request);
         for (AccountId guestAccountId : targets) {

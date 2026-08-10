@@ -109,4 +109,17 @@ class EditChallengeParticipantsServiceTest {
                 ChallengeId.generate().toString(), organizerId, new UpdateParticipantsRequestRestDto()));
         verify(challengeRepository, never()).findById(any());
     }
+
+    @Test
+    void should_throw_when_requesterDidNotCreateTheChallenge() {
+        Challenge challenge = openChallenge();
+        AccountId otherOrganizerId = AccountId.generate();
+        when(accountLookup.canOrganize(otherOrganizerId)).thenReturn(true);
+        when(accountLookup.isAdmin(otherOrganizerId)).thenReturn(false);
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+
+        assertThrows(ForbiddenException.class, () -> service.execute(
+                challenge.getId().toString(), otherOrganizerId, new UpdateParticipantsRequestRestDto()));
+        verify(challengeRepository, never()).save(any());
+    }
 }

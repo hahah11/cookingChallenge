@@ -5,6 +5,7 @@ import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
+import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Category;
@@ -70,7 +71,7 @@ class GetChallengeStatusServiceTest {
         when(scoreSubmissionRepository.findByChallengeId(challenge.getId()))
                 .thenReturn(List.of(guestSubmission, cookSubmission));
 
-        ChallengeDetailRestDto status = service.execute(challenge.getId().toString());
+        ChallengeDetailRestDto status = service.execute(challenge.getId().toString(), organizer);
 
         assertEquals(2, status.getTotalGuestCount());
         assertEquals(1, status.getSubmittedGuestCount());
@@ -87,6 +88,37 @@ class GetChallengeStatusServiceTest {
         when(challengeRepository.findById(any())).thenReturn(Optional.empty());
 
         assertThrows(ChallengeNotFoundException.class,
-                () -> service.execute(AccountId.generate().toString()));
+                () -> service.execute(AccountId.generate().toString(), AccountId.generate()));
+    }
+
+    @Test
+    void should_throw_when_requesterDidNotCreateTheChallenge() {
+        AccountId organizer = AccountId.generate();
+        AccountId otherOrganizer = AccountId.generate();
+        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+                AccountId.generate(), AccountId.generate(), List.of(), organizer);
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(accountLookup.isAdmin(otherOrganizer)).thenReturn(false);
+
+        assertThrows(ForbiddenException.class, () -> service.execute(challenge.getId().toString(), otherOrganizer));
+    }
+
+    @Test
+    void should_allowStatus_when_requesterIsAdminButNotTheCreator() {
+        AccountId organizer = AccountId.generate();
+        AccountId admin = AccountId.generate();
+        AccountId cookA = AccountId.generate();
+        AccountId cookB = AccountId.generate();
+        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+                cookA, cookB, List.of(), organizer);
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(accountLookup.isAdmin(admin)).thenReturn(true);
+        when(scoreSubmissionRepository.findByChallengeId(challenge.getId())).thenReturn(List.of());
+        when(accountLookup.getById(cookA)).thenReturn(new AccountSummary(cookA, new Email("a@x.com"), "Cook A", "Cook"));
+        when(accountLookup.getById(cookB)).thenReturn(new AccountSummary(cookB, new Email("b@x.com"), "Cook B", "Cook"));
+
+        ChallengeDetailRestDto status = service.execute(challenge.getId().toString(), admin);
+
+        assertEquals(challenge.getId().toString(), status.getChallengeId());
     }
 }

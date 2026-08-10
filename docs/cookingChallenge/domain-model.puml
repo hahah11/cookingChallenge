@@ -15,17 +15,20 @@ package "auth" {
   class Account << (A,orange) AggregateRoot >> {
     id : AccountId
     email : String
-    name : String
+    firstName : String
+    lastName : String
     passwordHash : String
     roles : Set<SystemRole>
     --
     +grantRole(role : SystemRole)
     +revokeRole(role : SystemRole)
+    +renameFirst(newFirstName : String)
+    +renameLast(newLastName : String)
   }
   note bottom of Account
     Two ways an Account comes to exist: the host
-    creates one directly (email + name, any
-    SystemRole), or a person self-registers by
+    creates one directly (email + firstName/lastName,
+    any SystemRole), or a person self-registers by
     scanning a QR an ORGANIZER/ADMIN generated for one
     specific Challenge (gated by a RegistrationInvite
     token — infrastructure-layer, like AccessLink, not
@@ -70,6 +73,7 @@ package "cookoff" {
     +pickColor(cookAccountId, chosenColorId, otherColorId)
     +changeImage(newImageRef)
     +canScore(accountId) : boolean
+    +isOwnedBy(accountId) : boolean
     +reveal() : ChallengeRevealed
     +unreveal() : ChallengeUnrevealed
   }
