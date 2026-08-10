@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import { Challenge, ChallengeStatus, ChallengesApi, DishLabel } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
+import { expectNoAxeViolations } from '../../../testing/axe';
 import { ChallengeHistory } from './challenge-history';
 
 const challenge: Challenge = {
@@ -81,4 +82,17 @@ describe('ChallengeHistory', () => {
 
     expect(navigateSpy).toHaveBeenCalledWith(['/challenges', 'chal-1']);
   });
+
+  it(
+    'has no axe violations',
+    async () => {
+      const listChallenges = vi
+        .fn()
+        .mockReturnValue(of({ data: [challenge], pagination: { totalElements: 1 }, meta: {} }));
+      const { fixture } = setup(listChallenges);
+
+      await expectNoAxeViolations(fixture.nativeElement);
+    },
+    15000
+  );
 });

@@ -24,10 +24,10 @@
         <tbody>
           @for (account of accounts(); track account.id) {
             <tr>
-              <td>{{ account.name }}</td>
-              <td>{{ account.email }}</td>
-              <td>{{ account.roles.join(', ') }}</td>
-              <td>
+              <td data-label="Name">{{ account.name }}</td>
+              <td data-label="Email">{{ account.email }}</td>
+              <td data-label="Roles">{{ account.roles.join(', ') }}</td>
+              <td data-label="">
                 <button mat-icon-button type="button" [attr.aria-label]="'Edit ' + account.name" (click)="openEditDialog(account.id)">
                   <mat-icon aria-hidden="true">edit</mat-icon>
                 </button>

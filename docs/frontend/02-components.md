@@ -25,7 +25,7 @@ export class CustomerComponent { /* Too much! */ }
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './user-profile.component.html',
   styleUrls: ['./user-profile.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,  // Default to OnPush
+  // OnPush is the default in Angular v22+ — do not set it explicitly
   encapsulation: ViewEncapsulation.Emulated
 })
 export class UserProfileComponent { ... }
@@ -33,36 +33,30 @@ export class UserProfileComponent { ... }
 
 ## Component API Design
 
-### @Input Properties
+### Inputs — `input()`
 ```typescript
 @Component({ ... })
 export class CustomerCardComponent {
   // Required input
-  @Input({ required: true }) customer!: Customer;
+  customer = input.required<Customer>();
 
   // Optional input with default
-  @Input() showOrders: boolean = false;
+  showOrders = input(false);
 
-  // Input with alias
-  @Input('customerData') customer!: Customer;
+  // Input with alias: customer = input.required<Customer>({ alias: 'customerData' });
 
-  // Input with setter for side effects
-  @Input()
-  set customer(value: Customer) {
-    this._customer = value;
-    this.loadOrders();
-  }
-  private _customer!: Customer;
+  // Derive side effects with an effect(), not an input setter
+  private readonly loadOnChange = effect(() => this.loadOrders(this.customer()));
 }
 ```
 
-### @Output Events
+### Outputs — `output()`
 ```typescript
 @Component({ ... })
 export class CustomerFormComponent {
-  // Use EventEmitter with specific type
-  @Output() saved = new EventEmitter<Customer>();
-  @Output() cancelled = new EventEmitter<void>();
+  // Use output() with a specific type
+  saved = output<Customer>();
+  cancelled = output<void>();
 
   onSave() {
     this.saved.emit(this.customer);  // Emit meaningful payload
@@ -82,7 +76,7 @@ export class ParentComponent {
   }
 }
 
-// ✅ GOOD: Use @Output events
+// ✅ GOOD: Use output() events
 @Component({ ... })
 export class ParentComponent {
   onCustomerSaved(customer: Customer) {
@@ -144,12 +138,16 @@ export class ParentComponent {
 ```html
 <!-- ✅ Use [(ngModel)] for forms -->
 <input [(ngModel)]="customer.name" name="name" />
+```
 
-<!-- ✅ Create two-way binding with @Input/@Output -->
-<!-- Child component -->
-@Input() value: string = '';
-@Output() valueChange = new EventEmitter<string>();
-
+```typescript
+// ✅ Create two-way binding with model() — not a paired input()/output()
+// Child component
+export class AppInput {
+  value = model('');
+}
+```
+```html
 <!-- Parent template -->
 <app-input [(value)]="customer.name" />
 ```
@@ -158,13 +156,10 @@ export class ParentComponent {
 
 ### OnPush Strategy
 ```typescript
-// ✅ Always use OnPush for better performance
-@Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  // ...
-})
+// ✅ OnPush is the default in Angular v22+ — do not set it explicitly
+@Component({ ... })
 export class CustomerCardComponent {
-  @Input() customer!: Customer;
+  customer = input.required<Customer>();
 }
 
 // ✅ Trigger change detection with immutable updates
@@ -362,7 +357,7 @@ describe('CustomerCardComponent', () => {
   });
 
   it('should emit deleted event when delete button clicked', () => {
-    spyOn(component.deleted, 'emit');
+    vi.spyOn(component.deleted, 'emit');
     component.customer = { id: 1, name: 'John' };
     fixture.detectChanges();
 

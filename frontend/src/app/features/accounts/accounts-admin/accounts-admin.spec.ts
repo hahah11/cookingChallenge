@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import { Account, AccountsApi, SystemRole } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
+import { expectNoAxeViolations } from '../../../testing/axe';
 import { AccountsAdmin } from './accounts-admin';
 
 const account: Account = {
@@ -74,4 +75,17 @@ describe('AccountsAdmin', () => {
     expect(dialogOpen).toHaveBeenCalled();
     expect(listAccounts).toHaveBeenCalledTimes(2);
   });
+
+  it(
+    'has no axe violations',
+    async () => {
+      const listAccounts = vi
+        .fn()
+        .mockReturnValue(of({ data: [account], pagination: { totalElements: 1 }, meta: {} }));
+      const { fixture } = setup(listAccounts);
+
+      await expectNoAxeViolations(fixture.nativeElement);
+    },
+    15000
+  );
 });

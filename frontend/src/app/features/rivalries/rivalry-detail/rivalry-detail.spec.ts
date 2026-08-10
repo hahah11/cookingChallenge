@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 
 import { ChallengeStatus, RivalriesApi, RivalryDetail as RivalryDetailModel } from '../../../core/api/generated';
+import { expectNoAxeViolations } from '../../../testing/axe';
 import { RivalryDetail } from './rivalry-detail';
 
 const rivalryDetail: RivalryDetailModel = {
@@ -54,4 +55,15 @@ describe('RivalryDetail', () => {
     expect(winnerEls.length).toBe(1);
     expect(winnerEls[0].textContent).toContain('Alice');
   });
+
+  it(
+    'has no axe violations',
+    async () => {
+      const getRivalryDetail = vi.fn().mockReturnValue(of({ data: rivalryDetail, meta: {} }));
+      const { fixture } = setup(getRivalryDetail);
+
+      await expectNoAxeViolations(fixture.nativeElement);
+    },
+    15000
+  );
 });

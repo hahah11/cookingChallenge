@@ -1,0 +1,22 @@
+<app-page-header kicker="CookingChallenge" title="Results" />
+
+@switch (loadState()) {
+  @case ('loading') {
+    <app-loading-skeleton [lines]="4" />
+  }
+  @case ('error') {
+    <app-error-state [message]="loadErrorMessage()" [retryable]="true" (retry)="loadResults()" />
+  }
+  @case ('loaded') {
+    @if (result(); as result) {
+      <app-results-table
+        [cookAssignments]="result.cookAssignments"
+        [categoryTotals]="result.categoryTotals"
+        [categoryWinners]="result.categoryWinners"
+        [overallWinnerAccountId]="result.overallWinnerAccountId"
+        [rivalry]="result.rivalry"
+        [plateColorHex]="plateColorHex()"
+      />
+    }
+  }
+}

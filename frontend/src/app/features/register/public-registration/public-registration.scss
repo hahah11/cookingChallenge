@@ -1,0 +1,26 @@
+:host {
+  display: block;
+  max-width: 400px;
+  margin-inline: auto;
+}
+
+.public-registration__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-1);
+}
+
+.public-registration__message {
+  font: var(--mat-sys-body-large);
+}
+
+.public-registration__error {
+  margin: 0 0 var(--md-sys-spacing-2);
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-error);
+}
+
+.public-registration__submit {
+  align-self: flex-start;
+  margin-top: var(--md-sys-spacing-2);
+}

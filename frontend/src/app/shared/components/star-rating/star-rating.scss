@@ -42,7 +42,7 @@
 
 .star-rating__star::before {
   content: '★';
-  font-size: 28px;
+  font-size: var(--star-size, 28px);
   line-height: 1;
   color: var(--md-sys-color-outline-variant);
   transition: color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);

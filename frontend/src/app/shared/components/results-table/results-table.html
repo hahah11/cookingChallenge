@@ -1,8 +1,9 @@
+<div class="results-table__scroll">
 <table class="results-table">
   <caption class="cc-visually-hidden">Score results by category and cook</caption>
   <thead>
     <tr>
-      <th scope="col"></th>
+      <th scope="col"><span class="cc-visually-hidden">Category</span></th>
       @for (cook of cookAssignments(); track cook.accountId) {
         <th scope="col" class="results-table__cook plate-tint" [style.--plate-color]="hexFor(cook)">
           {{ cook.name }}
@@ -47,5 +48,6 @@
     </tr>
   </tfoot>
 </table>
+</div>
 
 <p class="results-table__headline">{{ rivalry().headline }}</p>

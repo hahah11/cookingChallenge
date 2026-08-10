@@ -1,0 +1,55 @@
+@switch (state()) {
+  @case ('loading') {
+    <app-loading-skeleton variant="card" [lines]="2" />
+  }
+  @case ('link-expired') {
+    <app-error-state message="This link has expired. Ask your host to resend it." />
+  }
+  @case ('error') {
+    <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="loadHome()" />
+  }
+  @case ('loaded') {
+    @if (home(); as home) {
+      <app-page-header kicker="CookingChallenge" [title]="'Hi, ' + home.displayName" />
+
+      @if (home.open.length === 0) {
+        <app-empty-state
+          icon="event_available"
+          message="Nothing open right now — check back after the next cook-off."
+        />
+      } @else {
+        <h2 class="participant-home__section-title">Open</h2>
+        <div class="participant-home__grid">
+          @for (challenge of home.open; track challenge.id) {
+            <app-participant-challenge-card
+              [challenge]="challenge"
+              [pickableColors]="pickableColors()"
+              [ownColor]="colorFor(ownAssignment(challenge)?.colorId ?? null)"
+              [colorPickBusy]="colorPickBusyId() === challenge.id"
+              (score)="openScore($event)"
+              (results)="openResults($event)"
+              (pickColor)="confirmPickColor(challenge, $event)"
+            />
+          }
+        </div>
+      }
+
+      @if (home.past.length > 0) {
+        <h2 class="participant-home__section-title">Past</h2>
+        <div class="participant-home__grid">
+          @for (challenge of home.past; track challenge.id) {
+            <app-participant-challenge-card
+              [challenge]="challenge"
+              [pickableColors]="pickableColors()"
+              [ownColor]="colorFor(ownAssignment(challenge)?.colorId ?? null)"
+              [colorPickBusy]="colorPickBusyId() === challenge.id"
+              (score)="openScore($event)"
+              (results)="openResults($event)"
+              (pickColor)="confirmPickColor(challenge, $event)"
+            />
+          }
+        </div>
+      }
+    }
+  }
+}

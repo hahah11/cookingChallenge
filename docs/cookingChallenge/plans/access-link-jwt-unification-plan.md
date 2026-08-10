@@ -2,7 +2,7 @@
 
 ## Status
 
-**Planned (2026-08-04), not yet implemented.**
+**Implemented (2026-08-06)** — commit `459510e` ("add acceslink flow for guest login") shipped the `AccessLinkLoginService`/`JwtIssuer` unification described below.
 
 ## Goal
 

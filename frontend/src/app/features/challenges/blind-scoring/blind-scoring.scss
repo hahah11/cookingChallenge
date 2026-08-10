@@ -1,0 +1,46 @@
+.blind-scoring__scroll {
+  overflow-x: auto;
+  margin-bottom: var(--md-sys-spacing-6);
+}
+
+.blind-scoring__grid {
+  display: grid;
+  // Plate columns never shrink below what 5 star hit-targets (44px each) need,
+  // so the scroll container above takes over instead of squeezing stars unusably small.
+  grid-template-columns: minmax(80px, 1fr) minmax(228px, 2fr) minmax(228px, 2fr);
+  gap: var(--md-sys-spacing-2);
+}
+
+.blind-scoring__row {
+  display: contents;
+}
+
+.blind-scoring__cell {
+  padding: var(--md-sys-spacing-2);
+}
+
+.blind-scoring__category {
+  font: var(--mat-sys-label-large);
+}
+
+.blind-scoring__plate {
+  text-align: center;
+  font: var(--mat-sys-label-large);
+  border-radius: var(--md-sys-shape-corner-medium);
+  padding-block: var(--md-sys-spacing-3);
+}
+
+.blind-scoring__error {
+  margin: 0 0 var(--md-sys-spacing-4);
+  color: var(--mat-sys-error);
+}
+
+@media (max-width: 640px) {
+  // Smaller star glyph, same 44px hit target — more of the target is now
+  // "empty" tap padding around the star, which is easier to hit with a finger.
+  // --star-size crosses into app-star-rating's own view encapsulation as an
+  // inherited custom property, the same mechanism --plate-color already uses.
+  .blind-scoring__grid {
+    --star-size: 22px;
+  }
+}

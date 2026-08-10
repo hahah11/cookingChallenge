@@ -220,10 +220,13 @@ export class CustomerComponent {
 
 ## File Naming Conventions
 
-- Components: `feature-name.component.ts`
-- Services: `feature-name.service.ts`
+Angular v20+ suffix-less naming, matching the CLI's own default schematics — no `.component.ts`/`.service.ts`:
+
+- Components: `feature-name.ts` (e.g. `challenge-list.ts`)
+- Services: `feature-name.ts` (e.g. `auth.ts`, `app-config.ts`)
 - Models: `feature-name.ts` or `types.ts`
-- Guards: `feature-name.guard.ts`
-- Resolvers: `feature-name.resolver.ts`
+- Guards: `feature-name-guard.ts` (e.g. `auth-guard.ts`)
+- Interceptors: `feature-name-interceptor.ts` (e.g. `error-interceptor.ts`)
+- Resolvers: `feature-name-resolver.ts`
 - Routes: `feature-name.routes.ts`
-- Tests: `*.component.spec.ts`, `*.service.spec.ts`
+- Tests: `*.spec.ts`

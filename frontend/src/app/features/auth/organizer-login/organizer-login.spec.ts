@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 import { Auth } from '../../../core/auth/auth';
 import { ApiError } from '../../../core/errors/api-error';
 import { Notification } from '../../../core/notifications/notification';
+import { expectNoAxeViolations } from '../../../testing/axe';
 import { OrganizerLogin } from './organizer-login';
 
 describe('OrganizerLogin', () => {
@@ -82,4 +83,14 @@ describe('OrganizerLogin', () => {
     );
     expect(notification.error).not.toHaveBeenCalled();
   });
+
+  it(
+    'has no axe violations',
+    async () => {
+      const { fixture } = setup({ login: vi.fn() });
+
+      await expectNoAxeViolations(fixture.nativeElement);
+    },
+    15000
+  );
 });

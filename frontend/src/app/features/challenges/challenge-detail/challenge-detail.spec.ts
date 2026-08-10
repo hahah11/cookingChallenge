@@ -13,6 +13,7 @@ import {
 } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
 import { Notification } from '../../../core/notifications/notification';
+import { expectNoAxeViolations } from '../../../testing/axe';
 import { ChallengeDetail } from './challenge-detail';
 
 const challengeDetail = {
@@ -122,4 +123,15 @@ describe('ChallengeDetail', () => {
     expect(getChallengeStatus).toHaveBeenCalledTimes(2);
     expect(fixture.componentInstance['challenge']()?.status).toBe(ChallengeStatus.OPEN);
   });
+
+  it(
+    'has no axe violations',
+    async () => {
+      const getChallengeStatus = vi.fn().mockReturnValue(of({ data: challengeDetail, meta }));
+      const { fixture } = setup({ getChallengeStatus });
+
+      await expectNoAxeViolations(fixture.nativeElement);
+    },
+    15000
+  );
 });

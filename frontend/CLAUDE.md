@@ -13,7 +13,7 @@
 ## Quick Reference: When Starting a Task
 
 1. Check existing feature modules for similar patterns
-2. Create model/interfaces matching backend DTOs
+2. Run `npm run generate:api`; never hand-write API models — they're generated from `openapi/cookingchallenge-api.yaml`
 3. Build API service extending base HTTP patterns
 4. Create presentational components first
 5. Build container components with state management

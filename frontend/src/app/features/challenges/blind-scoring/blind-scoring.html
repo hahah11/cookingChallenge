@@ -1,0 +1,71 @@
+@switch (loadState()) {
+  @case ('loading') {
+    <app-loading-skeleton [lines]="4" />
+  }
+  @case ('error') {
+    <app-error-state [message]="loadErrorMessage()" [retryable]="true" (retry)="loadChallenge()" />
+  }
+  @case ('loaded') {
+    @if (challenge(); as challenge) {
+      <app-page-header [kicker]="challenge.date" [title]="challenge.dishName" />
+
+      @if (revealedMidEdit()) {
+        <app-error-state message="This challenge has been revealed — scoring is closed." />
+        <button mat-flat-button type="button" (click)="viewResults()">View results</button>
+      } @else if (!challenge.canScore) {
+        <app-error-state message="You can't score this challenge." />
+      } @else {
+        <div class="blind-scoring__scroll">
+          <div class="blind-scoring__grid" role="table" aria-label="Blind scoring — one row per category">
+            <div class="blind-scoring__row blind-scoring__row--header" role="row">
+              <div class="blind-scoring__cell" role="columnheader">
+                <span class="cc-visually-hidden">Category</span>
+              </div>
+              @for (label of challenge.labels; track label) {
+                <div
+                  class="blind-scoring__cell blind-scoring__plate"
+                  role="columnheader"
+                  [class.plate-solid]="colorFor(label)"
+                  [style.--plate-color]="colorFor(label)?.hexCode"
+                >
+                  {{ plateLabel(label) }}
+                </div>
+              }
+            </div>
+            @for (category of challenge.categories; track category) {
+              <div class="blind-scoring__row" role="row">
+                <div class="blind-scoring__cell blind-scoring__category" role="rowheader">
+                  {{ CATEGORY_LABELS[category] }}
+                </div>
+                @for (label of challenge.labels; track label) {
+                  <div class="blind-scoring__cell" role="cell">
+                    <app-star-rating
+                      [label]="CATEGORY_LABELS[category] + ' for ' + plateLabel(label)"
+                      [colorHex]="colorFor(label)?.hexCode"
+                      [value]="scoreValues()[keyFor(category, label)] ?? null"
+                      (valueChange)="setScore(category, label, $event)"
+                    />
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (submitErrorMessage(); as message) {
+          <p class="blind-scoring__error" role="alert">{{ message }}</p>
+        }
+
+        <button
+          mat-flat-button
+          type="button"
+          class="blind-scoring__submit"
+          [disabled]="!canSubmit() || submitting()"
+          (click)="submit()"
+        >
+          Submit scores
+        </button>
+      }
+    }
+  }
+}

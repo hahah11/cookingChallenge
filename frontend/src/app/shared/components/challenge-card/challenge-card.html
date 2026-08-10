@@ -16,7 +16,7 @@
   />
   <mat-card-content class="challenge-card__content">
     <p class="challenge-card__kicker">{{ challenge().date | date: 'mediumDate' }}</p>
-    <h3 class="challenge-card__title">{{ challenge().dishName }}</h3>
+    <h2 class="challenge-card__title">{{ challenge().dishName }}</h2>
     <p class="challenge-card__event">{{ challenge().title }}</p>
     <p class="challenge-card__cooks">
       @for (cook of challenge().cookAssignments; track cook.accountId; let last = $last) {
@@ -26,6 +26,7 @@
         >
           @if (cook.accountId === challenge().overallWinnerAccountId) {
             <mat-icon class="challenge-card__winner-icon" aria-hidden="true">emoji_events</mat-icon>
+            <span class="cc-visually-hidden">Winner: </span>
           }
           {{ cook.name }}
         </span>
@@ -38,7 +39,7 @@
       <app-status-tag [status]="challenge().status" />
       @if (challenge().status === ChallengeStatus.OPEN) {
         <div class="challenge-card__progress">
-          <mat-progress-bar mode="determinate" [value]="progressPercent()" />
+          <mat-progress-bar aria-hidden="true" [attr.tabindex]="null" mode="determinate" [value]="progressPercent()" />
           <span class="challenge-card__progress-text">
             {{ challenge().submittedGuestCount }}/{{ challenge().totalGuestCount }} submitted
           </span>

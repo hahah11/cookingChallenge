@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import { RivalriesApi, Rivalry } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
+import { expectNoAxeViolations } from '../../../testing/axe';
 import { RivalryList } from './rivalry-list';
 
 const rivalry: Rivalry = {
@@ -72,4 +73,17 @@ describe('RivalryList', () => {
 
     expect(navigateSpy).toHaveBeenCalledWith(['/rivalries', 'cook-a', 'cook-b']);
   });
+
+  it(
+    'has no axe violations',
+    async () => {
+      const listRivalries = vi
+        .fn()
+        .mockReturnValue(of({ data: [rivalry], pagination: { totalElements: 1 }, meta: {} }));
+      const { fixture } = setup(listRivalries);
+
+      await expectNoAxeViolations(fixture.nativeElement);
+    },
+    15000
+  );
 });

@@ -319,10 +319,9 @@ Additive to `first-plan.md` §Step 5's schema:
 
 ## 7. API Surface Impact
 
-The actual OpenAPI spec (`openapi/cookingchallenge-api.yaml`) was removed in the latest
-commit (`e05bd5e`, "update architectural docs") pending a rewrite against the newer
-page-scoped-query / config-endpoint conventions — this section is input for that rewrite,
-not a replacement of it. Per screen (§4), roughly:
+The OpenAPI spec (`openapi/cookingchallenge-api.yaml`) now exists and is complete —
+all 24 operationIds are implemented against the page-scoped-query / config-endpoint
+conventions this section anticipated. Per screen (§4), roughly:
 
 - `POST /api/v1/challenges/{id}/registration-invites` — new, `ORGANIZER`/`ADMIN`-gated;
   returns a token/URL the frontend renders as a QR code.

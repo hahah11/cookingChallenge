@@ -179,7 +179,7 @@ describe('CustomerCardComponent', () => {
   });
 
   it('should emit deleted event when delete button clicked', () => {
-    const spy = spyOn(component.deleted, 'emit');
+    const spy = vi.spyOn(component.deleted, 'emit');
     component.customer = { id: 1, name: 'John' };
     fixture.detectChanges();
 
@@ -192,44 +192,41 @@ describe('CustomerCardComponent', () => {
 
 ### Component with Dependencies
 
+Mock services as plain objects with `vi.fn()` methods passed via `useValue` — no spy-object helper needed:
+
 ```typescript
 describe('CustomerListComponent', () => {
-  let component: CustomerListComponent;
-  let fixture: ComponentFixture<CustomerListComponent>;
-  let customerServiceSpy: jasmine.SpyObj<CustomerService>;
-
-  beforeEach(async () => {
-    const spy = jasmine.createSpyObj('CustomerService', ['getCustomers', 'deleteCustomer']);
-
-    await TestBed.configureTestingModule({
+  function setup(customerService: Partial<CustomerService>) {
+    TestBed.configureTestingModule({
       imports: [CustomerListComponent],
-      providers: [{ provide: CustomerService, useValue: spy }]
-    }).compileComponents();
+      providers: [{ provide: CustomerService, useValue: customerService }]
+    });
 
-    customerServiceSpy = TestBed.inject(CustomerService) as jasmine.SpyObj<CustomerService>;
-    fixture = TestBed.createComponent(CustomerListComponent);
-    component = fixture.componentInstance;
-  });
+    const fixture = TestBed.createComponent(CustomerListComponent);
+    return { fixture };
+  }
 
   it('should load customers on init', () => {
     const mockCustomers: Customer[] = [{ id: 1, name: 'John' }];
-    customerServiceSpy.getCustomers.and.returnValue(of(mockCustomers));
+    const getCustomers = vi.fn().mockReturnValue(of(mockCustomers));
+    const { fixture } = setup({ getCustomers });
 
     fixture.detectChanges();
 
-    expect(customerServiceSpy.getCustomers).toHaveBeenCalled();
-    expect(component.customers().length).toBe(1);
+    expect(getCustomers).toHaveBeenCalled();
+    expect(fixture.componentInstance.customers().length).toBe(1);
   });
 
   it('should delete customer when delete button clicked', () => {
     const customer: Customer = { id: 1, name: 'John' };
-    customerServiceSpy.deleteCustomer.and.returnValue(of(undefined));
-    component.customers.set([customer]);
+    const deleteCustomer = vi.fn().mockReturnValue(of(undefined));
+    const { fixture } = setup({ deleteCustomer });
+    fixture.componentInstance.customers.set([customer]);
 
-    component.deleteCustomer(1);
+    fixture.componentInstance.deleteCustomer(1);
 
-    expect(customerServiceSpy.deleteCustomer).toHaveBeenCalledWith(1);
-    expect(component.customers().length).toBe(0);
+    expect(deleteCustomer).toHaveBeenCalledWith(1);
+    expect(fixture.componentInstance.customers().length).toBe(0);
   });
 });
 ```
@@ -296,32 +293,25 @@ describe('CustomerService', () => {
 
 ## Guard Testing
 
+Guards are plain functions — run them inside `TestBed.runInInjectionContext` and mock dependencies as `useValue` objects, same as any other unit under test:
+
 ```typescript
 describe('authGuard', () => {
-  let authServiceSpy: jasmine.SpyObj<AuthService>;
-  let routerSpy: jasmine.SpyObj<Router>;
-
-  beforeEach(() => {
-    authServiceSpy = jasmine.createSpyObj('AuthService', ['isAuthenticated']);
-    routerSpy = jasmine.createSpyObj('Router', ['createUrlTree']);
-  });
+  function runGuard(authenticated: boolean) {
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), { provide: AuthService, useValue: { isAuthenticated: signal(authenticated) } }]
+    });
+    return TestBed.runInInjectionContext(() => authGuard(null as any, null as any));
+  }
 
   it('should activate when user is authenticated', () => {
-    authServiceSpy.isAuthenticated.and.returnValue(true);
-
-    const result = authGuard(null as any, null as any);
-
-    expect(result).toBe(true);
-    expect(authServiceSpy.isAuthenticated).toHaveBeenCalled();
+    expect(runGuard(true)).toBe(true);
   });
 
   it('should redirect to login when user is not authenticated', () => {
-    authServiceSpy.isAuthenticated.and.returnValue(false);
-    routerSpy.createUrlTree.and.returnValue(['/login']);
+    const result = runGuard(false) as UrlTree;
 
-    const result = authGuard(null as any, null as any);
-
-    expect(result).toEqual(['/login']);
+    expect(TestBed.inject(Router).serializeUrl(result)).toBe('/login');
   });
 });
 ```
@@ -420,9 +410,9 @@ it('should display 5 customers', () => {
 
 ```typescript
 // ✅ Create reusable mock providers
-export const mockCustomerService: ComponentFixture<CustomerListComponent> = {
+export const mockCustomerService: Provider = {
   provide: CustomerService,
-  useValue: jasmine.createSpyObj('CustomerService', ['getCustomers', 'createCustomer'])
+  useValue: { getCustomers: vi.fn(), createCustomer: vi.fn() }
 };
 
 // Usage
