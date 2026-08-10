@@ -79,6 +79,6 @@ describe('ChallengeHistory', () => {
 
     fixture.componentInstance['openChallenge']('chal-1');
 
-    expect(navigateSpy).toHaveBeenCalledWith(['/challenges', 'chal-1'], { state: { challenge } });
+    expect(navigateSpy).toHaveBeenCalledWith(['/challenges', 'chal-1']);
   });
 });

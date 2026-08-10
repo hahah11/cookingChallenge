@@ -14,8 +14,8 @@ import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeDetailRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.GuestSubmissionStatusRestDto;
-import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatusRestDto;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -59,6 +59,8 @@ class GetChallengeStatusServiceTest {
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(accountLookup.getById(guest1)).thenReturn(new AccountSummary(guest1, new Email("g1@x.com"), "Guest One", "Guest"));
         when(accountLookup.getById(guest2)).thenReturn(new AccountSummary(guest2, new Email("g2@x.com"), "Guest Two", "Guest"));
+        when(accountLookup.getById(cookA)).thenReturn(new AccountSummary(cookA, new Email("a@x.com"), "Cook A", "Cook"));
+        when(accountLookup.getById(cookB)).thenReturn(new AccountSummary(cookB, new Email("b@x.com"), "Cook B", "Cook"));
 
         List<Score> scores = List.of(new Score(DishLabel.A, Category.GESCHMACK, 5));
         ScoreSubmission guestSubmission = ScoreSubmission.reconstitute(
@@ -68,13 +70,16 @@ class GetChallengeStatusServiceTest {
         when(scoreSubmissionRepository.findByChallengeId(challenge.getId()))
                 .thenReturn(List.of(guestSubmission, cookSubmission));
 
-        SubmissionStatusRestDto status = service.execute(challenge.getId().toString());
+        ChallengeDetailRestDto status = service.execute(challenge.getId().toString());
 
         assertEquals(2, status.getTotalGuestCount());
         assertEquals(1, status.getSubmittedGuestCount());
         assertEquals(guest1.toString(), status.getGuests().stream()
                 .filter(GuestSubmissionStatusRestDto::getSubmitted)
                 .findFirst().orElseThrow().getAccountId());
+        assertEquals("Schnitzel", status.getDishName());
+        assertEquals(challenge.getDate(), status.getDate());
+        assertEquals(2, status.getCookAssignments().size());
     }
 
     @Test

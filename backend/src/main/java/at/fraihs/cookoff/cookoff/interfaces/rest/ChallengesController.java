@@ -22,6 +22,7 @@ import at.fraihs.cookoff.shared.web.openapi.model.ApiMetaRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeListResponseRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResponseRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeDetailResponseRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResultResponseRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.CreateChallengeRequestRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.InvitationsSentResponseRestDto;
@@ -30,7 +31,6 @@ import at.fraihs.cookoff.shared.web.openapi.model.PickColorRequestRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.RegistrationInviteResponseRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ScoreSubmissionResponseRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.SendInvitationsRequestRestDto;
-import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatusResponseRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.SubmitScoresRequestRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.UpdateParticipantsRequestRestDto;
 
@@ -89,9 +89,9 @@ public class ChallengesController implements ChallengesApi {
     }
 
     @Override
-    public ResponseEntity<SubmissionStatusResponseRestDto> getChallengeStatus(String challengeId) {
+    public ResponseEntity<ChallengeDetailResponseRestDto> getChallengeStatus(String challengeId) {
         var status = getChallengeStatusService.execute(challengeId);
-        return ResponseEntity.ok(new SubmissionStatusResponseRestDto(status, meta()));
+        return ResponseEntity.ok(new ChallengeDetailResponseRestDto(status, meta()));
     }
 
     @Override

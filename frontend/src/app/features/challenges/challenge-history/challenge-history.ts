@@ -71,8 +71,7 @@ export class ChallengeHistory {
   }
 
   protected openChallenge(id: string): void {
-    const challenge = this.challenges().find((c) => c.id === id);
-    void this.router.navigate(['/challenges', id], { state: { challenge } });
+    void this.router.navigate(['/challenges', id]);
   }
 
   protected openNewChallengeDialog(): void {

@@ -1,4 +1,3 @@
-import { Location } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { of } from 'rxjs';
@@ -16,22 +15,20 @@ import { AppConfig } from '../../../core/config/app-config';
 import { Notification } from '../../../core/notifications/notification';
 import { ChallengeDetail } from './challenge-detail';
 
-const openChallenge = {
-  id: 'chal-1',
-  date: '2026-08-01',
+const challengeDetail = {
+  challengeId: 'chal-1',
+  totalGuestCount: 1,
+  submittedGuestCount: 0,
+  guests: [{ accountId: 'guest-1', name: 'Gina', email: 'gina@example.com', submitted: false }],
   title: 'Summer cook-off',
   dishName: 'Ramen',
+  date: '2026-08-01',
   status: ChallengeStatus.OPEN,
+  hasImage: false,
   cookAssignments: [
     { accountId: 'cook-a', name: 'Alice', label: DishLabel.A, colorId: null },
     { accountId: 'cook-b', name: 'Bob', label: DishLabel.B, colorId: null }
-  ],
-  guestAccountIds: ['guest-1'],
-  createdByAccountId: 'organizer-1',
-  submittedGuestCount: 0,
-  totalGuestCount: 1,
-  hasImage: false,
-  overallWinnerAccountId: null
+  ]
 };
 
 const revealedResult = {
@@ -39,7 +36,7 @@ const revealedResult = {
   categoryWinners: { [Category.GESCHMACK]: 'cook-a' },
   categoryTotals: [],
   overallWinnerAccountId: 'cook-a',
-  cookAssignments: openChallenge.cookAssignments,
+  cookAssignments: challengeDetail.cookAssignments,
   rivalry: {
     cookAAccountId: 'cook-a',
     cookBAccountId: 'cook-b',
@@ -55,7 +52,7 @@ const config: Config = { availableRoles: [], plateColors: [], featureFlags: {} }
 const meta = { requestId: 'req-1', timestamp: '2026-01-01T00:00:00Z' };
 
 describe('ChallengeDetail', () => {
-  function setup(challengesApi: Record<string, unknown>, dialog: Record<string, unknown> = {}, navState: unknown = null) {
+  function setup(challengesApi: Record<string, unknown>, dialog: Record<string, unknown> = {}) {
     TestBed.configureTestingModule({
       imports: [ChallengeDetail],
       providers: [
@@ -63,8 +60,7 @@ describe('ChallengeDetail', () => {
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta }) } },
         AppConfig,
         { provide: MatDialog, useValue: dialog },
-        { provide: Notification, useValue: { error: vi.fn(), success: vi.fn(), info: vi.fn() } },
-        { provide: Location, useValue: { getState: () => navState } }
+        { provide: Notification, useValue: { error: vi.fn(), success: vi.fn(), info: vi.fn() } }
       ]
     });
 
@@ -74,33 +70,13 @@ describe('ChallengeDetail', () => {
     return { fixture };
   }
 
-  it('uses the challenge handed off via router state and loads guest status for an OPEN challenge', () => {
-    const getChallengeStatus = vi.fn().mockReturnValue(
-      of({
-        data: {
-          challengeId: 'chal-1',
-          totalGuestCount: 1,
-          submittedGuestCount: 0,
-          guests: [{ accountId: 'guest-1', name: 'Gina', email: 'gina@example.com', submitted: false }]
-        },
-        meta
-      })
-    );
-    const { fixture } = setup({ getChallengeStatus }, {}, { challenge: openChallenge });
+  it('fetches challenge detail fresh and renders metadata plus guest status for an OPEN challenge', () => {
+    const getChallengeStatus = vi.fn().mockReturnValue(of({ data: challengeDetail, meta }));
+    const { fixture } = setup({ getChallengeStatus });
 
     expect(getChallengeStatus).toHaveBeenCalledWith('chal-1');
-    expect(fixture.nativeElement.textContent).toContain('Pending');
-  });
-
-  it('falls back to scanning listChallenges when there is no router state', () => {
-    const listChallenges = vi.fn().mockReturnValue(of({ data: [openChallenge], pagination: {}, meta }));
-    const getChallengeStatus = vi.fn().mockReturnValue(
-      of({ data: { challengeId: 'chal-1', totalGuestCount: 0, submittedGuestCount: 0, guests: [] }, meta })
-    );
-    const { fixture } = setup({ listChallenges, getChallengeStatus }, {}, null);
-
-    expect(listChallenges).toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Ramen');
+    expect(fixture.nativeElement.textContent).toContain('Pending');
   });
 
   it('reveals the challenge and switches to the results view after confirmation', () => {
@@ -108,12 +84,10 @@ describe('ChallengeDetail', () => {
     const dialog = { open: vi.fn().mockReturnValue({ afterClosed: () => of(true) }) };
     const { fixture } = setup(
       {
-        getChallengeStatus: () =>
-          of({ data: { challengeId: 'chal-1', totalGuestCount: 0, submittedGuestCount: 0, guests: [] }, meta }),
+        getChallengeStatus: () => of({ data: challengeDetail, meta }),
         revealChallenge
       },
-      dialog,
-      { challenge: openChallenge }
+      dialog
     );
 
     fixture.componentInstance['confirmReveal']();
@@ -124,25 +98,28 @@ describe('ChallengeDetail', () => {
     expect(fixture.componentInstance['result']()).toEqual(revealedResult);
   });
 
-  it('unreveals back to the open guest view after confirmation', () => {
-    const revealedChallenge = { ...openChallenge, status: ChallengeStatus.REVEALED };
-    const unrevealedChallenge = { ...openChallenge, status: ChallengeStatus.OPEN };
-    const unrevealChallenge = vi.fn().mockReturnValue(of({ data: unrevealedChallenge, meta }));
+  it('unreveals back to the open guest view after confirmation, re-fetching the challenge', () => {
+    const revealedChallenge = { ...challengeDetail, status: ChallengeStatus.REVEALED };
+    const unrevealedChallenge = { ...challengeDetail, status: ChallengeStatus.OPEN };
+    const getChallengeStatus = vi
+      .fn()
+      .mockReturnValueOnce(of({ data: revealedChallenge, meta }))
+      .mockReturnValueOnce(of({ data: unrevealedChallenge, meta }));
+    const unrevealChallenge = vi.fn().mockReturnValue(of({ data: null, meta }));
     const dialog = { open: vi.fn().mockReturnValue({ afterClosed: () => of(true) }) };
     const { fixture } = setup(
       {
         getChallengeResults: () => of({ data: revealedResult, meta }),
-        getChallengeStatus: () =>
-          of({ data: { challengeId: 'chal-1', totalGuestCount: 0, submittedGuestCount: 0, guests: [] }, meta }),
+        getChallengeStatus,
         unrevealChallenge
       },
-      dialog,
-      { challenge: revealedChallenge }
+      dialog
     );
 
     fixture.componentInstance['confirmUnreveal']();
 
     expect(unrevealChallenge).toHaveBeenCalledWith('chal-1');
+    expect(getChallengeStatus).toHaveBeenCalledTimes(2);
     expect(fixture.componentInstance['challenge']()?.status).toBe(ChallengeStatus.OPEN);
   });
 });

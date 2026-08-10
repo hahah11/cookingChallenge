@@ -270,17 +270,22 @@ paths:
     get:
       tags: [Challenges]
       operationId: getChallengeStatus
-      summary: Guest list with per-guest submission status, for the organizer detail screen
+      summary: Challenge detail for the organizer screen, including per-guest submission status
+      description: >
+        Returns the challenge's own metadata (title, dish name, date, status,
+        hasImage, cookAssignments) plus the guest list with per-guest submission
+        status. The one organizer-facing single-challenge fetch — safe to call
+        regardless of whether the challenge is OPEN or REVEALED.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChallengeIdPathParam'
       responses:
         '200':
-          description: Submission status, one row per guest.
+          description: Challenge detail, including one row per guest's submission status.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SubmissionStatusResponse'
+                $ref: '#/components/schemas/ChallengeDetailResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -1248,9 +1253,9 @@ components:
           format: date-time
           nullable: true
 
-    SubmissionStatus:
+    ChallengeDetail:
       type: object
-      required: [challengeId, totalGuestCount, submittedGuestCount, guests]
+      required: [challengeId, totalGuestCount, submittedGuestCount, guests, title, dishName, date, status, hasImage, cookAssignments]
       properties:
         challengeId:
           $ref: '#/components/schemas/Tsid'
@@ -1262,13 +1267,31 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GuestSubmissionStatus'
+        title:
+          type: string
+        dishName:
+          type: string
+        date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/ChallengeStatus'
+        hasImage:
+          type: boolean
+          description: Whether GET /api/v1/challenges/{id}/image resolves to a photo.
+        cookAssignments:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/CookAssignment'
 
-    SubmissionStatusResponse:
+    ChallengeDetailResponse:
       type: object
       required: [data, meta]
       properties:
         data:
-          $ref: '#/components/schemas/SubmissionStatus'
+          $ref: '#/components/schemas/ChallengeDetail'
         meta:
           $ref: '#/components/schemas/ApiMeta'
 

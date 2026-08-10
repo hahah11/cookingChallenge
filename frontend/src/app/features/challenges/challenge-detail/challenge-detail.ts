@@ -1,16 +1,14 @@
-import { Location } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 
 import {
-  Challenge,
+  ChallengeDetail as ChallengeDetailModel,
   ChallengeResult,
   ChallengesApi,
   ChallengeStatus,
-  DishLabel,
-  SubmissionStatus
+  DishLabel
 } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
@@ -28,17 +26,13 @@ import { SendLinksDialog, SendLinksDialogData } from '../send-links-dialog/send-
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
-/** No dedicated single-challenge fetch exists for organizers (only the participant-blind
- * view does) — this covers a hard refresh/direct link when History didn't hand off its
- * already-loaded `Challenge` via router state. See the frontend plan's Phase 5 notes. */
-const FALLBACK_LIST_PAGE_SIZE = 100;
-
 const REVEAL_ANIMATION_MS = 1100;
 const LINKS_SENT_FLASH_MS = 3000;
 
 /**
- * Organizer challenge detail: `GET /challenges/{id}/status` while OPEN,
- * `GET /challenges/{id}/results` once REVEALED — see the frontend plan's Phase 5.
+ * Organizer challenge detail: `GET /challenges/{id}/status` always (it carries both the
+ * challenge's own metadata and the guest submission list), plus `GET /challenges/{id}/results`
+ * once REVEALED — see the frontend plan's Phase 5b.
  */
 @Component({
   selector: 'app-challenge-detail',
@@ -60,7 +54,6 @@ export class ChallengeDetail {
   private readonly appConfig = inject(AppConfig);
   private readonly dialog = inject(MatDialog);
   private readonly notification = inject(Notification);
-  private readonly location = inject(Location);
 
   readonly id = input.required<string>();
 
@@ -68,11 +61,7 @@ export class ChallengeDetail {
 
   protected readonly loadState = signal<LoadState>('loading');
   protected readonly loadErrorMessage = signal('');
-  protected readonly challenge = signal<Challenge | null>(null);
-
-  protected readonly submissionState = signal<LoadState>('loading');
-  protected readonly submissionErrorMessage = signal('');
-  protected readonly submissionStatus = signal<SubmissionStatus | null>(null);
+  protected readonly challenge = signal<ChallengeDetailModel | null>(null);
 
   protected readonly resultState = signal<LoadState>('loading');
   protected readonly resultErrorMessage = signal('');
@@ -98,20 +87,12 @@ export class ChallengeDetail {
     const id = this.id();
     this.loadState.set('loading');
 
-    const navigationState = this.location.getState() as { challenge?: Challenge } | null;
-    if (navigationState?.challenge && navigationState.challenge.id === id) {
-      this.onChallengeLoaded(navigationState.challenge);
-      return;
-    }
-
-    this.challengesApi.listChallenges(0, FALLBACK_LIST_PAGE_SIZE).subscribe({
+    this.challengesApi.getChallengeStatus(id).subscribe({
       next: (response) => {
-        const found = response.data.find((c) => c.id === id);
-        if (found) {
-          this.onChallengeLoaded(found);
-        } else {
-          this.loadErrorMessage.set('Challenge not found.');
-          this.loadState.set('error');
+        this.challenge.set(response.data);
+        this.loadState.set('loaded');
+        if (response.data.status === ChallengeStatus.REVEALED) {
+          this.loadResults(id);
         }
       },
       error: (error: ApiError) => {
@@ -121,42 +102,11 @@ export class ChallengeDetail {
     });
   }
 
-  private onChallengeLoaded(challenge: Challenge): void {
-    this.challenge.set(challenge);
-    this.loadState.set('loaded');
-    if (challenge.status === ChallengeStatus.OPEN) {
-      this.loadSubmissionStatus(challenge.id);
-    } else {
-      this.loadResults(challenge.id);
-    }
-  }
-
-  protected retrySubmissionStatus(): void {
-    const challenge = this.challenge();
-    if (challenge) {
-      this.loadSubmissionStatus(challenge.id);
-    }
-  }
-
   protected retryResults(): void {
     const challenge = this.challenge();
     if (challenge) {
-      this.loadResults(challenge.id);
+      this.loadResults(challenge.challengeId);
     }
-  }
-
-  private loadSubmissionStatus(challengeId: string): void {
-    this.submissionState.set('loading');
-    this.challengesApi.getChallengeStatus(challengeId).subscribe({
-      next: (response) => {
-        this.submissionStatus.set(response.data);
-        this.submissionState.set('loaded');
-      },
-      error: (error: ApiError) => {
-        this.submissionErrorMessage.set(error.message);
-        this.submissionState.set('error');
-      }
-    });
   }
 
   private loadResults(challengeId: string): void {
@@ -177,13 +127,13 @@ export class ChallengeDetail {
     const challenge = this.challenge();
     if (!challenge) return;
 
-    const data: SendLinksDialogData = { challengeId: challenge.id };
+    const data: SendLinksDialogData = { challengeId: challenge.challengeId };
     const ref = this.dialog.open(SendLinksDialog, { data, width: '480px' });
     ref.afterClosed().subscribe((sent) => {
       if (sent) {
         this.linksSentFlash.set(true);
         setTimeout(() => this.linksSentFlash.set(false), LINKS_SENT_FLASH_MS);
-        this.loadSubmissionStatus(challenge.id);
+        this.loadChallenge();
       }
     });
   }
@@ -195,15 +145,15 @@ export class ChallengeDetail {
     const cookA = challenge.cookAssignments.find((cook) => cook.label === DishLabel.A);
     const cookB = challenge.cookAssignments.find((cook) => cook.label === DishLabel.B);
     const data: EditParticipantsDialogData = {
-      challengeId: challenge.id,
+      challengeId: challenge.challengeId,
       cookAAccountId: cookA?.accountId ?? '',
       cookBAccountId: cookB?.accountId ?? '',
-      guestAccountIds: [...challenge.guestAccountIds]
+      guestAccountIds: challenge.guests.map((guest) => guest.accountId)
     };
     const ref = this.dialog.open(EditParticipantsDialog, { data, width: '560px' });
     ref.afterClosed().subscribe((updated) => {
       if (updated) {
-        this.onChallengeLoaded(updated);
+        this.loadChallenge();
       }
     });
   }
@@ -212,7 +162,7 @@ export class ChallengeDetail {
     const challenge = this.challenge();
     if (!challenge) return;
 
-    const data: QrDialogData = { challengeId: challenge.id };
+    const data: QrDialogData = { challengeId: challenge.challengeId };
     this.dialog.open(QrDialog, { data, width: '360px' });
   }
 
@@ -238,7 +188,7 @@ export class ChallengeDetail {
     if (!challenge) return;
 
     this.revealBusy.set(true);
-    this.challengesApi.revealChallenge(challenge.id).subscribe({
+    this.challengesApi.revealChallenge(challenge.challengeId).subscribe({
       next: (response) => {
         this.revealBusy.set(false);
         this.challenge.set({ ...challenge, status: ChallengeStatus.REVEALED });
@@ -279,10 +229,10 @@ export class ChallengeDetail {
     if (!challenge) return;
 
     this.unrevealBusy.set(true);
-    this.challengesApi.unrevealChallenge(challenge.id).subscribe({
-      next: (response) => {
+    this.challengesApi.unrevealChallenge(challenge.challengeId).subscribe({
+      next: () => {
         this.unrevealBusy.set(false);
-        this.onChallengeLoaded(response.data);
+        this.loadChallenge();
       },
       error: (error: ApiError) => {
         this.unrevealBusy.set(false);

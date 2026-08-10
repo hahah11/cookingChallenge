@@ -6,11 +6,13 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
+import at.fraihs.cookoff.cookoff.application.mapper.ChallengeModelMapper;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeDetailRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatusRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.GuestSubmissionStatusRestDto;
-import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatusRestDto;
 
 import java.time.ZoneOffset;
 import java.util.Map;
@@ -20,10 +22,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * "Which guests have/haven't submitted" — organizer-only progress view per
- * docs/cookingChallenge/first-plan.md Step 3. Tracks the pre-added guest list only, not
- * the two cooks, matching that row's literal wording even though SubmitScoreService also
- * accepts the challenge creator's own submission.
+ * Organizer-facing single-challenge fetch: the challenge's own metadata (title, dish name,
+ * date, status, hasImage, cookAssignments) plus which guests have/haven't submitted, per
+ * docs/cookingChallenge/plans/frontend-implementation-plan.md's Phase 5b. Tracks the
+ * pre-added guest list only, not the two cooks, matching that row's literal wording even
+ * though SubmitScoreService also accepts the challenge creator's own submission.
  */
 @Service
 @RequiredArgsConstructor
@@ -34,7 +37,7 @@ public class GetChallengeStatusService {
     private final AccountLookup accountLookup;
 
     @Transactional(readOnly = true)
-    public SubmissionStatusRestDto execute(String challengeIdString) {
+    public ChallengeDetailRestDto execute(String challengeIdString) {
         ChallengeId challengeId = ChallengeId.fromString(challengeIdString);
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
@@ -48,7 +51,17 @@ public class GetChallengeStatusService {
                 .toList();
         long submittedCount = guests.stream().filter(GuestSubmissionStatusRestDto::getSubmitted).count();
 
-        return new SubmissionStatusRestDto(challengeIdString, guests.size(), (int) submittedCount, guests);
+        return new ChallengeDetailRestDto(
+                challengeIdString,
+                guests.size(),
+                (int) submittedCount,
+                guests,
+                challenge.getTitle(),
+                challenge.getDishName().toString(),
+                challenge.getDate(),
+                ChallengeStatusRestDto.valueOf(challenge.getStatus().name()),
+                challenge.getImageRef() != null,
+                ChallengeModelMapper.cookAssignments(challenge, accountLookup));
     }
 
     private GuestSubmissionStatusRestDto toGuestSubmissionStatus(AccountId guestAccountId, ScoreSubmission submission) {

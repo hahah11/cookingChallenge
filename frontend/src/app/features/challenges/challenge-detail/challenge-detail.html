@@ -20,7 +20,7 @@
       <div class="challenge-detail__header">
         <app-challenge-photo
           class="challenge-detail__photo"
-          [challengeId]="challenge.id"
+          [challengeId]="challenge.challengeId"
           [hasImage]="challenge.hasImage"
           [alt]="challenge.dishName"
         />
@@ -57,42 +57,30 @@
           }
         </div>
 
-        @switch (submissionState()) {
-          @case ('loading') {
-            <app-loading-skeleton [lines]="3" />
-          }
-          @case ('error') {
-            <app-error-state [message]="submissionErrorMessage()" [retryable]="true" (retry)="retrySubmissionStatus()" />
-          }
-          @case ('loaded') {
-            @if (submissionStatus(); as status) {
-              <table class="challenge-detail__guests">
-                <caption class="cc-visually-hidden">Guest submission status</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Guest</th>
-                    <th scope="col">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (guest of status.guests; track guest.accountId) {
-                    <tr>
-                      <td>{{ guest.name }}</td>
-                      <td>
-                        <span
-                          class="challenge-detail__guest-tag"
-                          [class.challenge-detail__guest-tag--submitted]="guest.submitted"
-                        >
-                          {{ guest.submitted ? 'Submitted' : 'Pending' }}
-                        </span>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
+        <table class="challenge-detail__guests">
+          <caption class="cc-visually-hidden">Guest submission status</caption>
+          <thead>
+            <tr>
+              <th scope="col">Guest</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (guest of challenge.guests; track guest.accountId) {
+              <tr>
+                <td>{{ guest.name }}</td>
+                <td>
+                  <span
+                    class="challenge-detail__guest-tag"
+                    [class.challenge-detail__guest-tag--submitted]="guest.submitted"
+                  >
+                    {{ guest.submitted ? 'Submitted' : 'Pending' }}
+                  </span>
+                </td>
+              </tr>
             }
-          }
-        }
+          </tbody>
+        </table>
       } @else {
         @switch (resultState()) {
           @case ('loading') {

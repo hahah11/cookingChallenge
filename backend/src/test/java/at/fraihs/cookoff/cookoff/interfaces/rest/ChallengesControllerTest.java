@@ -22,6 +22,7 @@ import at.fraihs.cookoff.shared.config.JacksonConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
 import at.fraihs.cookoff.shared.web.dto.PagedResult;
 import at.fraihs.cookoff.shared.web.openapi.model.CategoryRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.ChallengeDetailRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeResultRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatusRestDto;
@@ -36,7 +37,6 @@ import at.fraihs.cookoff.shared.web.openapi.model.RegistrationInviteRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.RivalrySummaryRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ScoreEntryRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ScoreSubmissionRestDto;
-import at.fraihs.cookoff.shared.web.openapi.model.SubmissionStatusRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.SubmitScoresRequestRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.UpdateParticipantsRequestRestDto;
 
@@ -201,7 +201,10 @@ class ChallengesControllerTest {
 
     @Test
     void should_return200_when_gettingStatus() throws Exception {
-        when(getChallengeStatusService.execute("chal-1")).thenReturn(new SubmissionStatusRestDto("chal-1", 2, 1, List.of()));
+        when(getChallengeStatusService.execute("chal-1")).thenReturn(new ChallengeDetailRestDto(
+                "chal-1", 2, 1, List.of(), "Title", "Schnitzel", LocalDate.now(), ChallengeStatusRestDto.OPEN, false,
+                List.of(new CookAssignmentRestDto("acc-a", "Cook A", DishLabelRestDto.A, null),
+                        new CookAssignmentRestDto("acc-b", "Cook B", DishLabelRestDto.B, null))));
 
         mockMvc.perform(get("/api/v1/challenges/chal-1/status"))
                 .andExpect(status().isOk())
