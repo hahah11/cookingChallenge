@@ -1,0 +1,24 @@
+<mat-toolbar class="organizer-shell__toolbar">
+  <span class="organizer-shell__brand">CookingChallenge</span>
+  <nav class="organizer-shell__nav" aria-label="Primary">
+    @for (link of links(); track link.route) {
+      <a
+        class="organizer-shell__link"
+        [routerLink]="link.route"
+        routerLinkActive="organizer-shell__link--active"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
+        #rla="routerLinkActive"
+      >
+        {{ link.label }}
+      </a>
+    }
+  </nav>
+  <button mat-button type="button" (click)="logOut()">
+    <mat-icon aria-hidden="true">logout</mat-icon>
+    Log out
+  </button>
+</mat-toolbar>
+
+<main class="organizer-shell__content">
+  <router-outlet />
+</main>
