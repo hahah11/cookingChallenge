@@ -35,7 +35,12 @@
         <p class="organizer-login__error" role="alert">{{ message }}</p>
       }
 
-      <button mat-flat-button type="submit" class="organizer-login__submit" [disabled]="submitting()">
+      <button
+        mat-flat-button
+        type="submit"
+        class="organizer-login__submit"
+        [disabled]="submitting()"
+      >
         @if (submitting()) {
           <mat-spinner diameter="20" />
         } @else {

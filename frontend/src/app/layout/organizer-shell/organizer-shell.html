@@ -1,25 +1,26 @@
-<mat-toolbar class="organizer-shell__toolbar">
-  <span class="organizer-shell__brand">CookOff</span>
-  <nav class="organizer-shell__nav" aria-label="Primary">
+<header class="organizer-shell__header">
+  <mat-toolbar class="organizer-shell__toolbar">
+    <span class="organizer-shell__brand">CookOff</span>
+    <span class="organizer-shell__spacer"></span>
+    <button mat-button type="button" (click)="logOut()">Log out</button>
+  </mat-toolbar>
+  <nav mat-tab-nav-bar class="organizer-shell__nav" [tabPanel]="tabPanel" aria-label="Primary">
     @for (link of links(); track link.route) {
       <a
-        class="organizer-shell__link"
+        mat-tab-link
         [routerLink]="link.route"
-        routerLinkActive="organizer-shell__link--active"
-        [attr.aria-current]="rla.isActive ? 'page' : null"
+        routerLinkActive
         #rla="routerLinkActive"
-        matRipple
+        [active]="rla.isActive"
       >
         {{ link.label }}
       </a>
     }
   </nav>
-  <button mat-button type="button" (click)="logOut()">
-    <mat-icon aria-hidden="true">logout</mat-icon>
-    Log out
-  </button>
-</mat-toolbar>
+</header>
 
-<main class="organizer-shell__content">
-  <router-outlet />
-</main>
+<mat-tab-nav-panel #tabPanel>
+  <main class="organizer-shell__content">
+    <router-outlet />
+  </main>
+</mat-tab-nav-panel>

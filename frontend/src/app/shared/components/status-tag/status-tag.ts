@@ -6,9 +6,11 @@ import { ChallengeStatus } from '../../../core/api/generated';
 
 /**
  * `Open` / `Revealed` tag, one place for both organizer and participant screens.
- * `Open` is a plain outlined `mat-chip` (M3's default un-highlighted look);
- * `Revealed` reuses the same chip `highlighted`, repainted with the project's
- * custom success role — M3 has no built-in success color, see `_overrides.scss`.
+ * Both states are highlighted (colored) chips, matching the design's always-tinted
+ * status chip: `Open` uses the M3 error role (design tints it red, its own hue-10
+ * chip color isn't a system token, but error already sits at the same hue), `Revealed`
+ * uses the project's custom success role — M3 has no built-in success color, see
+ * `_overrides.scss`.
  */
 @Component({
   selector: 'app-status-tag',
@@ -18,7 +20,8 @@ import { ChallengeStatus } from '../../../core/api/generated';
       <mat-chip
         class="status-tag"
         [class.status-tag--revealed]="isRevealed()"
-        [highlighted]="isRevealed()"
+        [class.status-tag--open]="!isRevealed()"
+        highlighted
         disableRipple
       >
         <mat-icon matChipAvatar aria-hidden="true">check_circle</mat-icon>
@@ -40,6 +43,14 @@ import { ChallengeStatus } from '../../../core/api/generated';
       --mat-chip-selected-label-text-color: var(--cc-color-on-success-container);
       --mat-chip-selected-hover-state-layer-color: var(--cc-color-on-success-container);
       --mat-chip-selected-focus-state-layer-color: var(--cc-color-on-success-container);
+      --mat-chip-flat-selected-outline-width: 0;
+    }
+
+    .status-tag--open {
+      --mat-chip-elevated-selected-container-color: var(--mat-sys-error-container);
+      --mat-chip-selected-label-text-color: var(--mat-sys-on-error-container);
+      --mat-chip-selected-hover-state-layer-color: var(--mat-sys-on-error-container);
+      --mat-chip-selected-focus-state-layer-color: var(--mat-sys-on-error-container);
       --mat-chip-flat-selected-outline-width: 0;
     }
   `

@@ -12,11 +12,12 @@ describe('StatusTag', () => {
     return fixture;
   }
 
-  it('renders "Open" for an open challenge, not highlighted, with a leading check icon', async () => {
+  it('renders "Open" for an open challenge with the error override class and a leading check icon', async () => {
     const fixture = await createComponent(ChallengeStatus.OPEN);
     const chip = fixture.nativeElement.querySelector('mat-chip');
     expect(chip.querySelector('.status-tag__label').textContent.trim()).toBe('Open');
     expect(chip.querySelector('mat-icon').textContent.trim()).toBe('check_circle');
+    expect(chip.classList).toContain('status-tag--open');
     expect(chip.classList).not.toContain('status-tag--revealed');
   });
 

@@ -12,9 +12,7 @@
     <app-status-tag [status]="challenge().status" />
 
     <div class="participant-challenge-card__action">
-      @if (challenge().status === ChallengeStatus.REVEALED) {
-        <button mat-tonal-button type="button" (click)="results.emit(challenge().id)">Revealed — view results</button>
-      } @else if (challenge().canPickColor) {
+      @if (challenge().canPickColor) {
         <div class="participant-challenge-card__swatches" role="group" aria-label="Pick your plate color">
           @for (color of pickableColors(); track color.id) {
             <button
@@ -36,7 +34,7 @@
         <button mat-flat-button type="button" (click)="score.emit(challenge().id)">Score now</button>
       } @else if (challenge().canScore && challenge().submitted) {
         <div class="participant-challenge-card__edit-score">
-          <button mat-tonal-button type="button" (click)="score.emit(challenge().id)">Edit scores</button>
+          <button mat-stroked-button type="button" (click)="score.emit(challenge().id)">Edit scores</button>
           <span class="participant-challenge-card__submitted-tag">Submitted — editable until reveal</span>
         </div>
       }

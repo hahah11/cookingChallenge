@@ -26,14 +26,14 @@ describe('OrganizerShell', () => {
   it('shows History and Rivalries, but hides Accounts for a non-admin organizer', () => {
     const { fixture } = setup([SystemRole.ORGANIZER]);
 
-    const links = Array.from(fixture.nativeElement.querySelectorAll('.organizer-shell__link')) as HTMLElement[];
+    const links = Array.from(fixture.nativeElement.querySelectorAll('[mat-tab-link]')) as HTMLElement[];
     expect(links.map((link) => link.textContent?.trim())).toEqual(['History', 'Rivalries']);
   });
 
   it('shows Accounts between History and Rivalries for an admin', () => {
     const { fixture } = setup([SystemRole.ORGANIZER, SystemRole.ADMIN]);
 
-    const links = Array.from(fixture.nativeElement.querySelectorAll('.organizer-shell__link')) as HTMLElement[];
+    const links = Array.from(fixture.nativeElement.querySelectorAll('[mat-tab-link]')) as HTMLElement[];
     expect(links.map((link) => link.textContent?.trim())).toEqual(['History', 'Accounts', 'Rivalries']);
   });
 

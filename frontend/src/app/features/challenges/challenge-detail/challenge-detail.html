@@ -72,14 +72,14 @@
         </div>
 
         <div class="challenge-detail__actions">
-          <button mat-tonal-button type="button" (click)="openSendLinksDialog()">
+          <button mat-stroked-button type="button" (click)="openSendLinksDialog()">
             <mat-icon aria-hidden="true">forward_to_inbox</mat-icon>
             Send links
           </button>
-          <button mat-tonal-button type="button" (click)="openEditParticipantsDialog()">
+          <button mat-stroked-button type="button" (click)="openEditParticipantsDialog()">
             Edit cooks & guests
           </button>
-          <button mat-tonal-button type="button" (click)="openQrDialog()">
+          <button mat-stroked-button type="button" (click)="openQrDialog()">
             <mat-icon aria-hidden="true">qr_code_2</mat-icon>
             Registration QR code
           </button>
@@ -113,7 +113,7 @@
               />
               <div class="challenge-detail__unreveal">
                 <p>Made a mistake? You can reopen scoring and hide the results again.</p>
-                <button mat-tonal-button type="button" [disabled]="unrevealBusy()" (click)="confirmUnreveal()">
+                <button mat-stroked-button type="button" [disabled]="unrevealBusy()" (click)="confirmUnreveal()">
                   <mat-icon aria-hidden="true">undo</mat-icon>
                   Unreveal challenge
                 </button>

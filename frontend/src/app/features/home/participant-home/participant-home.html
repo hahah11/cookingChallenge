@@ -27,7 +27,6 @@
               [ownColor]="colorFor(ownAssignment(challenge)?.colorId ?? null)"
               [colorPickBusy]="colorPickBusyId() === challenge.id"
               (score)="openScore($event)"
-              (results)="openResults($event)"
               (pickColor)="confirmPickColor(challenge, $event)"
             />
           }

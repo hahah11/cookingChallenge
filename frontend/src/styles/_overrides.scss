@@ -39,6 +39,28 @@
   min-height: 44px;
 }
 
+// Filled buttons (login, submit scores, new challenge/account, dialog
+// confirms, score now, …) are black in the design, not the brand-red primary
+// role — every single `md-button--filled` in the Claude Design project
+// (`CookingChallenge.dc.html`) carries its `cc-black-btn` modifier, with no
+// exception, so this is the default for every mat-flat-button rather than a
+// per-instance opt-in. `.mat-warn` (the confirm-dialog's unused `danger`
+// escape hatch) is excluded — the design has no destructive-red filled
+// button today, but if one is ever wired up it should keep the M3 error
+// color instead of being forced black. Hex values copied verbatim.
+.mat-mdc-unelevated-button:not(.mat-warn):not(:disabled) {
+  background-color: #1a1a1a !important;
+  color: #fff !important;
+
+  &:hover {
+    background-color: #333 !important;
+  }
+
+  &:active {
+    background-color: #000 !important;
+  }
+}
+
 // Screen-reader-only text for native-control patterns (star-rating's
 // fieldset legend/per-star labels, loading-skeleton's "Loading…" status)
 // that need an accessible name with no visible duplicate label.

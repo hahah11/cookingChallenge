@@ -101,22 +101,4 @@ describe('ParticipantChallengeCard', () => {
     expect(el.querySelector('.participant-challenge-card__swatches')).toBeNull();
     expect(el.querySelector('.participant-challenge-card__own-color').textContent).toContain('Red');
   });
-
-  it('shows "Revealed — view results" once the challenge is revealed, regardless of other flags', async () => {
-    const fixture = await createComponent({
-      challenge: baseChallenge({ status: ChallengeStatus.REVEALED, canScore: true, submitted: true })
-    });
-    const button = fixture.nativeElement.querySelector('.participant-challenge-card__action button');
-    expect(button.textContent.trim()).toBe('Revealed — view results');
-  });
-
-  it('emits results with the challenge id when the revealed action is clicked', async () => {
-    const fixture = await createComponent({ challenge: baseChallenge({ status: ChallengeStatus.REVEALED }) });
-    let resultsId: string | undefined;
-    fixture.componentInstance.results.subscribe((id) => (resultsId = id));
-
-    fixture.nativeElement.querySelector('.participant-challenge-card__action button').click();
-
-    expect(resultsId).toBe('chal-1');
-  });
 });

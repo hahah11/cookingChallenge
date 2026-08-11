@@ -1,7 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatRippleModule } from '@angular/material/core';
-import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
@@ -26,7 +25,7 @@ interface OrganizerNavLink {
  */
 @Component({
   selector: 'app-organizer-shell',
-  imports: [MatToolbarModule, MatButtonModule, MatIconModule, MatRippleModule, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [MatToolbarModule, MatButtonModule, MatTabsModule, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './organizer-shell.html',
   styleUrl: './organizer-shell.scss'
 })
