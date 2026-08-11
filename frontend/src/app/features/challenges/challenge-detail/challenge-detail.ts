@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 
 import {
   ChallengeDetail as ChallengeDetailModel,
@@ -44,6 +45,7 @@ const LINKS_SENT_FLASH_MS = 3000;
     MatIconModule,
     PageHeader,
     ResultsTable,
+    RouterLink,
     StatusTag
   ],
   templateUrl: './challenge-detail.html',
@@ -162,16 +164,16 @@ export class ChallengeDetail {
     const challenge = this.challenge();
     if (!challenge) return;
 
-    const data: QrDialogData = { challengeId: challenge.challengeId };
+    const data: QrDialogData = { challengeId: challenge.challengeId, challengeName: challenge.title };
     this.dialog.open(QrDialog, { data, width: '360px' });
   }
 
   protected confirmReveal(): void {
     const data: ConfirmDialogData = {
-      title: 'Reveal results?',
+      title: 'Reveal this challenge?',
       message:
         'Revealing shows cook identities, computes results, and closes scoring. You can reopen it later if you need to.',
-      confirmLabel: 'Reveal'
+      confirmLabel: 'Yes, reveal'
     };
     this.dialog
       .open(ConfirmDialog, { data })
@@ -210,9 +212,10 @@ export class ChallengeDetail {
 
   protected confirmUnreveal(): void {
     const data: ConfirmDialogData = {
-      title: 'Reopen scoring?',
-      message: 'This hides the results and reopens scoring so guests can resubmit.',
-      confirmLabel: 'Reopen scoring'
+      title: 'Unreveal this challenge?',
+      message:
+        'This hides the cook-to-dish mapping again and reopens scoring — guests will see it as pending until you reveal it again.',
+      confirmLabel: 'Yes, unreveal'
     };
     this.dialog
       .open(ConfirmDialog, { data })

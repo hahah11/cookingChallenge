@@ -1,4 +1,4 @@
-<app-page-header kicker="Head-to-head" title="Rivalries" />
+<app-page-header kicker="Head-to-head" title="Cook rivalries" />
 
 @switch (state()) {
   @case ('loading') {
@@ -27,6 +27,7 @@
             (keydown.space)="$event.preventDefault(); openRivalry(rivalry)"
           >
             <mat-card-content>
+              <p class="rivalry-list__kicker">{{ rivalry.totalChallenges }} challenges</p>
               <p class="rivalry-list__names">{{ rivalry.cookAName }} vs {{ rivalry.cookBName }}</p>
               <p class="rivalry-list__headline">{{ rivalry.headline }}</p>
             </mat-card-content>

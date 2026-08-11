@@ -25,7 +25,11 @@ const config: Config = {
 };
 
 describe('EditAccountDialog', () => {
-  async function setup(updateAccount = vi.fn().mockReturnValue(of({ data: account, meta: {} }))) {
+  async function setup(
+    accountId: string | null = 'acc-1',
+    updateAccount = vi.fn().mockReturnValue(of({ data: account, meta: {} })),
+    createAccount = vi.fn().mockReturnValue(of({ data: account, meta: {} }))
+  ) {
     const dialogRef = { close: vi.fn() };
 
     await TestBed.configureTestingModule({
@@ -33,8 +37,11 @@ describe('EditAccountDialog', () => {
       providers: [
         Overlay,
         { provide: MatDialogRef, useValue: dialogRef },
-        { provide: MAT_DIALOG_DATA, useValue: { accountId: 'acc-1' } satisfies EditAccountDialogData },
-        { provide: AccountsApi, useValue: { getAccount: () => of({ data: account, meta: {} }), updateAccount } },
+        { provide: MAT_DIALOG_DATA, useValue: { accountId } satisfies EditAccountDialogData },
+        {
+          provide: AccountsApi,
+          useValue: { getAccount: () => of({ data: account, meta: {} }), updateAccount, createAccount }
+        },
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta: {} }) } },
         AppConfig
       ]
@@ -44,13 +51,18 @@ describe('EditAccountDialog', () => {
     const fixture = TestBed.createComponent(EditAccountDialog);
     fixture.detectChanges();
     await TestBed.inject(ApplicationRef).whenStable();
-    return { fixture, dialogRef, updateAccount };
+    return { fixture, dialogRef, updateAccount, createAccount };
   }
 
   it('pre-fills the form and roles from the freshly fetched account', async () => {
     const { fixture } = await setup();
     const component = fixture.componentInstance;
-    expect(component['model']()).toEqual({ firstName: 'Alice', lastName: 'Anderson', email: 'alice@example.com' });
+    expect(component['model']()).toEqual({
+      firstName: 'Alice',
+      lastName: 'Anderson',
+      email: 'alice@example.com',
+      password: ''
+    });
     expect(component['roles']().has(SystemRole.ORGANIZER)).toBe(true);
   });
 
@@ -64,7 +76,7 @@ describe('EditAccountDialog', () => {
     const { fixture, dialogRef, updateAccount } = await setup();
     const component = fixture.componentInstance;
 
-    component['model'].set({ firstName: 'Alice', lastName: 'Anderson', email: 'alice@example.com' });
+    component['model'].set({ firstName: 'Alice', lastName: 'Anderson', email: 'alice@example.com', password: '' });
     component['toggleRole'](SystemRole.ADMIN, true);
     component['onSubmit']();
 
@@ -73,6 +85,31 @@ describe('EditAccountDialog', () => {
       lastName: 'Anderson',
       email: 'alice@example.com',
       roles: [SystemRole.USER, SystemRole.ORGANIZER, SystemRole.ADMIN]
+    });
+    expect(dialogRef.close).toHaveBeenCalledWith(account);
+  });
+
+  it('opens in create mode with an empty form and no fetch, titled "New account"', async () => {
+    const { fixture } = await setup(null);
+    const component = fixture.componentInstance;
+
+    expect(component['model']()).toEqual({ firstName: '', lastName: '', email: '', password: '' });
+    expect(fixture.nativeElement.querySelector('h2').textContent.trim()).toBe('New account');
+  });
+
+  it('submits a create request with the entered password when accountId is null', async () => {
+    const { fixture, dialogRef, createAccount } = await setup(null);
+    const component = fixture.componentInstance;
+
+    component['model'].set({ firstName: 'Nia', lastName: 'New', email: 'nia@example.com', password: 'secret123' });
+    component['onSubmit']();
+
+    expect(createAccount).toHaveBeenCalledWith({
+      firstName: 'Nia',
+      lastName: 'New',
+      email: 'nia@example.com',
+      roles: [SystemRole.USER],
+      password: 'secret123'
     });
     expect(dialogRef.close).toHaveBeenCalledWith(account);
   });

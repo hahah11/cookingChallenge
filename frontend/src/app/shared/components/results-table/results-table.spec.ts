@@ -76,4 +76,11 @@ describe('ResultsTable', () => {
     expect(fixture.componentInstance['hexFor'](cookAssignments[0])).toBe('#c0392b');
     expect(fixture.componentInstance['hexFor']({ ...cookAssignments[0], colorId: null })).toBeNull();
   });
+
+  it('renders one crown per head-to-head win, matched by rivalry cookA/cookB accountId', async () => {
+    const fixture = await createComponent();
+    expect(fixture.componentInstance['crownsFor'](cookAssignments[0])).toBe('👑👑👑');
+    expect(fixture.componentInstance['crownsFor'](cookAssignments[1])).toBe('👑');
+    expect(fixture.componentInstance['winsFor'](cookAssignments[0])).toBe(3);
+  });
 });

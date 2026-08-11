@@ -10,6 +10,7 @@ import { QrCode } from '../../../shared/components/qr-code/qr-code';
 
 export interface QrDialogData {
   challengeId: string;
+  challengeName: string;
 }
 
 type LoadState = 'loading' | 'loaded' | 'error';
@@ -23,7 +24,7 @@ type LoadState = 'loading' | 'loaded' | 'error';
   selector: 'app-qr-dialog',
   imports: [ErrorState, LoadingSkeleton, MatButtonModule, MatDialogModule, QrCode],
   template: `
-    <h2 mat-dialog-title>Registration QR code</h2>
+    <h2 mat-dialog-title>Scan to register</h2>
     <mat-dialog-content class="qr-dialog__content">
       @switch (state()) {
         @case ('loading') {
@@ -34,7 +35,7 @@ type LoadState = 'loading' | 'loaded' | 'error';
         }
         @case ('loaded') {
           <app-qr-code [value]="registrationUrl()" />
-          <p class="qr-dialog__hint">Walk-ins scan this to register themselves for this challenge.</p>
+          <p class="qr-dialog__hint">Guests scan this to register for the app and join {{ data.challengeName }}.</p>
         }
       }
     </mat-dialog-content>
@@ -60,7 +61,7 @@ type LoadState = 'loading' | 'loaded' | 'error';
   `
 })
 export class QrDialog {
-  private readonly data = inject<QrDialogData>(MAT_DIALOG_DATA);
+  protected readonly data = inject<QrDialogData>(MAT_DIALOG_DATA);
   private readonly challengesApi = inject(ChallengesApi);
 
   protected readonly state = signal<LoadState>('loading');

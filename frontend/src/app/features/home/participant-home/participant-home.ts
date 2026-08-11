@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
@@ -12,6 +13,7 @@ import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { StatusTag } from '../../../shared/components/status-tag/status-tag';
 import { ParticipantChallengeCard } from '../participant-challenge-card/participant-challenge-card';
 
 type LoadState = 'loading' | 'loaded' | 'link-expired' | 'error';
@@ -23,7 +25,7 @@ type LoadState = 'loading' | 'loaded' | 'link-expired' | 'error';
  */
 @Component({
   selector: 'app-participant-home',
-  imports: [EmptyState, ErrorState, LoadingSkeleton, PageHeader, ParticipantChallengeCard],
+  imports: [DatePipe, EmptyState, ErrorState, LoadingSkeleton, PageHeader, ParticipantChallengeCard, StatusTag],
   templateUrl: './participant-home.html',
   styleUrl: './participant-home.scss'
 })
@@ -111,10 +113,10 @@ export class ParticipantHome {
 
   protected confirmPickColor(challenge: ParticipantChallenge, color: PlateColor): void {
     const data: ConfirmDialogData = {
-      title: `Pick ${color.name}?`,
+      title: `Plate under ${color.name}?`,
       message:
         "This locks your plate color for this challenge and assigns the other cook the remaining color automatically. This can't be changed afterward.",
-      confirmLabel: 'Pick color'
+      confirmLabel: `Yes, choose ${color.name}`
     };
     this.dialog
       .open(ConfirmDialog, { data })

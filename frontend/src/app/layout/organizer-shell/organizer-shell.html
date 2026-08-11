@@ -1,5 +1,5 @@
 <mat-toolbar class="organizer-shell__toolbar">
-  <span class="organizer-shell__brand">CookingChallenge</span>
+  <span class="organizer-shell__brand">CookOff</span>
   <nav class="organizer-shell__nav" aria-label="Primary">
     @for (link of links(); track link.route) {
       <a
@@ -8,6 +8,7 @@
         routerLinkActive="organizer-shell__link--active"
         [attr.aria-current]="rla.isActive ? 'page' : null"
         #rla="routerLinkActive"
+        matRipple
       >
         {{ link.label }}
       </a>

@@ -1,6 +1,6 @@
 .rivalry-list__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--md-sys-spacing-4);
   margin-bottom: var(--md-sys-spacing-6);
 }
@@ -12,6 +12,14 @@
 .rivalry-list__card:focus-visible {
   outline: 2px solid var(--mat-sys-primary);
   outline-offset: 2px;
+}
+
+.rivalry-list__kicker {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .rivalry-list__names {

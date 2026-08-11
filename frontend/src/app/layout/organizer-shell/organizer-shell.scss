@@ -26,6 +26,8 @@
 }
 
 .organizer-shell__link {
+  position: relative;
+  overflow: hidden;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-label-large);
   text-decoration: none;
@@ -39,7 +41,7 @@
 
 .organizer-shell__link--active {
   color: var(--mat-sys-primary);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .organizer-shell__content {

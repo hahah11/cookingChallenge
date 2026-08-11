@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 
@@ -57,6 +58,7 @@ describe('ChallengeDetail', () => {
     TestBed.configureTestingModule({
       imports: [ChallengeDetail],
       providers: [
+        provideRouter([]),
         { provide: ChallengesApi, useValue: challengesApi },
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta }) } },
         AppConfig,
@@ -78,6 +80,14 @@ describe('ChallengeDetail', () => {
     expect(getChallengeStatus).toHaveBeenCalledWith('chal-1');
     expect(fixture.nativeElement.textContent).toContain('Ramen');
     expect(fixture.nativeElement.textContent).toContain('Pending');
+  });
+
+  it('renders a back link to the challenge history', () => {
+    const getChallengeStatus = vi.fn().mockReturnValue(of({ data: challengeDetail, meta }));
+    const { fixture } = setup({ getChallengeStatus });
+
+    const back = fixture.nativeElement.querySelector('.challenge-detail__back');
+    expect(back.getAttribute('href')).toBe('/challenges');
   });
 
   it('reveals the challenge and switches to the results view after confirmation', () => {

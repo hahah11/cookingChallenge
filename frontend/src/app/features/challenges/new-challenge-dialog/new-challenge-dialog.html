@@ -1,5 +1,6 @@
 <h2 mat-dialog-title>New challenge</h2>
 <mat-dialog-content class="new-challenge-dialog__content">
+  <span class="new-challenge-dialog__photo-label">Rivalry photo</span>
   <div
     class="new-challenge-dialog__photo"
     role="button"
@@ -24,7 +25,7 @@
       </button>
     } @else {
       <mat-icon aria-hidden="true">add_a_photo</mat-icon>
-      <span>Drop a photo, or click to browse</span>
+      <span>Drop a 4:3 photo for this rivalry</span>
     }
   </div>
   <input #photoInput type="file" accept="image/*" class="cc-visually-hidden" (change)="onPhotoSelected($event)" />

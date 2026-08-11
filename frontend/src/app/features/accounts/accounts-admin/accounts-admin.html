@@ -1,4 +1,9 @@
-<app-page-header title="Accounts" />
+<app-page-header kicker="Admin" title="Accounts">
+  <button actions mat-tonal-button type="button" (click)="openCreateDialog()">
+    <mat-icon aria-hidden="true">person_add</mat-icon>
+    New account
+  </button>
+</app-page-header>
 
 @switch (state()) {
   @case ('loading') {
@@ -26,10 +31,17 @@
             <tr>
               <td data-label="Name">{{ account.name }}</td>
               <td data-label="Email">{{ account.email }}</td>
-              <td data-label="Roles">{{ account.roles.join(', ') }}</td>
+              <td data-label="Roles">
+                <mat-chip-set>
+                  @for (role of account.roles; track role) {
+                    <mat-chip disableRipple>{{ role }}</mat-chip>
+                  }
+                </mat-chip-set>
+              </td>
               <td data-label="">
-                <button mat-icon-button type="button" [attr.aria-label]="'Edit ' + account.name" (click)="openEditDialog(account.id)">
+                <button mat-button type="button" (click)="openEditDialog(account.id)">
                   <mat-icon aria-hidden="true">edit</mat-icon>
+                  Edit
                 </button>
               </td>
             </tr>

@@ -7,6 +7,7 @@ import at.fraihs.cookoff.cookoff.application.exception.RivalryNotFoundException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
+import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
 import at.fraihs.cookoff.cookoff.domain.model.RevealResult;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeStatusRestDto;
@@ -55,20 +56,25 @@ public class RivalryDetailService {
 
         List<RivalryChallengeSummaryRestDto> challengeSummaries = challenges.stream()
                 .sorted(Comparator.comparing(Challenge::getDate).reversed())
-                .map(this::toGenerated)
+                .map(challenge -> toGenerated(challenge, cookAId, cookA.name(), cookBId, cookB.name()))
                 .toList();
 
         return new RivalryDetailRestDto(cookAId.toString(), cookA.name(), cookBId.toString(), cookB.name(),
                 cookAWins, cookBWins, draws, totalChallenges, headline, challengeSummaries);
     }
 
-    private RivalryChallengeSummaryRestDto toGenerated(Challenge challenge) {
+    private RivalryChallengeSummaryRestDto toGenerated(
+            Challenge challenge, AccountId cookAId, String cookAName, AccountId cookBId, String cookBName) {
         RevealResult result = challenge.getLastRevealResult();
         String overallWinnerAccountId = result == null || result.winnerAccountId() == null
                 ? null
                 : result.winnerAccountId().toString();
+        boolean revealed = challenge.getStatus() == ChallengeStatus.REVEALED;
+        String outcomeLabel = ChallengeOutcomeLabel.build(revealed, overallWinnerAccountId,
+                cookAId.toString(), cookAName, cookBId.toString(), cookBName);
         ChallengeStatusRestDto status = ChallengeStatusRestDto.valueOf(challenge.getStatus().name());
         return new RivalryChallengeSummaryRestDto(challenge.getId().toString(), challenge.getDate(),
-                challenge.getTitle(), status, overallWinnerAccountId);
+                challenge.getTitle(), challenge.getDishName().toString(), status, challenge.getImageRef() != null,
+                overallWinnerAccountId, outcomeLabel);
     }
 }

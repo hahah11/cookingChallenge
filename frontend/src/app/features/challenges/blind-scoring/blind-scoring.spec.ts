@@ -14,7 +14,6 @@ import {
 } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
-import { Notification } from '../../../core/notifications/notification';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { BlindScoring } from './blind-scoring';
 
@@ -50,16 +49,13 @@ const meta = { requestId: 'req-1', timestamp: '2026-01-01T00:00:00Z' };
 
 describe('BlindScoring', () => {
   function setup(challengesApi: Record<string, unknown>) {
-    const notification = { error: vi.fn(), success: vi.fn(), info: vi.fn() };
-
     TestBed.configureTestingModule({
       imports: [BlindScoring],
       providers: [
         provideRouter([]),
         { provide: ChallengesApi, useValue: challengesApi },
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta }) } },
-        AppConfig,
-        { provide: Notification, useValue: notification }
+        AppConfig
       ]
     });
     TestBed.inject(AppConfig).load().subscribe();
@@ -67,7 +63,7 @@ describe('BlindScoring', () => {
     const fixture = TestBed.createComponent(BlindScoring);
     fixture.componentRef.setInput('id', 'chal-1');
     fixture.detectChanges();
-    return { fixture, notification };
+    return { fixture };
   }
 
   it('renders a plate-color bar per dish, with a visible name — never color alone', () => {
@@ -121,10 +117,10 @@ describe('BlindScoring', () => {
     expect(submitButton.disabled).toBe(false);
   });
 
-  it('submits scores and navigates home on success', () => {
+  it('shows the success screen on submit, and only navigates home once the user clicks through', () => {
     const getChallenge = vi.fn().mockReturnValue(of({ data: challenge, meta }));
     const submitScores = vi.fn().mockReturnValue(of({ data: {}, meta }));
-    const { fixture, notification } = setup({ getChallenge, submitScores });
+    const { fixture } = setup({ getChallenge, submitScores });
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigateByUrl');
 
@@ -135,12 +131,31 @@ describe('BlindScoring', () => {
     }
     fixture.detectChanges();
     fixture.nativeElement.querySelector('.blind-scoring__submit').click();
+    fixture.detectChanges();
 
     expect(submitScores).toHaveBeenCalledWith('chal-1', { scores: expect.arrayContaining([
       { dishLabel: DishLabel.A, category: Category.MUNDGEFUEHL, points: 3 }
     ]) });
-    expect(notification.success).toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('scores submitted');
+    expect(navigateSpy).not.toHaveBeenCalled();
+
+    fixture.nativeElement.querySelector('.blind-scoring__success button').click();
     expect(navigateSpy).toHaveBeenCalledWith('/home');
+  });
+
+  it('labels the submit button "Save changes" once a submission already exists', () => {
+    const submitted: ParticipantChallenge = {
+      ...challenge,
+      submitted: true,
+      mySubmission: {
+        submittedAt: '2026-08-01T12:00:00Z',
+        scores: [{ dishLabel: DishLabel.A, category: Category.MUNDGEFUEHL, points: 4 }]
+      }
+    };
+    const getChallenge = vi.fn().mockReturnValue(of({ data: submitted, meta }));
+    const { fixture } = setup({ getChallenge });
+
+    expect(fixture.nativeElement.querySelector('.blind-scoring__submit').textContent.trim()).toBe('Save changes');
   });
 
   it('shows a revealed-mid-edit message on a 409 submit response, and does not retry', () => {

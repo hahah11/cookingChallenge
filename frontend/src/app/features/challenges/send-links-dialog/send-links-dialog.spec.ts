@@ -5,7 +5,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 
-import { ChallengesApi, GuestSubmissionStatus } from '../../../core/api/generated';
+import { ChallengesApi, CookAssignment, DishLabel, GuestSubmissionStatus } from '../../../core/api/generated';
 import { SendLinksDialog, SendLinksDialogData } from './send-links-dialog';
 
 const guests: GuestSubmissionStatus[] = [
@@ -13,11 +13,19 @@ const guests: GuestSubmissionStatus[] = [
   { accountId: 'guest-2', name: 'Gus', email: 'gus@example.com', submitted: true }
 ];
 
+const cookAssignments: CookAssignment[] = [
+  { accountId: 'cook-a', name: 'Alice', label: DishLabel.A, colorId: null },
+  { accountId: 'cook-b', name: 'Bob', label: DishLabel.B, colorId: null }
+];
+
 describe('SendLinksDialog', () => {
   async function setup() {
     const dialogRef = { close: vi.fn() };
     const getChallengeStatus = vi.fn().mockReturnValue(
-      of({ data: { challengeId: 'chal-1', totalGuestCount: 2, submittedGuestCount: 1, guests }, meta: {} })
+      of({
+        data: { challengeId: 'chal-1', totalGuestCount: 2, submittedGuestCount: 1, guests, cookAssignments },
+        meta: {}
+      })
     );
     const sendInvitations = vi.fn().mockReturnValue(of({ data: { count: 1 }, meta: {} }));
 
@@ -37,19 +45,34 @@ describe('SendLinksDialog', () => {
     return { fixture, dialogRef, getChallengeStatus, sendInvitations };
   }
 
-  it('pre-selects only guests who have not submitted yet', async () => {
+  it('pre-selects only guests who have not submitted yet, never cooks', async () => {
     const { fixture } = await setup();
     const selected = fixture.componentInstance['selectedIds']();
     expect(selected.has('guest-1')).toBe(true);
     expect(selected.has('guest-2')).toBe(false);
+    expect(selected.has('cook-a')).toBe(false);
+    expect(selected.has('cook-b')).toBe(false);
   });
 
-  it('sends invitations to the selected guests and closes with the result', async () => {
+  it('lists cooks and guests with a role label', async () => {
+    const { fixture } = await setup();
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Alice');
+    expect(text).toContain('Cook');
+    expect(text).toContain('Gina');
+    expect(text).toContain('Guest');
+  });
+
+  it('sends invitations to the selected guests, split from any selected cooks', async () => {
     const { fixture, dialogRef, sendInvitations } = await setup();
 
+    fixture.componentInstance['toggle']('cook-a', true);
     fixture.componentInstance['onSend']();
 
-    expect(sendInvitations).toHaveBeenCalledWith('chal-1', { guestAccountIds: ['guest-1'] });
+    expect(sendInvitations).toHaveBeenCalledWith('chal-1', {
+      guestAccountIds: ['guest-1'],
+      cookAccountIds: ['cook-a']
+    });
     expect(dialogRef.close).toHaveBeenCalledWith({ count: 1 });
   });
 });

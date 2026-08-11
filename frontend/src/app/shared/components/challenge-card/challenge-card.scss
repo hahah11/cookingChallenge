@@ -46,10 +46,11 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  padding: 1px var(--md-sys-spacing-1);
 }
 
 .challenge-card__cook--winner {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .challenge-card__winner-icon {

@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Edit account</h2>
+<h2 mat-dialog-title>{{ dialogTitle }}</h2>
 <mat-dialog-content class="edit-account-dialog__content">
   @switch (state()) {
     @case ('loading') {
@@ -32,6 +32,14 @@
         }
       </mat-form-field>
 
+      @if (isCreate) {
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" [formField]="accountForm.password" />
+          <mat-hint>Required for Organizer/Admin roles; ignored otherwise.</mat-hint>
+        </mat-form-field>
+      }
+
       <fieldset class="edit-account-dialog__roles">
         <legend>Roles</legend>
         @for (role of availableRoles(); track role) {
@@ -53,7 +61,7 @@
     @if (submitting()) {
       <mat-spinner diameter="20" />
     } @else {
-      Save changes
+      {{ submitLabel }}
     }
   </button>
 </mat-dialog-actions>

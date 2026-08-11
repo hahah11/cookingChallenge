@@ -42,6 +42,14 @@ const openChallenge: ParticipantChallenge = {
   canPickColor: true
 };
 
+const pastChallenge: ParticipantChallenge = {
+  ...openChallenge,
+  id: 'chal-past',
+  dishName: 'Curry',
+  status: ChallengeStatus.REVEALED,
+  canPickColor: false
+};
+
 const home: GuestHome = { displayName: 'Felix', open: [openChallenge], past: [] };
 const config: Config = {
   availableRoles: [],
@@ -179,6 +187,22 @@ describe('ParticipantHome', () => {
 
     expect(getMyHome).toHaveBeenCalledTimes(2);
     expect(notification.error).not.toHaveBeenCalled();
+  });
+
+  it('renders past challenges as a compact row, not a photo card, and navigates to results on click', () => {
+    const pastHome: GuestHome = { displayName: 'Felix', open: [], past: [pastChallenge] };
+    const { fixture } = setup({ homeApi: { getMyHome: () => of({ data: pastHome, meta }) } });
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate');
+
+    fixture.detectChanges();
+
+    const row = fixture.nativeElement.querySelector('.participant-home__past-row');
+    expect(row.textContent).toContain('Curry');
+    expect(fixture.nativeElement.querySelector('app-participant-challenge-card')).toBeNull();
+
+    row.click();
+    expect(navigateSpy).toHaveBeenCalledWith(['/challenges', 'chal-past', 'results']);
   });
 
   it(

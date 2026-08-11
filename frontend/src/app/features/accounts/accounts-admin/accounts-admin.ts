@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -19,7 +20,16 @@ type LoadState = 'loading' | 'loaded' | 'error';
 /** `GET /api/v1/accounts`, paginated — see the frontend plan's Phase 5. */
 @Component({
   selector: 'app-accounts-admin',
-  imports: [EmptyState, ErrorState, LoadingSkeleton, MatButtonModule, MatIconModule, MatPaginatorModule, PageHeader],
+  imports: [
+    EmptyState,
+    ErrorState,
+    LoadingSkeleton,
+    MatButtonModule,
+    MatChipsModule,
+    MatIconModule,
+    MatPaginatorModule,
+    PageHeader
+  ],
   templateUrl: './accounts-admin.html',
   styleUrl: './accounts-admin.scss'
 })
@@ -63,6 +73,16 @@ export class AccountsAdmin {
     const ref = this.dialog.open(EditAccountDialog, { data, width: '480px' });
     ref.afterClosed().subscribe((updated) => {
       if (updated) {
+        this.load();
+      }
+    });
+  }
+
+  protected openCreateDialog(): void {
+    const data: EditAccountDialogData = { accountId: null };
+    const ref = this.dialog.open(EditAccountDialog, { data, width: '480px' });
+    ref.afterClosed().subscribe((created) => {
+      if (created) {
         this.load();
       }
     });

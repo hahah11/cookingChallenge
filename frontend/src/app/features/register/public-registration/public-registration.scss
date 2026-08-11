@@ -10,7 +10,23 @@
   gap: var(--md-sys-spacing-1);
 }
 
+.public-registration__success {
+  text-align: center;
+}
+
+.public-registration__success-emoji {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1;
+}
+
+.public-registration__success-headline {
+  margin: var(--md-sys-spacing-2) 0 0;
+  font: var(--mat-sys-headline-small);
+}
+
 .public-registration__message {
+  margin: var(--md-sys-spacing-2) 0 0;
   font: var(--mat-sys-body-large);
 }
 

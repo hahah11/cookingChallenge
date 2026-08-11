@@ -9,12 +9,21 @@
     @if (challenge(); as challenge) {
       <app-page-header [kicker]="challenge.date" [title]="challenge.dishName" />
 
-      @if (revealedMidEdit()) {
+      @if (submitted()) {
+        <div class="blind-scoring__success">
+          <p class="blind-scoring__success-emoji" aria-hidden="true">🎉</p>
+          <h2 class="blind-scoring__success-headline">Thanks — scores submitted!</h2>
+          <p class="blind-scoring__success-body">Results reveal once the host closes scoring.</p>
+          <button mat-flat-button type="button" (click)="goHome()">Back to home</button>
+        </div>
+      } @else if (revealedMidEdit()) {
         <app-error-state message="This challenge has been revealed — scoring is closed." />
         <button mat-flat-button type="button" (click)="viewResults()">View results</button>
       } @else if (!challenge.canScore) {
         <app-error-state message="You can't score this challenge." />
       } @else {
+        <p class="blind-scoring__instructions">{{ instructionText() }}</p>
+
         <div class="blind-scoring__scroll">
           <div class="blind-scoring__grid" role="table" aria-label="Blind scoring — one row per category">
             <div class="blind-scoring__row blind-scoring__row--header" role="row">
@@ -63,7 +72,7 @@
           [disabled]="!canSubmit() || submitting()"
           (click)="submit()"
         >
-          Submit scores
+          {{ submitButtonLabel() }}
         </button>
       }
     }

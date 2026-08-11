@@ -41,6 +41,13 @@ describe('RivalryList', () => {
     );
   });
 
+  it('shows the total-challenges kicker line on each card', () => {
+    const listRivalries = vi.fn().mockReturnValue(of({ data: [rivalry], pagination: { totalElements: 1 }, meta: {} }));
+    const { fixture } = setup(listRivalries);
+
+    expect(fixture.nativeElement.querySelector('.rivalry-list__kicker').textContent.trim()).toBe('5 challenges');
+  });
+
   it('shows the no-rivalries empty state copy', () => {
     const listRivalries = vi.fn().mockReturnValue(of({ data: [], pagination: { totalElements: 0 }, meta: {} }));
     const { fixture } = setup(listRivalries);

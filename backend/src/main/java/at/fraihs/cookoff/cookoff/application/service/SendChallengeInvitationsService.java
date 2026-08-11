@@ -11,6 +11,7 @@ import at.fraihs.cookoff.cookoff.application.port.NotificationPort;
 import at.fraihs.cookoff.cookoff.application.port.ScoreSubmissionRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeId;
+import at.fraihs.cookoff.cookoff.domain.model.CookAssignment;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.shared.web.openapi.model.InvitationsSentRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.SendInvitationsRequestRestDto;
@@ -19,6 +20,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,11 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * "Send links" action from docs/cookingChallenge/first-plan.md's Invite flow: issues one
- * reusable-until-expiry access link (AccessLinkService, Phase 3) to every targeted guest and
- * emails it via NotificationPort. Scoped to guests only, per the generated request's
- * {@code guestAccountIds} field and the spec's "Send (or resend) guest access-link
- * invitations" summary — an explicit id list targets exactly those guests; omitting it
- * targets every guest who hasn't submitted yet.
+ * reusable-until-expiry access link (AccessLinkService, Phase 3) to every targeted guest
+ * and/or cook and emails it via NotificationPort. An explicit {@code guestAccountIds}/
+ * {@code cookAccountIds} list targets exactly those accounts (filtered to real
+ * guests/cooks of this challenge); omitting both targets every guest who hasn't
+ * submitted yet, same as before cooks were addressable at all.
  */
 @Slf4j
 @Service
@@ -61,9 +63,9 @@ public class SendChallengeInvitationsService {
         }
 
         List<AccountId> targets = resolveTargets(challenge, challengeId, request);
-        for (AccountId guestAccountId : targets) {
-            AccountSummary account = accountLookup.getById(guestAccountId);
-            String token = accessLinkService.issue(guestAccountId, challengeId.value(), LINK_VALIDITY);
+        for (AccountId accountId : targets) {
+            AccountSummary account = accountLookup.getById(accountId);
+            String token = accessLinkService.issue(accountId, challengeId.value(), LINK_VALIDITY);
             notificationPort.sendAccessLink(account.email(), frontendBaseUrl + "/home?token=" + token);
         }
 
@@ -72,14 +74,22 @@ public class SendChallengeInvitationsService {
     }
 
     private List<AccountId> resolveTargets(Challenge challenge, ChallengeId challengeId, SendInvitationsRequestRestDto request) {
-        List<String> requestedIds = request == null ? null : request.getGuestAccountIds();
-        if (requestedIds != null && !requestedIds.isEmpty()) {
+        List<String> requestedGuestIds = request == null ? null : request.getGuestAccountIds();
+        List<String> requestedCookIds = request == null ? null : request.getCookAccountIds();
+        boolean explicitRequest = (requestedGuestIds != null && !requestedGuestIds.isEmpty())
+                || (requestedCookIds != null && !requestedCookIds.isEmpty());
+        if (explicitRequest) {
             Set<AccountId> guestAccountIds = Set.copyOf(challenge.getGuestAccountIds());
-            return requestedIds.stream()
+            Set<AccountId> cookAccountIds = challenge.getCookAssignments().stream()
+                    .map(CookAssignment::accountId)
+                    .collect(Collectors.toSet());
+            Stream<AccountId> guests = requestedGuestIds == null ? Stream.empty() : requestedGuestIds.stream()
                     .map(AccountId::fromString)
-                    .filter(guestAccountIds::contains)
-                    .distinct()
-                    .toList();
+                    .filter(guestAccountIds::contains);
+            Stream<AccountId> cooks = requestedCookIds == null ? Stream.empty() : requestedCookIds.stream()
+                    .map(AccountId::fromString)
+                    .filter(cookAccountIds::contains);
+            return Stream.concat(guests, cooks).distinct().toList();
         }
         Set<AccountId> alreadySubmitted = scoreSubmissionRepository.findByChallengeId(challengeId).stream()
                 .map(ScoreSubmission::getGuestAccountId)

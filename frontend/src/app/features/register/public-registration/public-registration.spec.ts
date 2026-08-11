@@ -46,6 +46,9 @@ describe('PublicRegistration', () => {
     expect(fixture.nativeElement.querySelector('.public-registration__message').textContent.trim()).toBe(
       "You're registered and joined!"
     );
+    expect(fixture.nativeElement.querySelector('.public-registration__success-headline').textContent.trim()).toBe(
+      'Welcome, Gina!'
+    );
   });
 
   it('renders the server message verbatim when the event already closed', () => {

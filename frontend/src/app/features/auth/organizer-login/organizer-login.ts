@@ -1,6 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { email as emailValidator, form, FormField, required } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -22,7 +24,16 @@ interface LoginFormModel {
  */
 @Component({
   selector: 'app-organizer-login',
-  imports: [FormField, MatButtonModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule, PageHeader],
+  imports: [
+    FormField,
+    MatButtonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    PageHeader
+  ],
   templateUrl: './organizer-login.html',
   styleUrl: './organizer-login.scss'
 })

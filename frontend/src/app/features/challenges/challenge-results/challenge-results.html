@@ -1,4 +1,6 @@
-<app-page-header kicker="CookingChallenge" title="Results" />
+<app-page-header kicker="CookOff" title="Results">
+  <app-status-tag actions [status]="ChallengeStatus.REVEALED" />
+</app-page-header>
 
 @switch (loadState()) {
   @case ('loading') {
@@ -9,6 +11,12 @@
   }
   @case ('loaded') {
     @if (result(); as result) {
+      <app-challenge-photo
+        class="challenge-results__photo"
+        [challengeId]="result.challengeId"
+        [hasImage]="true"
+        alt="Challenge photo"
+      />
       <app-results-table
         [cookAssignments]="result.cookAssignments"
         [categoryTotals]="result.categoryTotals"

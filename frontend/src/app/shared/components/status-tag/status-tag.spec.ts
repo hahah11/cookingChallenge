@@ -12,17 +12,18 @@ describe('StatusTag', () => {
     return fixture;
   }
 
-  it('renders "Open" for an open challenge, not highlighted', async () => {
+  it('renders "Open" for an open challenge, not highlighted, with a leading check icon', async () => {
     const fixture = await createComponent(ChallengeStatus.OPEN);
     const chip = fixture.nativeElement.querySelector('mat-chip');
-    expect(chip.textContent.trim()).toBe('Open');
+    expect(chip.querySelector('.status-tag__label').textContent.trim()).toBe('Open');
+    expect(chip.querySelector('mat-icon').textContent.trim()).toBe('check_circle');
     expect(chip.classList).not.toContain('status-tag--revealed');
   });
 
   it('renders "Revealed" for a revealed challenge with the success override class', async () => {
     const fixture = await createComponent(ChallengeStatus.REVEALED);
     const chip = fixture.nativeElement.querySelector('mat-chip');
-    expect(chip.textContent.trim()).toBe('Revealed');
+    expect(chip.querySelector('.status-tag__label').textContent.trim()).toBe('Revealed');
     expect(chip.classList).toContain('status-tag--revealed');
   });
 });

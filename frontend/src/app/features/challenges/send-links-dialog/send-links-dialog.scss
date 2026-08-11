@@ -16,3 +16,12 @@
   font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
 }
+
+.send-links-dialog__role {
+  margin-left: var(--md-sys-spacing-2);
+  padding: 2px var(--md-sys-spacing-2);
+  border-radius: var(--md-sys-shape-corner-full, 999px);
+  background: var(--mat-sys-surface-variant);
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+}

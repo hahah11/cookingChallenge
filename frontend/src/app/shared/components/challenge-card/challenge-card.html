@@ -3,6 +3,7 @@
   class="challenge-card"
   role="button"
   tabindex="0"
+  matRipple
   [attr.aria-label]="'Open ' + challenge().dishName"
   (click)="onOpen()"
   (keydown.enter)="onOpen()"
@@ -21,8 +22,9 @@
     <p class="challenge-card__cooks">
       @for (cook of challenge().cookAssignments; track cook.accountId; let last = $last) {
         <span
-          class="challenge-card__cook"
+          class="challenge-card__cook plate-tint"
           [class.challenge-card__cook--winner]="cook.accountId === challenge().overallWinnerAccountId"
+          [style.--plate-color]="hexFor(cook)"
         >
           @if (cook.accountId === challenge().overallWinnerAccountId) {
             <mat-icon class="challenge-card__winner-icon" aria-hidden="true">emoji_events</mat-icon>

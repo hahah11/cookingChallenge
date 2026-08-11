@@ -1,11 +1,18 @@
 :host {
-  display: block;
-  max-width: 400px;
-  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: var(--md-sys-spacing-4);
+}
+
+.organizer-login__card {
+  width: 100%;
+  max-width: 360px;
 }
 
 .organizer-login__note {
-  margin: 0 0 var(--md-sys-spacing-6);
+  margin: var(--md-sys-spacing-6) 0 var(--md-sys-spacing-4);
   font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
 }

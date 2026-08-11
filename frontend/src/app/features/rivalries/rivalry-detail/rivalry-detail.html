@@ -9,6 +9,11 @@
   }
   @case ('loaded') {
     @if (rivalry(); as rivalry) {
+      <a mat-button type="button" routerLink="/rivalries" class="rivalry-detail__back">
+        <mat-icon aria-hidden="true">arrow_back</mat-icon>
+        All rivalries
+      </a>
+
       <app-page-header kicker="Head-to-head" [title]="rivalry.cookAName + ' vs ' + rivalry.cookBName" />
 
       <p class="rivalry-detail__headline">{{ rivalry.headline }}</p>
@@ -27,23 +32,29 @@
         </div>
       </dl>
 
-      <ul class="rivalry-detail__challenges">
+      <div class="rivalry-detail__challenges">
         @for (challenge of rivalry.challenges; track challenge.id) {
-          <li class="rivalry-detail__challenge">
-            <a [routerLink]="['/challenges', challenge.id]" class="rivalry-detail__challenge-link">
-              <span class="rivalry-detail__challenge-title">{{ challenge.title }}</span>
-              <span class="rivalry-detail__challenge-date">{{ challenge.date }}</span>
-            </a>
-            <app-status-tag [status]="challenge.status" />
-            @if (winnerName(rivalry, challenge.overallWinnerAccountId); as winner) {
-              <span class="rivalry-detail__winner">
-                <mat-icon aria-hidden="true">emoji_events</mat-icon>
-                {{ winner }}
-              </span>
-            }
-          </li>
+          <a [routerLink]="['/challenges', challenge.id]" class="rivalry-detail__challenge-link">
+            <mat-card appearance="raised" class="rivalry-detail__challenge-card">
+              <app-challenge-photo
+                class="rivalry-detail__challenge-photo"
+                [challengeId]="challenge.id"
+                [hasImage]="challenge.hasImage"
+                [alt]="challenge.dishName"
+              />
+              <mat-card-content class="rivalry-detail__challenge-content">
+                <p class="rivalry-detail__challenge-kicker">{{ challenge.date | date: 'mediumDate' }}</p>
+                <h2 class="rivalry-detail__challenge-title">{{ challenge.dishName }}</h2>
+                <p class="rivalry-detail__challenge-event">{{ challenge.title }}</p>
+                <div class="rivalry-detail__challenge-footer">
+                  <app-status-tag [status]="challenge.status" />
+                  <span class="rivalry-detail__challenge-outcome">{{ challenge.outcomeLabel }}</span>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </a>
         }
-      </ul>
+      </div>
     }
   }
 }

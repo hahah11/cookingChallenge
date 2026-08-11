@@ -1,9 +1,15 @@
-<app-page-header kicker="CookingChallenge" title="Register" />
+<app-page-header kicker="CookOff" title="Register" />
 
 @if (linkExpired()) {
   <app-error-state message="This code has expired. Ask your host for a new QR code." />
 } @else if (result(); as result) {
-  <p class="public-registration__message" role="status">{{ result.message }}</p>
+  <mat-card appearance="raised" class="public-registration__success" role="status">
+    <mat-card-content>
+      <p class="public-registration__success-emoji" aria-hidden="true">🎉</p>
+      <h2 class="public-registration__success-headline">Welcome, {{ model().firstName }}!</h2>
+      <p class="public-registration__message">{{ result.message }}</p>
+    </mat-card-content>
+  </mat-card>
 } @else {
   <form class="public-registration__form" (submit)="$event.preventDefault(); onSubmit()" novalidate>
     <mat-form-field appearance="outline">

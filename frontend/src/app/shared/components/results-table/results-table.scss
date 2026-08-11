@@ -55,8 +55,13 @@
   border-top: 2px solid var(--mat-sys-outline);
 }
 
-tfoot th[scope='row'] {
+tfoot tr:first-child th[scope='row'] {
   border-top: 2px solid var(--mat-sys-outline);
+}
+
+.results-table__crowns {
+  font-size: 14px;
+  letter-spacing: 1px;
 }
 
 .results-table__headline {

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 
 import { Category, ChallengesApi, Config, ConfigApi, DishLabel } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
@@ -32,11 +32,22 @@ const config: Config = { availableRoles: [], plateColors: [], featureFlags: {} }
 const meta = { requestId: 'req-1', timestamp: '2026-01-01T00:00:00Z' };
 
 describe('ChallengeResults', () => {
+  beforeEach(() => {
+    // jsdom has no URL.createObjectURL — the component always renders
+    // app-challenge-photo with hasImage true, so every test exercises it.
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   function setup(challengesApi: Record<string, unknown>) {
     TestBed.configureTestingModule({
       imports: [ChallengeResults],
       providers: [
-        { provide: ChallengesApi, useValue: challengesApi },
+        { provide: ChallengesApi, useValue: { getChallengeImage: () => of(new Blob()), ...challengesApi } },
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta }) } },
         AppConfig
       ]
@@ -56,6 +67,8 @@ describe('ChallengeResults', () => {
     expect(getChallengeResults).toHaveBeenCalledWith('chal-1');
     expect(fixture.nativeElement.querySelector('app-results-table')).not.toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('Unreveal');
+    expect(fixture.nativeElement.querySelector('.status-tag__label').textContent.trim()).toBe('Revealed');
+    expect(fixture.nativeElement.querySelector('app-challenge-photo')).not.toBeNull();
   });
 
   it('shows a retryable error state on failure', () => {

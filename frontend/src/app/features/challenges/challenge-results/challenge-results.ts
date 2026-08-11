@@ -1,27 +1,41 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 
-import { ChallengeResult, ChallengesApi } from '../../../core/api/generated';
+import { ChallengeResult, ChallengesApi, ChallengeStatus } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
+import { ChallengePhoto } from '../../../shared/components/challenge-photo/challenge-photo';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { ResultsTable } from '../../../shared/components/results-table/results-table';
+import { StatusTag } from '../../../shared/components/status-tag/status-tag';
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
 /**
  * `GET /challenges/{id}/results` — the same `results-table` the organizer detail screen
- * uses, minus the unreveal control, see the frontend plan's Phase 6.
+ * uses, minus the unreveal control, see the frontend plan's Phase 6. Only ever reached
+ * post-reveal, so the "Revealed" chip is static, not derived from a status field this
+ * response doesn't carry.
  */
 @Component({
   selector: 'app-challenge-results',
-  imports: [ErrorState, LoadingSkeleton, PageHeader, ResultsTable],
-  templateUrl: './challenge-results.html'
+  imports: [ChallengePhoto, ErrorState, LoadingSkeleton, PageHeader, ResultsTable, StatusTag],
+  templateUrl: './challenge-results.html',
+  styles: `
+    .challenge-results__photo {
+      max-width: 320px;
+      border-radius: var(--md-sys-shape-corner-medium);
+      overflow: hidden;
+      margin-bottom: var(--md-sys-spacing-4);
+    }
+  `
 })
 export class ChallengeResults {
   private readonly challengesApi = inject(ChallengesApi);
   private readonly appConfig = inject(AppConfig);
+
+  protected readonly ChallengeStatus = ChallengeStatus;
 
   readonly id = input.required<string>();
 

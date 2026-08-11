@@ -17,3 +17,9 @@ databaseChangeLog:
       file: db/changelog/cookoff/006-challenge-unreveal.yaml
   - include:
       file: db/changelog/cookoff/007-registration-invites.yaml
+  - include:
+      file: db/changelog/auth/003-add-admin.yaml
+  - include:
+      file: db/changelog/auth/004-add-role-admin.yaml
+  - include:
+      file: db/changelog/auth/005-add-claude-user.yaml

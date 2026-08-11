@@ -5,6 +5,11 @@
   min-width: min(480px, 90vw);
 }
 
+.new-challenge-dialog__photo-label {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .new-challenge-dialog__photo {
   position: relative;
   display: flex;

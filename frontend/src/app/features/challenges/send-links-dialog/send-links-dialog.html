@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Send links</h2>
+<h2 mat-dialog-title>Send / resend links</h2>
 <mat-dialog-content class="send-links-dialog__content">
   @switch (state()) {
     @case ('loading') {
@@ -8,14 +8,17 @@
       <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="load()" />
     }
     @case ('loaded') {
-      <p class="send-links-dialog__hint">Choose who should get (or be resent) an access link.</p>
-      @for (guest of guests(); track guest.accountId) {
+      <p class="send-links-dialog__hint">
+        Choose who should get (or re-get) their personalized access link by email.
+      </p>
+      @for (recipient of recipients(); track recipient.accountId) {
         <mat-checkbox
-          [checked]="selectedIds().has(guest.accountId)"
-          (change)="toggle(guest.accountId, $event.checked)"
+          [checked]="selectedIds().has(recipient.accountId)"
+          (change)="toggle(recipient.accountId, $event.checked)"
         >
-          {{ guest.name }}
-          @if (guest.submitted) {
+          {{ recipient.name }}
+          <span class="send-links-dialog__role">{{ recipient.role }}</span>
+          @if (recipient.submitted) {
             <span class="send-links-dialog__submitted">already submitted</span>
           }
         </mat-checkbox>

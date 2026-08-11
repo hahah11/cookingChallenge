@@ -20,29 +20,18 @@
   font: var(--mat-sys-headline-small);
 }
 
-.rivalry-detail__challenges {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--md-sys-spacing-2);
+.rivalry-detail__back {
+  margin-bottom: var(--md-sys-spacing-2);
 }
 
-.rivalry-detail__challenge {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--md-sys-spacing-3);
-  padding: var(--md-sys-spacing-3);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: var(--md-sys-shape-corner-medium);
+.rivalry-detail__challenges {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--md-sys-spacing-4);
 }
 
 .rivalry-detail__challenge-link {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+  display: block;
   color: inherit;
   text-decoration: none;
 }
@@ -52,26 +41,45 @@
   outline-offset: 2px;
 }
 
+.rivalry-detail__challenge-card {
+  height: 100%;
+  overflow: hidden;
+}
+
+.rivalry-detail__challenge-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-sys-spacing-1);
+}
+
+.rivalry-detail__challenge-kicker {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .rivalry-detail__challenge-title {
+  margin: 0;
   font: var(--mat-sys-title-medium);
 }
 
-.rivalry-detail__challenge-date {
-  font: var(--mat-sys-body-small);
+.rivalry-detail__challenge-event {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
 }
 
-.rivalry-detail__winner {
-  display: inline-flex;
+.rivalry-detail__challenge-footer {
+  display: flex;
   align-items: center;
-  gap: var(--md-sys-spacing-1);
-  font: var(--mat-sys-label-large);
-  font-weight: 600;
+  flex-wrap: wrap;
+  gap: var(--md-sys-spacing-2);
+  margin-top: var(--md-sys-spacing-2);
 }
 
-.rivalry-detail__winner mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  color: var(--mat-sys-primary);
+.rivalry-detail__challenge-outcome {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
 }

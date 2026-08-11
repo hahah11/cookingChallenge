@@ -10,7 +10,7 @@
   }
   @case ('loaded') {
     @if (home(); as home) {
-      <app-page-header kicker="CookingChallenge" [title]="'Hi, ' + home.displayName" />
+      <app-page-header kicker="CookOff" [title]="'Hi, ' + home.displayName" />
 
       @if (home.open.length === 0) {
         <app-empty-state
@@ -18,7 +18,7 @@
           message="Nothing open right now — check back after the next cook-off."
         />
       } @else {
-        <h2 class="participant-home__section-title">Open</h2>
+        <h2 class="participant-home__section-title">Open scoring requests</h2>
         <div class="participant-home__grid">
           @for (challenge of home.open; track challenge.id) {
             <app-participant-challenge-card
@@ -35,18 +35,13 @@
       }
 
       @if (home.past.length > 0) {
-        <h2 class="participant-home__section-title">Past</h2>
-        <div class="participant-home__grid">
+        <h2 class="participant-home__section-title">Past challenges</h2>
+        <div class="participant-home__past-list">
           @for (challenge of home.past; track challenge.id) {
-            <app-participant-challenge-card
-              [challenge]="challenge"
-              [pickableColors]="pickableColors()"
-              [ownColor]="colorFor(ownAssignment(challenge)?.colorId ?? null)"
-              [colorPickBusy]="colorPickBusyId() === challenge.id"
-              (score)="openScore($event)"
-              (results)="openResults($event)"
-              (pickColor)="confirmPickColor(challenge, $event)"
-            />
+            <button type="button" class="participant-home__past-row" (click)="openResults(challenge.id)">
+              <span class="participant-home__past-dish">{{ challenge.dishName }} — {{ challenge.date | date: 'mediumDate' }}</span>
+              <app-status-tag [status]="challenge.status" />
+            </button>
           }
         </div>
       }

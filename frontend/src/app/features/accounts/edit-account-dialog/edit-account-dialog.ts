@@ -14,20 +14,25 @@ import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 
 export interface EditAccountDialogData {
-  accountId: string;
+  /** `null` opens the dialog in create mode instead of editing an existing account. */
+  accountId: string | null;
 }
 
 interface EditAccountFormModel {
   firstName: string;
   lastName: string;
   email: string;
+  password: string;
 }
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
 /**
- * Re-fetches the account fresh via `GET /accounts/{id}` on open, per the
- * standing data-loading rule — never reuses the parent table's row data.
+ * In edit mode, re-fetches the account fresh via `GET /accounts/{id}` on open, per
+ * the standing data-loading rule — never reuses the parent table's row data. In
+ * create mode (`accountId: null`) there's nothing to fetch; the same form and
+ * dialog just submit to `POST /accounts` instead, per the design's single
+ * New/Edit dialog with a dynamic title and submit label.
  */
 @Component({
   selector: 'app-edit-account-dialog',
@@ -54,10 +59,19 @@ export class EditAccountDialog {
   protected readonly availableRoles = this.appConfig.availableRoles;
   protected readonly SystemRole = SystemRole;
 
-  protected readonly state = signal<LoadState>('loading');
+  protected readonly isCreate = this.data.accountId === null;
+  protected readonly dialogTitle = this.isCreate ? 'New account' : 'Edit account';
+  protected readonly submitLabel = this.isCreate ? 'Create account' : 'Save changes';
+
+  protected readonly state = signal<LoadState>(this.isCreate ? 'loaded' : 'loading');
   protected readonly errorMessage = signal('');
 
-  protected readonly model = signal<EditAccountFormModel>({ firstName: '', lastName: '', email: '' });
+  protected readonly model = signal<EditAccountFormModel>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: ''
+  });
   protected readonly accountForm = form(this.model, (path) => {
     required(path.firstName, { message: 'First name is required.' });
     required(path.lastName, { message: 'Last name is required.' });
@@ -70,15 +84,25 @@ export class EditAccountDialog {
   protected readonly submitting = signal(false);
 
   constructor() {
-    this.load();
+    if (!this.isCreate) {
+      this.load();
+    }
   }
 
   protected load(): void {
+    const accountId = this.data.accountId;
+    if (accountId === null) return;
+
     this.state.set('loading');
-    this.accountsApi.getAccount(this.data.accountId).subscribe({
+    this.accountsApi.getAccount(accountId).subscribe({
       next: (response) => {
         const account = response.data;
-        this.model.set({ firstName: account.firstName, lastName: account.lastName, email: account.email });
+        this.model.set({
+          firstName: account.firstName,
+          lastName: account.lastName,
+          email: account.email,
+          password: ''
+        });
         this.roles.set(new Set(account.roles));
         this.state.set('loaded');
       },
@@ -109,16 +133,20 @@ export class EditAccountDialog {
     }
 
     this.submitting.set(true);
-    const { firstName, lastName, email } = this.model();
-    this.accountsApi
-      .updateAccount(this.data.accountId, { firstName, lastName, email, roles: Array.from(this.roles()) })
-      .subscribe({
-        next: (response) => this.dialogRef.close(response.data),
-        error: (error: ApiError) => {
-          this.submitting.set(false);
-          this.errorMessage.set(error.message);
-        }
-      });
+    const { firstName, lastName, email, password } = this.model();
+    const roles = Array.from(this.roles());
+    const accountId = this.data.accountId;
+    const request = accountId === null
+      ? this.accountsApi.createAccount({ firstName, lastName, email, roles, password: password || undefined })
+      : this.accountsApi.updateAccount(accountId, { firstName, lastName, email, roles });
+
+    request.subscribe({
+      next: (response) => this.dialogRef.close(response.data),
+      error: (error: ApiError) => {
+        this.submitting.set(false);
+        this.errorMessage.set(error.message);
+      }
+    });
   }
 
   protected onCancel(): void {

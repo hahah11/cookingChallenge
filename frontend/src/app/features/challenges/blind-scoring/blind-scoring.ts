@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 
@@ -13,7 +13,6 @@ import {
 } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
-import { Notification } from '../../../core/notifications/notification';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
@@ -42,7 +41,6 @@ type LoadState = 'loading' | 'loaded' | 'error';
 export class BlindScoring {
   private readonly challengesApi = inject(ChallengesApi);
   private readonly appConfig = inject(AppConfig);
-  private readonly notification = inject(Notification);
   private readonly router = inject(Router);
 
   readonly id = input.required<string>();
@@ -57,6 +55,21 @@ export class BlindScoring {
   protected readonly revealedMidEdit = signal(false);
   protected readonly submitting = signal(false);
   protected readonly submitErrorMessage = signal<string | null>(null);
+  protected readonly submitted = signal(false);
+
+  protected readonly submitButtonLabel = computed(() =>
+    this.challenge()?.mySubmission ? 'Save changes' : 'Submit scores'
+  );
+
+  protected readonly instructionText = computed<string>(() => {
+    const challenge = this.challenge();
+    if (!challenge || challenge.labels.length < 2) return '';
+    const [first, second] = challenge.labels;
+    return (
+      `Blind tasting — rate the ${this.plateLabel(first).toLowerCase()} plate and the ` +
+      `${this.plateLabel(second).toLowerCase()} plate, 1–5 stars each, without knowing who cooked which.`
+    );
+  });
 
   constructor() {
     effect(() => {
@@ -140,8 +153,7 @@ export class BlindScoring {
     this.challengesApi.submitScores(challenge.id, { scores }).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.notification.success('Scores submitted.');
-        void this.router.navigateByUrl('/home');
+        this.submitted.set(true);
       },
       error: (error: ApiError) => {
         this.submitting.set(false);
@@ -160,5 +172,9 @@ export class BlindScoring {
     if (challenge) {
       void this.router.navigate(['/challenges', challenge.id, 'results']);
     }
+  }
+
+  protected goHome(): void {
+    void this.router.navigateByUrl('/home');
   }
 }

@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-01-add-claude-user
+      author: fraihs
+      changes:
+        - insert:
+            tableName: accounts
+            columns:
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: email
+                  value: 'claude@claude.com'
+              - column:
+                  name: first_name
+                  value: 'Claude'
+              - column:
+                  name: last_name
+                  value: 'Claude'
+              - column:
+                  name: password_hash
+                  value: '$2a$10$S4wr8BhAEtT8z1BpYnsfPO/fOzoUC7/hbYIsOXSvC5mqraYp6SBQW'
+  - changeSet:
+      id: 005-02-add-claude-role-admin
+      author: fraihs
+      changes:
+        - insert:
+            tableName: account_roles
+            columns:
+              - column:
+                  name: account_id
+                  value: 2
+              - column:
+                  name: role
+                  value: 'ADMIN'

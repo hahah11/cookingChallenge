@@ -9,3 +9,34 @@
   gap: var(--md-sys-spacing-4);
   margin-bottom: var(--md-sys-spacing-6);
 }
+
+.participant-home__past-list {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--md-sys-spacing-6);
+}
+
+.participant-home__past-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--md-sys-spacing-3);
+  width: 100%;
+  padding: var(--md-sys-spacing-3) 0;
+  border: none;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  background: transparent;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.participant-home__past-row:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.participant-home__past-dish {
+  font: var(--mat-sys-body-medium);
+}

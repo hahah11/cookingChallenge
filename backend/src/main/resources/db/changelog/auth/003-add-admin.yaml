@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-01-create-accounts
+      author: fraihs
+      changes:
+        - insert:
+            tableName: accounts
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: email
+                  value: 'nikolai.fraihs@gmail.com'
+              - column:
+                  name: first_name
+                  value: 'Nikolai'
+              - column:
+                  name: last_name
+                  value: Fraihs
+              - column:
+                  name: password_hash
+                  value: '$2a$10$CmGEvdgH1iixtmO2wjZlbOjiHPWUhRSTDt8mObHqv1G8VIBmREHS6'

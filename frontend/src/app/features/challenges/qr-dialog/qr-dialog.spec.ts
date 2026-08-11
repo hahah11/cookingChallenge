@@ -16,7 +16,10 @@ describe('QrDialog', () => {
       providers: [
         Overlay,
         { provide: MatDialogRef, useValue: { close: vi.fn() } },
-        { provide: MAT_DIALOG_DATA, useValue: { challengeId: 'chal-1' } satisfies QrDialogData },
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: { challengeId: 'chal-1', challengeName: 'Summer cook-off' } satisfies QrDialogData
+        },
         { provide: ChallengesApi, useValue: { createRegistrationInvite } }
       ]
     }).compileComponents();
@@ -35,6 +38,7 @@ describe('QrDialog', () => {
 
     expect(createRegistrationInvite).toHaveBeenCalledWith('chal-1');
     expect(fixture.nativeElement.querySelector('app-qr-code')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Summer cook-off');
   });
 
   it('shows a retryable error state on failure', async () => {

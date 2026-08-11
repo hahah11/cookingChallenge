@@ -46,6 +46,15 @@
         </td>
       }
     </tr>
+    <tr>
+      <th scope="row">Head-to-head wins</th>
+      @for (cook of cookAssignments(); track cook.accountId) {
+        <td class="results-table__crowns">
+          <span aria-hidden="true">{{ crownsFor(cook) }}</span>
+          <span class="cc-visually-hidden">{{ winsFor(cook) }} head-to-head win{{ winsFor(cook) === 1 ? '' : 's' }}</span>
+        </td>
+      }
+    </tr>
   </tfoot>
 </table>
 </div>

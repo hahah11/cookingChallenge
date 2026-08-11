@@ -470,7 +470,7 @@ paths:
     post:
       tags: [Challenges]
       operationId: sendInvitations
-      summary: Send (or resend) guest access-link invitations
+      summary: Send (or resend) guest and cook access-link invitations
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChallengeIdPathParam'
@@ -1218,6 +1218,11 @@ components:
           description: >
             Guests to (re)send a link to. Omit to send to every guest who
             hasn't submitted yet.
+        cookAccountIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tsid'
+          description: Cooks to (re)send a link to. Omit to send to none.
 
     InvitationsSent:
       type: object
@@ -1684,7 +1689,7 @@ components:
 
     RivalryChallengeSummary:
       type: object
-      required: [id, date, title, status, overallWinnerAccountId]
+      required: [id, date, title, dishName, status, hasImage, overallWinnerAccountId, outcomeLabel]
       properties:
         id:
           $ref: '#/components/schemas/Tsid'
@@ -1693,12 +1698,22 @@ components:
           format: date
         title:
           type: string
+        dishName:
+          type: string
         status:
           $ref: '#/components/schemas/ChallengeStatus'
+        hasImage:
+          type: boolean
+          description: Whether GET /api/v1/challenges/{id}/image resolves to a photo.
         overallWinnerAccountId:
           type: string
           nullable: true
           description: Aggregate id, Crockford Base32-encoded TSID. Null while OPEN, or if the revealed result was a draw.
+        outcomeLabel:
+          type: string
+          description: >
+            Server-rendered display text for this challenge's outcome, e.g.
+            "Alice won", "Draw", or "Pending" while OPEN.
 
     RivalryDetail:
       allOf:

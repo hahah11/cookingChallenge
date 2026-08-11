@@ -1,6 +1,7 @@
 import { Component, inject, input, signal } from '@angular/core';
 import { email as emailValidator, form, FormField, required } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -27,6 +28,7 @@ interface RegisterFormModel {
     ErrorState,
     FormField,
     MatButtonModule,
+    MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,

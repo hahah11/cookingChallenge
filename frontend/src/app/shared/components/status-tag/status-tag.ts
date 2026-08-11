@@ -1,5 +1,6 @@
 import { Component, input } from '@angular/core';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
 
 import { ChallengeStatus } from '../../../core/api/generated';
 
@@ -11,7 +12,7 @@ import { ChallengeStatus } from '../../../core/api/generated';
  */
 @Component({
   selector: 'app-status-tag',
-  imports: [MatChipsModule],
+  imports: [MatChipsModule, MatIconModule],
   template: `
     <mat-chip-set>
       <mat-chip
@@ -20,7 +21,8 @@ import { ChallengeStatus } from '../../../core/api/generated';
         [highlighted]="isRevealed()"
         disableRipple
       >
-        {{ isRevealed() ? 'Revealed' : 'Open' }}
+        <mat-icon matChipAvatar aria-hidden="true">check_circle</mat-icon>
+        <span class="status-tag__label">{{ isRevealed() ? 'Revealed' : 'Open' }}</span>
       </mat-chip>
     </mat-chip-set>
   `,

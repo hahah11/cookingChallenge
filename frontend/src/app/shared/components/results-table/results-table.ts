@@ -66,4 +66,15 @@ export class ResultsTable {
   protected hexFor(cook: CookAssignment): string | null {
     return cook.colorId ? (this.plateColorHex()[cook.colorId] ?? null) : null;
   }
+
+  protected winsFor(cook: CookAssignment): number {
+    const rivalry = this.rivalry();
+    if (cook.accountId === rivalry.cookAAccountId) return rivalry.cookAWins;
+    if (cook.accountId === rivalry.cookBAccountId) return rivalry.cookBWins;
+    return 0;
+  }
+
+  protected crownsFor(cook: CookAssignment): string {
+    return '👑'.repeat(this.winsFor(cook));
+  }
 }

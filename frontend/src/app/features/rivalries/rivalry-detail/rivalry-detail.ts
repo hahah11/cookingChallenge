@@ -1,9 +1,13 @@
+import { DatePipe } from '@angular/common';
 import { Component, effect, inject, input, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 
 import { RivalriesApi, RivalryDetail as RivalryDetailModel } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
+import { ChallengePhoto } from '../../../shared/components/challenge-photo/challenge-photo';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
@@ -14,7 +18,18 @@ type LoadState = 'loading' | 'loaded' | 'error';
 /** `GET /rivalries/{cookA}/{cookB}` — the pair is canonicalized server-side. */
 @Component({
   selector: 'app-rivalry-detail',
-  imports: [ErrorState, LoadingSkeleton, MatIconModule, PageHeader, RouterLink, StatusTag],
+  imports: [
+    ChallengePhoto,
+    DatePipe,
+    ErrorState,
+    LoadingSkeleton,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    PageHeader,
+    RouterLink,
+    StatusTag
+  ],
   templateUrl: './rivalry-detail.html',
   styleUrl: './rivalry-detail.scss'
 })
@@ -48,15 +63,5 @@ export class RivalryDetail {
         this.state.set('error');
       }
     });
-  }
-
-  protected winnerName(rivalry: RivalryDetailModel, overallWinnerAccountId: string | null): string | null {
-    if (overallWinnerAccountId === rivalry.cookAAccountId) {
-      return rivalry.cookAName;
-    }
-    if (overallWinnerAccountId === rivalry.cookBAccountId) {
-      return rivalry.cookBName;
-    }
-    return null;
   }
 }

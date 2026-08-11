@@ -41,11 +41,20 @@
 }
 
 .star-rating__star::before {
-  content: '★';
+  content: 'star';
+  font-family: 'Material Symbols Outlined';
+  font-feature-settings: 'liga';
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
   font-size: var(--star-size, 28px);
   line-height: 1;
   color: var(--md-sys-color-outline-variant);
-  transition: color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  transition:
+    color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+    font-variation-settings var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
 }
 
 // Fill this star and every lower-valued one that follows it in the
@@ -54,6 +63,11 @@
 .star-rating__star:hover ~ .star-rating__star::before,
 .star-rating__input:checked ~ .star-rating__star::before {
   color: var(--plate-color, var(--mat-sys-primary));
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
 }
 
 .star-rating__input:focus-visible + .star-rating__star {

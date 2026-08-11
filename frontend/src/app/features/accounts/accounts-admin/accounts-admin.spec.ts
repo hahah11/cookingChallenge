@@ -76,6 +76,20 @@ describe('AccountsAdmin', () => {
     expect(listAccounts).toHaveBeenCalledTimes(2);
   });
 
+  it('opens the create dialog in create mode and reloads once it closes with a new account', () => {
+    const listAccounts = vi.fn().mockReturnValue(of({ data: [account], pagination: { totalElements: 1 }, meta: {} }));
+    const dialogOpen = vi.fn().mockReturnValue({ afterClosed: () => of(account) });
+    const { fixture } = setup(listAccounts, { open: dialogOpen });
+
+    fixture.componentInstance['openCreateDialog']();
+
+    expect(dialogOpen).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ data: { accountId: null } })
+    );
+    expect(listAccounts).toHaveBeenCalledTimes(2);
+  });
+
   it(
     'has no axe violations',
     async () => {

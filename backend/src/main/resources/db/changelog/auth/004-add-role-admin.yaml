@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-01-add-role-admin
+      author: fraihs
+      changes:
+        - insert:
+            tableName: account_roles
+            columns:
+              - column:
+                  name: account_id
+                  value: 1
+              - column:
+                  name: role
+                  value: 'ADMIN'
