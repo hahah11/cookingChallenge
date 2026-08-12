@@ -1,5 +1,11 @@
 # CookingChallenge Frontend — Implementation Plan
 
+**Superseded for current state:** this plan's build (Phase 0–7) is complete; for what the frontend
+actually looks like today versus the mockups — including ongoing pixel-fidelity work and every
+documented intentional deviation — see
+[`frontend-design-fidelity-plan.md`](frontend-design-fidelity-plan.md) instead. Kept here as build
+history.
+
 **Status:** Approved 2026-08-06. Design system swapped from Modernist to Angular Material 3 on 2026-08-07 (see [`design-reference.md`](../design-reference.md)) — nothing had been built yet, so this is a pivot, not a rewrite. Implements Phase 7 of
 [`openapi-first-api-plan.md`](openapi-first-api-plan.md) and everything that follows it.
 

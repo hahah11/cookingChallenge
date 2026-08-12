@@ -23,13 +23,6 @@
           <app-challenge-card [challenge]="challenge" (open)="openChallenge($event)" />
         }
       </div>
-      <mat-paginator
-        [length]="totalElements()"
-        [pageSize]="pageSize"
-        [pageIndex]="page()"
-        [hidePageSize]="true"
-        (page)="onPage($event)"
-      />
     }
   }
 }

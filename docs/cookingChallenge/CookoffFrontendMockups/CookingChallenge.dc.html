@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+<link rel="stylesheet" href="_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/colors.css">
+<link rel="stylesheet" href="_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/typography.css">
+<link rel="stylesheet" href="_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/shape.css">
+<link rel="stylesheet" href="_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/icons.css">
+<link rel="stylesheet" href="_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/components.css">
+<link rel="stylesheet" href="_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/styles.css">
+<script src="_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+body{margin:0;background:var(--md-sys-color-background);color:var(--md-sys-color-on-background);font-family:var(--md-sys-typescale-font);}
+a{color:var(--md-sys-color-primary);}
+a:hover{color:var(--md-ref-palette-primary-30);}
+@keyframes revealScrim{0%{opacity:0;}100%{opacity:1;}}
+@keyframes revealPop{0%{transform:scale(.4) rotate(-4deg);opacity:0;}55%{transform:scale(1.08) rotate(1deg);opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
+.cc-kicker{font:500 12px/16px var(--md-sys-typescale-font);letter-spacing:0.08em;text-transform:uppercase;color:var(--md-ref-palette-primary-50);}
+.cc-page{max-width:960px;margin:0 auto;padding:24px 16px 64px;width:100%;box-sizing:border-box;}
+.cc-page--narrow{max-width:640px;}
+.cc-page--detail{max-width:760px;}
+.cc-black-btn{background:#1a1a1a !important;color:#fff !important;border-color:#1a1a1a !important;}
+.cc-black-btn:hover{background:#333 !important;}
+.cc-black-btn:active{background:#000 !important;}
+.cc-black-btn:disabled{background:color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent) !important;color:color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent) !important;}
+.md-button--outlined{color:#000;}
+.md-chip--green{background:#dbead9;color:#2f6b34;border-color:transparent;}
+.md-chip--green .md-chip__check{display:inline-flex;}
+.md-chip--red{background:#fbe0dc;color:#8a2a10;border-color:transparent;}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;">
+
+<sc-if value="{{ isOrganizerScreen }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--md-sys-color-surface);position:sticky;top:0;z-index:10;">
+  <div class="md-top-app-bar" style="padding:0 16px;">
+    <div class="md-top-app-bar__title" style="flex:0 0 auto;padding-left:0;">CookOff</div>
+    <div style="flex:1;"></div>
+    <span class="md-typescale-body-small" style="color:var(--md-sys-color-on-surface-variant);margin-right:8px;">{{ organizerName }}</span>
+    <button type="button" class="md-button md-button--text" onClick="{{ logout }}">Log out</button>
+  </div>
+  <div class="md-tabs">
+    <button type="button" class="{{ tabHistoryClass }}" onClick="{{ goHistory }}">History</button>
+    <button type="button" class="{{ tabAccountsClass }}" onClick="{{ goAccounts }}">Accounts</button>
+    <button type="button" class="{{ tabRivalriesClass }}" onClick="{{ goRivalries }}">Rivalries</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form onSubmit="{{ login }}" class="md-card md-card--elevated" style="width:360px;max-width:100%;">
+    <div class="md-card__content" style="padding:24px;gap:16px;">
+      <div>
+        <div class="cc-kicker">CookOff</div>
+        <div class="md-typescale-headline-small">Organizer log in</div>
+      </div>
+      <div class="md-field"><label class="md-field__label" for="li-email">Email</label>
+        <div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="li-email" type="email" value="{{ loginEmail }}" onChange="{{ onLoginEmail }}" placeholder="anna@example.com"></div></div>
+      <div class="md-field"><label class="md-field__label" for="li-pass">Password</label>
+        <div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="li-pass" type="password" value="{{ loginPassword }}" onChange="{{ onLoginPassword }}" placeholder="••••••••"></div></div>
+      <button type="submit" class="md-button md-button--filled cc-black-btn" style="width:100%;">Log in</button>
+      <p class="md-typescale-body-small" style="color:var(--md-sys-color-on-surface-variant);margin:0;">Cooks and guests don't log in here — they get a personalized link by email for each challenge.</p>
+      <hr class="md-divider">
+      <button type="button" class="md-button md-button--text" style="width:100%;" onClick="{{ goGuestHome }}">Preview a guest's personalized link →</button>
+      <button type="button" class="md-button md-button--text" style="width:100%;" onClick="{{ goCookHome }}">Preview a cook's personalized link →</button>
+      <button type="button" class="md-button md-button--text" style="width:100%;" onClick="{{ goRegister }}">Preview QR code registration →</button>
+      <button type="button" class="md-button md-button--text" style="width:100%;" onClick="{{ goExpiredLink }}">Preview an expired link →</button>
+      <button type="button" class="md-button md-button--text" style="width:100%;" onClick="{{ goExpiredQr }}">Preview an expired QR code →</button>
+    </div>
+  </form>
+</div>
+</sc-if>
+
+<sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+<div class="cc-page">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+    <div>
+      <div class="cc-kicker">Cook-off history</div>
+      <h1 class="md-typescale-headline-medium" style="margin:4px 0 0;">Challenges</h1>
+    </div>
+    <button type="button" class="md-button md-button--filled cc-black-btn" onClick="{{ openCreate }}"><span class="material-symbols-outlined">add</span>New challenge</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+    <sc-for list="{{ challenges }}" as="c" hint-placeholder-count="4">
+      <div class="md-card md-card--elevated md-card--clickable" onClick="{{ c.openMe }}">
+        <div style="width:100%;aspect-ratio:4/3;">
+          <image-slot id="{{ c.imageSlotId }}" shape="rect" placeholder="Drop a rivalry photo"></image-slot>
+        </div>
+        <div class="md-card__content">
+          <div class="cc-kicker">{{ c.dateLabel }}</div>
+          <div class="md-card__title">{{ c.dishName }}</div>
+          <p class="md-card__body">{{ c.title }}</p>
+          <p class="md-typescale-body-small" style="color:var(--md-sys-color-on-surface-variant);margin:0 0 8px;"><span style="{{ c.cookAStyle }}">{{ c.cookAName }}</span> &amp; <span style="{{ c.cookBStyle }}">{{ c.cookBName }}</span></p>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <button type="button" class="{{ c.statusChipClass }}"><span class="material-symbols-outlined md-chip__check">check</span>{{ c.statusLabel }}</button>
+            <span class="md-typescale-body-small" style="color:var(--md-sys-color-on-surface-variant);">{{ c.progressLabel }}</span>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+<div class="cc-page cc-page--detail" style="position:relative;">
+  <button type="button" class="md-button md-button--text" style="margin-bottom:12px;padding-left:0;" onClick="{{ detailBack }}"><span class="material-symbols-outlined">arrow_back</span>{{ detailBackLabel }}</button>
+
+  <sc-if value="{{ challenge }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:32px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:220px;">
+      <div class="cc-kicker">{{ challenge.dateLabel }}</div>
+      <div style="display:flex;align-items:center;gap:12px;margin:4px 0 4px;">
+        <h1 class="md-typescale-headline-medium" style="margin:0;">{{ challenge.dishName }}</h1>
+        <button type="button" class="{{ challenge.statusChipClass }}"><span class="material-symbols-outlined md-chip__check">check</span>{{ challenge.statusLabel }}</button>
+      </div>
+      <p class="md-typescale-body-medium" style="color:var(--md-sys-color-on-surface-variant);margin:0 0 8px;">{{ challenge.title }}</p>
+    </div>
+    <div style="flex:1;min-width:220px;aspect-ratio:4/3;">
+      <image-slot id="{{ challenge.imageSlotId }}" shape="rect" placeholder="Drop a photo"></image-slot>
+    </div>
+  </div>
+
+  <sc-if value="{{ challenge.isOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="md-typescale-title-small" style="margin-top:16px;margin-bottom:8px;">Guest list</div>
+    <div style="display:flex;flex-direction:column;gap:0;margin-bottom:20px;">
+      <sc-for list="{{ challenge.guestRows }}" as="g" hint-placeholder-count="3">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--md-sys-color-outline-variant);">
+          <span class="md-typescale-body-medium">{{ g.name }}</span>
+          <button type="button" class="{{ g.chipClass }}"><span class="material-symbols-outlined md-chip__check">check</span>{{ g.statusLabel }}</button>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;">
+      <button type="button" class="md-button md-button--outlined" onClick="{{ challenge.openSendLinks }}"><span class="material-symbols-outlined">forward_to_inbox</span>Send links</button>
+      <button type="button" class="md-button md-button--outlined" onClick="{{ challenge.editCooksGuests }}">Edit cooks &amp; guests</button>
+      <button type="button" class="md-button md-button--outlined" onClick="{{ challenge.openQr }}"><span class="material-symbols-outlined">qr_code_2</span>Registration QR code</button>
+      <button type="button" class="md-button md-button--filled cc-black-btn" onClick="{{ challenge.askReveal }}">Reveal results</button>
+    </div>
+    <sc-if value="{{ challenge.justSentLinks }}" hint-placeholder-val="{{ false }}">
+      <p class="md-typescale-body-small" style="color:var(--md-sys-color-primary);margin:8px 0 0;">Links sent ✓</p>
+    </sc-if>
+  </sc-if>
+
+  <sc-if value="{{ challenge.isRevealed }}" hint-placeholder-val="{{ false }}">
+    <table style="width:100%;border-collapse:collapse;margin-top:16px;margin-bottom:20px;" class="md-typescale-body-medium">
+      <thead><tr><th></th>
+        <th style="{{ challenge.cookATintStyle }}text-align:center;width:35%;color:var(--md-sys-color-on-surface);padding:8px;border-radius:12px 12px 0 0;">
+          <div style="height:26px;line-height:26px;font-size:20px;"><sc-if value="{{ challenge.cookAIsOverallWinner }}" hint-placeholder-val="{{ false }}">👑</sc-if></div>
+          <div style="font-size:18px;font-weight:700;">{{ challenge.cookAFirstName }}</div>
+        </th>
+        <th style="{{ challenge.cookBTintStyle }}text-align:center;width:35%;color:var(--md-sys-color-on-surface);padding:8px;border-radius:12px 12px 0 0;">
+          <div style="height:26px;line-height:26px;font-size:20px;"><sc-if value="{{ challenge.cookBIsOverallWinner }}" hint-placeholder-val="{{ false }}">👑</sc-if></div>
+          <div style="font-size:18px;font-weight:700;">{{ challenge.cookBFirstName }}</div>
+        </th>
+      </tr></thead>
+      <tbody>
+        <sc-for list="{{ challenge.categoryRows }}" as="row" hint-placeholder-count="3">
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid var(--md-sys-color-outline-variant);">{{ row.label }}</td>
+            <td style="{{ row.aCellStyle }}{{ row.aBoldStyle }}text-align:center;padding:8px;border-bottom:1px solid var(--md-sys-color-outline-variant);">{{ row.aScore }}</td>
+            <td style="{{ row.bCellStyle }}{{ row.bBoldStyle }}text-align:center;padding:8px;border-bottom:1px solid var(--md-sys-color-outline-variant);">{{ row.bScore }}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td style="font-weight:600;padding:8px;">Total</td>
+          <td style="{{ challenge.cookAHeaderStyle }}font-weight:600;text-align:center;padding:8px;">{{ challenge.totalA }}</td>
+          <td style="{{ challenge.cookBHeaderStyle }}font-weight:600;text-align:center;padding:8px;">{{ challenge.totalB }}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px;">Head-to-head wins</td>
+          <td style="{{ challenge.cookATintStyle }}text-align:center;font-size:20px;padding:8px;">{{ challenge.cookACrownsLabel }}</td>
+          <td style="{{ challenge.cookBTintStyle }}text-align:center;font-size:20px;padding:8px;">{{ challenge.cookBCrownsLabel }}</td>
+        </tr>
+      </tfoot>
+    </table>
+    <hr class="md-divider" style="margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <p class="md-typescale-body-small" style="color:var(--md-sys-color-on-surface-variant);margin:0;max-width:42ch;">Made a mistake? You can reopen scoring and hide the results again.</p>
+      <button type="button" class="md-button md-button--outlined" onClick="{{ challenge.askUnreveal }}"><span class="material-symbols-outlined">undo</span>Unreveal challenge</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ challengeIsRevealing }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:50;animation:revealScrim .2s ease;">
+      <div style="background:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);padding:24px 32px;font-size:40px;letter-spacing:.04em;border-radius:28px;animation:revealPop .6s cubic-bezier(.2,1.4,.4,1);">REVEALED!</div>
+    </div>
+  </sc-if>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAccounts }}" hint-placeholder-val="{{ false }}">
+<div class="cc-page cc-page--detail">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+    <div>
+      <div class="cc-kicker">Admin</div>
+      <h1 class="md-typescale-headline-medium" style="margin:4px 0 0;">Accounts</h1>
+    </div>
+    <button type="button" class="md-button md-button--filled cc-black-btn" onClick="{{ openAcctCreate }}"><span class="material-symbols-outlined">add</span>New account</button>
+  </div>
+  <table style="width:100%;border-collapse:collapse;" class="md-typescale-body-medium">
+    <thead><tr class="md-typescale-label-small" style="color:var(--md-sys-color-on-surface-variant);">
+      <th style="text-align:left;padding:8px;border-bottom:2px solid var(--md-sys-color-outline-variant);">Name</th>
+      <th style="text-align:left;padding:8px;border-bottom:2px solid var(--md-sys-color-outline-variant);">Email</th>
+      <th style="text-align:left;padding:8px;border-bottom:2px solid var(--md-sys-color-outline-variant);">Roles</th>
+      <th style="border-bottom:2px solid var(--md-sys-color-outline-variant);"></th>
+    </tr></thead>
+    <tbody>
+      <sc-for list="{{ accounts }}" as="a" hint-placeholder-count="6">
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid var(--md-sys-color-outline-variant);">{{ a.name }}</td>
+          <td style="padding:8px;border-bottom:1px solid var(--md-sys-color-outline-variant);color:var(--md-sys-color-on-surface-variant);">{{ a.email }}</td>
+          <td style="padding:8px;border-bottom:1px solid var(--md-sys-color-outline-variant);">
+            <sc-for list="{{ a.roleTags }}" as="rt" hint-placeholder-count="1">
+              <span class="{{ rt.cls }}" style="margin-right:4px;">{{ rt.label }}</span>
+            </sc-for>
+          </td>
+          <td style="padding:8px;border-bottom:1px solid var(--md-sys-color-outline-variant);"><button type="button" class="md-button md-button--text" onClick="{{ a.editMe }}">Edit</button></td>
+        </tr>
+      </sc-for>
+    </tbody>
+  </table>
+</div>
+</sc-if>
+
+<sc-if value="{{ isRivalries }}" hint-placeholder-val="{{ false }}">
+<div class="cc-page cc-page--detail">
+  <div class="cc-kicker">Head-to-head</div>
+  <h1 class="md-typescale-headline-medium" style="margin:4px 0 20px;">Cook rivalries</h1>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+    <sc-for list="{{ rivalries }}" as="r" hint-placeholder-count="3">
+      <div class="md-card md-card--elevated md-card--clickable" onClick="{{ r.openMe }}">
+        <div class="md-card__content">
+          <div class="cc-kicker">{{ r.totalLabel }}</div>
+          <div class="md-card__title">{{ r.cookAName }} vs {{ r.cookBName }}</div>
+          <p class="md-card__body">{{ r.cookAWins }} — {{ r.cookBWins }} · {{ r.draws }} draw(s)</p>
+        </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ rivalriesEmpty }}" hint-placeholder-val="{{ false }}">
+      <p class="md-typescale-body-medium" style="color:var(--md-sys-color-on-surface-variant);">No revealed challenges yet — rivalries build up once results come in.</p>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isRivalryDetail }}" hint-placeholder-val="{{ false }}">
+<div class="cc-page cc-page--detail">
+  <button type="button" class="md-button md-button--text" style="margin-bottom:12px;padding-left:0;" onClick="{{ goRivalries }}"><span class="material-symbols-outlined">arrow_back</span>All rivalries</button>
+  <div class="cc-kicker">Head-to-head</div>
+  <h1 class="md-typescale-headline-medium" style="margin:4px 0 4px;">{{ rivalryDetail.cookAName }} vs {{ rivalryDetail.cookBName }}</h1>
+  <p class="md-typescale-body-medium" style="color:var(--md-sys-color-on-surface-variant);margin:0 0 20px;">{{ rivalryDetail.cookAWins }} — {{ rivalryDetail.cookBWins }} · {{ rivalryDetail.draws }} draw(s) across {{ rivalryDetail.total }} challenge(s) ({{ rivalryDetail.openCount }} still open)</p>
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <sc-for list="{{ rivalryDetail.challenges }}" as="c" hint-placeholder-count="2">
+      <div class="md-card md-card--elevated md-card--clickable" onClick="{{ c.openMe }}">
+        <div style="display:flex;align-items:stretch;">
+          <div class="md-card__content" style="flex:1;">
+            <div class="cc-kicker">{{ c.dateLabel }}</div>
+            <div class="md-card__title">{{ c.dishName }}</div>
+            <p class="md-card__body">{{ c.title }}</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+              <button type="button" class="{{ c.statusChipClass }}"><span class="material-symbols-outlined md-chip__check">check</span>{{ c.statusLabel }}</button>
+              <span class="md-typescale-body-small" style="color:#b0b0b0;">{{ c.outcomeLabel }}</span>
+            </div>
+          </div>
+          <div style="flex:1;aspect-ratio:4/3;">
+            <image-slot id="{{ c.imageSlotId }}" shape="rect" placeholder="Drop a rivalry photo"></image-slot>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isGuestHome }}" hint-placeholder-val="{{ false }}">
+<div class="cc-page cc-page--narrow">
+  <button type="button" class="md-button md-button--text" style="margin-bottom:12px;padding-left:0;" onClick="{{ goLogin }}"><span class="material-symbols-outlined">arrow_back</span>Organizer login</button>
+  <div class="cc-kicker">Your personalized link</div>
+  <h1 class="md-typescale-headline-medium" style="margin:4px 0 20px;">Hi, {{ guestName }}</h1>
+
+  <div class="md-typescale-title-small" style="margin-bottom:8px;">Open scoring requests</div>
+  <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+    <sc-for list="{{ guestOpen }}" as="c" hint-placeholder-count="2">
+      <div class="md-card md-card--filled">
+        <div style="display:flex;align-items:stretch;">
+          <div class="md-card__content" style="flex:1;justify-content:center;gap:8px;">
+            <div class="cc-kicker">{{ c.dateLabel }}</div>
+            <div class="md-card__title">{{ c.dishName }}</div>
+            <sc-if value="{{ c.submitted }}" hint-placeholder-val="{{ false }}"><span class="md-chip md-chip--selected" style="align-self:flex-start;">Submitted — editable until reveal</span></sc-if>
+            <button type="button" class="{{ c.scoreBtnClass }}" onClick="{{ c.scoreMe }}" style="align-self:flex-start;">{{ c.scoreBtnLabel }}</button>
+          </div>
+          <div style="flex:1;aspect-ratio:4/3;">
+            <image-slot id="{{ c.imageSlotId }}" shape="rect" placeholder="Drop a rivalry photo"></image-slot>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ guestOpenEmpty }}" hint-placeholder-val="{{ false }}">
+      <p class="md-typescale-body-medium" style="color:var(--md-sys-color-on-surface-variant);margin:0;">Nothing open right now — check back after the next cook-off.</p>
+    </sc-if>
+  </div>
+
+  <div class="md-typescale-title-small" style="margin-bottom:8px;">Past challenges</div>
+  <div style="display:flex;flex-direction:column;">
+    <sc-for list="{{ guestPast }}" as="c" hint-placeholder-count="1">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--md-sys-color-outline-variant);cursor:pointer;" onClick="{{ c.viewMe }}">
+        <span class="md-typescale-body-medium">{{ c.dishName }} — {{ c.dateLabel }}</span>
+        <span class="md-chip md-chip--green">{{ c.tagLabel }}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isGuestResults }}" hint-placeholder-val="{{ false }}">
+<div class="cc-page cc-page--narrow">
+  <button type="button" class="md-button md-button--text" style="margin-bottom:12px;padding-left:0;" onClick="{{ goResultsBack }}"><span class="material-symbols-outlined">arrow_back</span>Home</button>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:32px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px;">
+      <div class="cc-kicker">{{ guestResults.dateLabel }}</div>
+      <div style="display:flex;align-items:center;gap:12px;margin:4px 0 4px;">
+        <h1 class="md-typescale-headline-medium" style="margin:0;">{{ guestResults.dishName }}</h1>
+        <span class="md-chip md-chip--green">Revealed</span>
+      </div>
+      <p class="md-typescale-body-medium" style="color:var(--md-sys-color-on-surface-variant);margin:0 0 8px;">{{ guestResults.title }}</p>
+    </div>
+    <div style="flex:1;min-width:200px;aspect-ratio:4/3;">
+      <image-slot id="{{ guestResults.imageSlotId }}" shape="rect" placeholder="Drop a photo"></image-slot>
+    </div>
+  </div>
+
+  <table style="width:100%;border-collapse:collapse;margin-top:16px;margin-bottom:20px;" class="md-typescale-body-medium">
+    <thead><tr><th></th>
+      <th style="{{ guestResults.cookATintStyle }}text-align:center;width:35%;color:var(--md-sys-color-on-surface);padding:8px;border-radius:12px 12px 0 0;">
+        <div style="height:26px;line-height:26px;font-size:20px;"><sc-if value="{{ guestResults.cookAIsOverallWinner }}" hint-placeholder-val="{{ false }}">👑</sc-if></div>
+        <div style="font-size:18px;font-weight:700;">{{ guestResults.cookAFirstName }}</div>
+      </th>
+      <th style="{{ guestResults.cookBTintStyle }}text-align:center;width:35%;color:var(--md-sys-color-on-surface);padding:8px;border-radius:12px 12px 0 0;">
+        <div style="height:26px;line-height:26px;font-size:20px;"><sc-if value="{{ guestResults.cookBIsOverallWinner }}" hint-placeholder-val="{{ false }}">👑</sc-if></div>
+        <div style="font-size:18px;font-weight:700;">{{ guestResults.cookBFirstName }}</div>
+      </th>
+    </tr></thead>
+    <tbody>
+      <sc-for list="{{ guestResults.categoryRows }}" as="row" hint-placeholder-count="3">
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid var(--md-sys-color-outline-variant);">{{ row.label }}</td>
+          <td style="{{ row.aCellStyle }}{{ row.aBoldStyle }}text-align:center;padding:8px;border-bottom:1px solid var(--md-sys-color-outline-variant);">{{ row.aScore }}</td>
+          <td style="{{ row.bCellStyle }}{{ row.bBoldStyle }}text-align:center;padding:8px;border-bottom:1px solid var(--md-sys-color-outline-variant);">{{ row.bScore }}</td>
+        </tr>
+      </sc-for>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td style="font-weight:600;padding:8px;">Total</td>
+        <td style="{{ guestResults.cookAHeaderStyle }}font-weight:600;text-align:center;padding:8px;">{{ guestResults.totalA }}</td>
+        <td style="{{ guestResults.cookBHeaderStyle }}font-weight:600;text-align:center;padding:8px;">{{ guestResults.totalB }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;">Head-to-head wins</td>
+        <td style="{{ guestResults.cookATintStyle }}text-align:center;font-size:20px;padding:8px;">{{ guestResults.cookACrownsLabel }}</td>
+        <td style="{{ guestResults.cookBTintStyle }}text-align:center;font-size:20px;padding:8px;">{{ guestResults.cookBCrownsLabel }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+</sc-if>
+
+<sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <sc-if value="{{ registerSubmitted }}" hint-placeholder-val="{{ false }}">
+    <div class="md-card md-card--elevated" style="width:360px;max-width:100%;">
+      <div class="md-card__content" style="padding:24px;text-align:center;align-items:center;">
+        <div style="font-size:40px;margin-bottom:8px;">🎉</div>
+        <div class="md-typescale-title-large">Welcome, {{ registerForm.firstName }}!</div>
+        <p class="md-typescale-body-medium" style="color:var(--md-sys-color-on-surface-variant);">Your account is set up as a participant. The host will send you a personalized link by email whenever you're part of a challenge.</p>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ registerNotSubmitted }}" hint-placeholder-val="{{ true }}">
+    <form onSubmit="{{ submitRegister }}" class="md-card md-card--elevated" style="width:360px;max-width:100%;">
+      <div class="md-card__content" style="padding:24px;gap:16px;">
+        <div>
+          <div class="cc-kicker">CookOff</div>
+          <div class="md-typescale-headline-small">Join the cook-off</div>
+        </div>
+        <div class="md-field"><label class="md-field__label" for="reg-first">First name</label>
+          <div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="reg-first" value="{{ registerForm.firstName }}" onChange="{{ onRegFirst }}" placeholder="Sophie" required></div></div>
+        <div class="md-field"><label class="md-field__label" for="reg-last">Last name</label>
+          <div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="reg-last" value="{{ registerForm.lastName }}" onChange="{{ onRegLast }}" placeholder="Lang" required></div></div>
+        <div class="md-field"><label class="md-field__label" for="reg-email">Email</label>
+          <div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="reg-email" type="email" value="{{ registerForm.email }}" onChange="{{ onRegEmail }}" placeholder="sophie@example.com" required></div></div>
+        <button type="submit" class="md-button md-button--filled cc-black-btn" style="width:100%;">Register</button>
+        <p class="md-typescale-body-small" style="color:var(--md-sys-color-on-surface-variant);margin:0;">You'll be registered as a participant — hosts add you to challenges and send you a link when it's your turn to score.</p>
+      </div>
+    </form>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isExpired }}" hint-placeholder-val="{{ false }}">
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div class="md-card md-card--elevated" style="width:420px;max-width:100%;">
+    <div class="md-card__content" style="padding:32px;align-items:center;text-align:center;gap:12px;">
+      <span class="material-symbols-outlined" style="font-size:48px;color:var(--md-sys-color-error);">link_off</span>
+      <div class="cc-kicker">{{ expiredKicker }}</div>
+      <h1 class="md-typescale-headline-small" style="margin:0;">{{ expiredHeadline }}</h1>
+      <p class="md-typescale-body-medium" style="color:var(--md-sys-color-on-surface-variant);margin:0;max-width:38ch;">{{ expiredBody }}</p>
+      <div style="background:#f0f0f0;border-radius:12px;padding:12px 16px;width:100%;box-sizing:border-box;">
+        <div class="md-typescale-label-small" style="color:var(--md-sys-color-on-surface-variant);">Organizer</div>
+        <div class="md-typescale-body-medium">{{ organizerName }}</div>
+      </div>
+      <button type="button" class="md-button md-button--outlined" style="width:100%;" onClick="{{ goLogin }}">Back to start</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCookHome }}" hint-placeholder-val="{{ false }}">
+<div class="cc-page cc-page--narrow">
+  <button type="button" class="md-button md-button--text" style="margin-bottom:12px;padding-left:0;" onClick="{{ goLogin }}"><span class="material-symbols-outlined">arrow_back</span>Organizer login</button>
+  <div class="cc-kicker">Your personalized link</div>
+  <h1 class="md-typescale-headline-medium" style="margin:4px 0 20px;">Hi, {{ cookName }}</h1>
+
+  <div class="md-typescale-title-small" style="margin-bottom:8px;">Your open challenges</div>
+  <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px;">
+    <sc-for list="{{ cookOpen }}" as="c" hint-placeholder-count="1">
+      <div class="md-card md-card--outlined" style="background:#f0f0f0;">
+        <div class="md-card__content">
+          <div class="cc-kicker">{{ c.dateLabel }}</div>
+          <div class="md-card__title">{{ c.dishName }}</div>
+          <p class="md-card__body">{{ c.title }}</p>
+          <sc-if value="{{ c.colorChosen }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:8px;margin:8px 0 4px;">
+              <span style="width:14px;height:14px;display:inline-block;border-radius:50%;background:{{ c.myColorHex }};"></span>
+              <span class="md-typescale-body-small" style="color:var(--md-sys-color-on-surface-variant);">You're plating <strong>{{ c.myColorLabel }}</strong> — noted for guests once scoring opens.</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ c.needsColor }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:16px;margin-top:8px;">
+              <button type="button" aria-label="Red" onClick="{{ c.pickRed }}" style="width:56px;height:56px;border:none;border-radius:12px;cursor:pointer;background:#c0392b;"></button>
+              <button type="button" aria-label="Yellow" onClick="{{ c.pickYellow }}" style="width:56px;height:56px;border:none;border-radius:12px;cursor:pointer;background:#e0b400;"></button>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ cookOpenEmpty }}" hint-placeholder-val="{{ false }}">
+      <p class="md-typescale-body-medium" style="color:var(--md-sys-color-on-surface-variant);margin:0;">Nothing open right now.</p>
+    </sc-if>
+  </div>
+
+  <div class="md-typescale-title-small" style="margin-bottom:8px;">Past challenges</div>
+  <div style="display:flex;flex-direction:column;">
+    <sc-for list="{{ cookPast }}" as="c" hint-placeholder-count="1">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--md-sys-color-outline-variant);cursor:pointer;" onClick="{{ c.viewMe }}">
+        <span class="md-typescale-body-medium">{{ c.dishName }} — {{ c.dateLabel }}</span>
+        <span class="md-chip md-chip--green">Revealed — view results</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isScoring }}" hint-placeholder-val="{{ false }}">
+<div class="cc-page cc-page--narrow">
+  <sc-if value="{{ scoringSubmitted }}" hint-placeholder-val="{{ false }}">
+    <div style="text-align:center;padding:64px 0;">
+      <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+      <h1 class="md-typescale-headline-medium" style="margin:0 0 8px;">Thanks — scores submitted!</h1>
+      <p class="md-typescale-body-medium" style="color:var(--md-sys-color-on-surface-variant);margin:0 0 20px;">Results reveal once the host closes scoring.</p>
+      <button type="button" class="md-button md-button--filled cc-black-btn" onClick="{{ backToGuestHome }}">Back to home</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ scoringNotSubmitted }}" hint-placeholder-val="{{ true }}">
+    <button type="button" class="md-button md-button--text" style="margin-bottom:12px;padding-left:0;" onClick="{{ goGuestHome }}"><span class="material-symbols-outlined">arrow_back</span>Home</button>
+    <div class="cc-kicker">{{ scoringChallenge.dateLabel }}</div>
+    <h1 class="md-typescale-headline-medium" style="margin:4px 0 4px;">{{ scoringChallenge.dishName }}</h1>
+    <p class="md-typescale-body-medium" style="color:var(--md-sys-color-on-surface-variant);margin:0 0 20px;">Blind tasting — rate the red plate and the yellow plate, 1–5 stars each, without knowing who cooked which.</p>
+    <hr class="md-divider" style="margin-bottom:20px;">
+    <div style="display:grid;grid-template-columns:1fr 2fr 2fr;gap:12px 16px;align-items:center;">
+      <div></div>
+      <div style="background:{{ scoringChallenge.colorAHex }};height:8px;border-radius:4px;"></div>
+      <div style="background:{{ scoringChallenge.colorBHex }};height:8px;border-radius:4px;"></div>
+      <sc-for list="{{ scoringRows }}" as="row" hint-placeholder-count="3">
+        <div class="md-typescale-body-medium">{{ row.label }}</div>
+        <div style="display:flex;justify-content:center;gap:2px;">
+          <sc-for list="{{ row.dishA }}" as="opt" hint-placeholder-count="5">
+            <span style="{{ opt.style }}" onClick="{{ opt.onClick }}" onMouseEnter="{{ opt.onEnter }}" onMouseLeave="{{ opt.onLeave }}">★</span>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:center;gap:2px;">
+          <sc-for list="{{ row.dishB }}" as="opt" hint-placeholder-count="5">
+            <span style="{{ opt.style }}" onClick="{{ opt.onClick }}" onMouseEnter="{{ opt.onEnter }}" onMouseLeave="{{ opt.onLeave }}">★</span>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+    <button type="button" class="md-button md-button--filled cc-black-btn" style="width:100%;margin-top:24px;" disabled="{{ submitDisabled }}" onClick="{{ submitScores }}">{{ submitBtnLabel }}</button>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ createOpen }}" hint-placeholder-val="{{ false }}">
+<div class="md-dialog-scrim">
+  <form class="md-dialog" onSubmit="{{ submitCreateChallenge }}" style="max-height:82vh;overflow:auto;width:min(420px,100%);">
+    <div class="md-dialog__title">New challenge</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="md-field"><label class="md-field__label">Rivalry photo</label>
+        <div style="width:100%;aspect-ratio:4/3;">
+          <image-slot id="{{ newChallengeImageSlotId }}" shape="rect" placeholder="Drop a 4:3 photo for this rivalry"></image-slot>
+        </div></div>
+      <div class="md-field"><label class="md-field__label" for="nc-title">Title</label><div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="nc-title" value="{{ newChallenge.title }}" onChange="{{ onNCTitle }}" placeholder="Grillabend"></div></div>
+      <div class="md-field"><label class="md-field__label" for="nc-date">Date</label><div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="nc-date" type="date" value="{{ newChallenge.date }}" onChange="{{ onNCDate }}"></div></div>
+      <div class="md-field"><label class="md-field__label" for="nc-dish">Dish name</label><div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="nc-dish" value="{{ newChallenge.dishName }}" onChange="{{ onNCDish }}" placeholder="Pulled Pork Burger"></div></div>
+      <div class="md-field"><label class="md-field__label" for="nc-cooka">Cook A</label>
+        <select class="md-text-field md-text-field--outlined" id="nc-cooka" value="{{ newChallenge.cookAId }}" onChange="{{ onNCCookA }}">
+          <option value="">Choose…</option>
+          <sc-for list="{{ accounts }}" as="a" hint-placeholder-count="6"><option value="{{ a.id }}">{{ a.name }}</option></sc-for>
+        </select></div>
+      <div class="md-field"><label class="md-field__label" for="nc-cookb">Cook B</label>
+        <select class="md-text-field md-text-field--outlined" id="nc-cookb" value="{{ newChallenge.cookBId }}" onChange="{{ onNCCookB }}">
+          <option value="">Choose…</option>
+          <sc-for list="{{ accounts }}" as="a" hint-placeholder-count="6"><option value="{{ a.id }}">{{ a.name }}</option></sc-for>
+        </select></div>
+      <div class="md-field"><label class="md-field__label">Guests</label>
+        <div style="display:flex;flex-direction:column;gap:4px;max-height:140px;overflow:auto;">
+          <sc-for list="{{ guestCheckItems }}" as="gi" hint-placeholder-count="6">
+            <label class="md-checkbox"><input type="checkbox" checked="{{ gi.checked }}" onChange="{{ gi.toggle }}"><span class="md-checkbox__box"><span class="material-symbols-outlined">check</span></span>{{ gi.name }}</label>
+          </sc-for>
+        </div></div>
+    </div>
+    <div class="md-dialog__actions">
+      <button type="button" class="md-button md-button--text" onClick="{{ closeCreate }}">Cancel</button>
+      <button type="submit" class="md-button md-button--filled cc-black-btn">Create challenge</button>
+    </div>
+  </form>
+</div>
+</sc-if>
+
+<sc-if value="{{ acctCreateOpen }}" hint-placeholder-val="{{ false }}">
+<div class="md-dialog-scrim">
+  <form class="md-dialog" onSubmit="{{ submitCreateAccount }}">
+    <div class="md-dialog__title">{{ acctDialogTitle }}</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="md-field"><label class="md-field__label" for="na-first">First name</label><div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="na-first" value="{{ newAccount.firstName }}" onChange="{{ onNAFirst }}" placeholder="Sophie"></div></div>
+      <div class="md-field"><label class="md-field__label" for="na-last">Last name</label><div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="na-last" value="{{ newAccount.lastName }}" onChange="{{ onNALast }}" placeholder="Lang"></div></div>
+      <div class="md-field"><label class="md-field__label" for="na-email">Email</label><div class="md-field__control"><input class="md-text-field md-text-field--outlined" id="na-email" type="email" value="{{ newAccount.email }}" onChange="{{ onNAEmail }}" placeholder="sophie@example.com"></div></div>
+      <div class="md-field"><label class="md-field__label">Roles</label>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <sc-for list="{{ roleCheckItems }}" as="ri" hint-placeholder-count="3">
+            <label class="md-checkbox" style="{{ ri.labelStyle }}"><input type="checkbox" checked="{{ ri.checked }}" disabled="{{ ri.disabled }}" onChange="{{ ri.toggle }}"><span class="md-checkbox__box"><span class="material-symbols-outlined">check</span></span>{{ ri.label }}</label>
+          </sc-for>
+        </div></div>
+    </div>
+    <div class="md-dialog__actions">
+      <button type="button" class="md-button md-button--text" onClick="{{ closeAcctCreate }}">Cancel</button>
+      <button type="submit" class="md-button md-button--filled cc-black-btn">{{ acctDialogSubmitLabel }}</button>
+    </div>
+  </form>
+</div>
+</sc-if>
+
+<sc-if value="{{ qrOpen }}" hint-placeholder-val="{{ false }}">
+<div class="md-dialog-scrim">
+  <div class="md-dialog" style="text-align:center;">
+    <div class="md-dialog__title">Scan to register</div>
+    <p class="md-typescale-body-small" style="color:var(--md-sys-color-on-surface-variant);margin:0;">Guests scan this to register for the app and join {{ qrChallengeName }}.</p>
+    <img src="{{ qrImageUrl }}" width="200" height="200" alt="Registration QR code" style="border:1px solid var(--md-sys-color-outline-variant);display:block;margin:0 auto;">
+    <div class="md-dialog__actions" style="justify-content:center;">
+      <button type="button" class="md-button md-button--text" onClick="{{ closeQr }}">Close</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ colorConfirmOpen }}" hint-placeholder-val="{{ false }}">
+<div class="md-dialog-scrim">
+  <div class="md-dialog">
+    <div class="md-dialog__title">Plate under {{ colorConfirmLabel }}?</div>
+    <div class="md-dialog__body">This locks your plate color for this challenge and assigns the other cook the remaining color automatically. This can't be changed afterward.</div>
+    <div class="md-dialog__actions">
+      <button type="button" class="md-button md-button--text" onClick="{{ closeColorConfirm }}">Cancel</button>
+      <button type="button" class="md-button md-button--filled cc-black-btn" onClick="{{ confirmChooseColor }}">Yes, choose {{ colorConfirmLabel }}</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ unrevealConfirmOpen }}" hint-placeholder-val="{{ false }}">
+<div class="md-dialog-scrim">
+  <div class="md-dialog">
+    <div class="md-dialog__title">Unreveal this challenge?</div>
+    <div class="md-dialog__body">This hides the cook↔dish mapping and results again and reopens scoring. Guests will see it as pending once more.</div>
+    <div class="md-dialog__actions">
+      <button type="button" class="md-button md-button--text" onClick="{{ closeUnrevealConfirm }}">Cancel</button>
+      <button type="button" class="md-button md-button--filled cc-black-btn" onClick="{{ confirmUnreveal }}">Yes, unreveal</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sendLinksOpen }}" hint-placeholder-val="{{ false }}">
+<div class="md-dialog-scrim">
+  <form class="md-dialog" onSubmit="{{ submitSendLinks }}" style="max-height:82vh;overflow:auto;">
+    <div class="md-dialog__title">Send / resend links</div>
+    <p class="md-typescale-body-small" style="color:var(--md-sys-color-on-surface-variant);margin:0;">Choose who should get (or re-get) their personalized access link by email.</p>
+    <div style="display:flex;flex-direction:column;gap:4px;max-height:220px;overflow:auto;">
+      <sc-for list="{{ sendLinksItems }}" as="p" hint-placeholder-count="4">
+        <label class="md-checkbox" style="width:100%;"><input type="checkbox" checked="{{ p.checked }}" onChange="{{ p.toggle }}"><span class="md-checkbox__box"><span class="material-symbols-outlined">check</span></span><span style="flex:1;">{{ p.name }}</span><span style="color:#b0b0b0;">{{ p.roleLabel }}</span></label>
+      </sc-for>
+    </div>
+    <div class="md-dialog__actions">
+      <button type="button" class="md-button md-button--text" onClick="{{ closeSendLinks }}">Cancel</button>
+      <button type="submit" class="md-button md-button--filled cc-black-btn" disabled="{{ sendLinksNoneSelected }}">Send links</button>
+    </div>
+  </form>
+</div>
+</sc-if>
+
+<sc-if value="{{ revealConfirmOpen }}" hint-placeholder-val="{{ false }}">
+<div class="md-dialog-scrim">
+  <div class="md-dialog">
+    <div class="md-dialog__title">Reveal this challenge?</div>
+    <div class="md-dialog__body">Revealing exposes the cook↔dish mapping and the computed results to everyone, and closes scoring for good. This can't be undone.</div>
+    <div class="md-dialog__actions">
+      <button type="button" class="md-button md-button--text" onClick="{{ closeRevealConfirm }}">Cancel</button>
+      <button type="button" class="md-button md-button--filled cc-black-btn" onClick="{{ confirmReveal }}">Yes, reveal</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ challengeEditOpen }}" hint-placeholder-val="{{ false }}">
+<div class="md-dialog-scrim">
+  <form class="md-dialog" onSubmit="{{ submitChallengeEdit }}" style="max-height:82vh;overflow:auto;">
+    <div class="md-dialog__title">Edit cooks &amp; guests</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="md-field"><label class="md-field__label" for="ce-cooka">Cook A</label>
+        <select class="md-text-field md-text-field--outlined" id="ce-cooka" value="{{ challengeEditData.cookAId }}" onChange="{{ onCECookA }}">
+          <option value="">Choose…</option>
+          <sc-for list="{{ accounts }}" as="a" hint-placeholder-count="6"><option value="{{ a.id }}">{{ a.name }}</option></sc-for>
+        </select></div>
+      <div class="md-field"><label class="md-field__label" for="ce-cookb">Cook B</label>
+        <select class="md-text-field md-text-field--outlined" id="ce-cookb" value="{{ challengeEditData.cookBId }}" onChange="{{ onCECookB }}">
+          <option value="">Choose…</option>
+          <sc-for list="{{ accounts }}" as="a" hint-placeholder-count="6"><option value="{{ a.id }}">{{ a.name }}</option></sc-for>
+        </select></div>
+      <div class="md-field"><label class="md-field__label">Guests</label>
+        <div style="display:flex;flex-direction:column;gap:4px;max-height:140px;overflow:auto;">
+          <sc-for list="{{ ceGuestCheckItems }}" as="gi" hint-placeholder-count="6">
+            <label class="md-checkbox"><input type="checkbox" checked="{{ gi.checked }}" onChange="{{ gi.toggle }}"><span class="md-checkbox__box"><span class="material-symbols-outlined">check</span></span>{{ gi.name }}</label>
+          </sc-for>
+        </div></div>
+    </div>
+    <div class="md-dialog__actions">
+      <button type="button" class="md-button md-button--text" onClick="{{ closeChallengeEdit }}">Cancel</button>
+      <button type="submit" class="md-button md-button--filled cc-black-btn">Save changes</button>
+    </div>
+  </form>
+</div>
+</sc-if>
+
+<sc-if value="{{ showDevNavFlag }}" hint-placeholder-val="{{ true }}">
+<div style="position:fixed;bottom:12px;right:12px;background:#1a1a1a;color:#fff;padding:6px;display:flex;gap:4px;z-index:60;font-size:11px;border-radius:12px;box-shadow:var(--md-sys-elevation-level3);">
+  <button type="button" onClick="{{ goLogin }}" style="background:none;border:none;color:inherit;padding:6px 8px;cursor:pointer;">Login</button>
+  <button type="button" onClick="{{ goHistory }}" style="background:none;border:none;color:inherit;padding:6px 8px;cursor:pointer;">History</button>
+  <button type="button" onClick="{{ goAccounts }}" style="background:none;border:none;color:inherit;padding:6px 8px;cursor:pointer;">Accounts</button>
+  <button type="button" onClick="{{ goGuestHome }}" style="background:none;border:none;color:inherit;padding:6px 8px;cursor:pointer;">Guest home</button>
+  <button type="button" onClick="{{ goCookHome }}" style="background:none;border:none;color:inherit;padding:6px 8px;cursor:pointer;">Cook home</button>
+  <button type="button" onClick="{{ goRegister }}" style="background:none;border:none;color:inherit;padding:6px 8px;cursor:pointer;">Register</button>
+  <button type="button" onClick="{{ goExpiredLink }}" style="background:none;border:none;color:inherit;padding:6px 8px;cursor:pointer;">Expired</button>
+</div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{},&quot;showRevealAnimation&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behavior&quot;},&quot;showDevNav&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
+const CATEGORIES = [
+  { key: 'MUNDGEFUEHL', label: 'Mundgefühl' },
+  { key: 'TELLERSPRACHE', label: 'Tellersprache' },
+  { key: 'GESCHMACK', label: 'Geschmack' },
+];
+
+const initialChallenges = () => ([
+  { id: 1, title: 'Sommerküche', date: '2026-07-12', dishName: 'Gazpacho', status: 'REVEALED',
+    cookAId: 2, cookBId: 3, guestIds: [6,7,8,9,10], guestSubmitted: {6:true,7:true,8:true,9:true,10:true},
+    results: { A_MUNDGEFUEHL:4, B_MUNDGEFUEHL:3, A_TELLERSPRACHE:3, B_TELLERSPRACHE:4, A_GESCHMACK:5, B_GESCHMACK:3 },
+    rivalryText: 'Marco Huber vs Lea Gruber — 1 win / 0 wins / 0 draws across 1 challenge.',
+    cookColors: { 2: 'RED', 3: 'YELLOW' }, imageSlotId: 'challenge-image-1' },
+  { id: 2, title: 'Grillabend', date: '2026-07-26', dishName: 'Pulled Pork Burger', status: 'OPEN',
+    cookAId: 4, cookBId: 5, guestIds: [6,7,8], guestSubmitted: {7:true,8:true}, cookColors: { 4: 'RED', 5: 'YELLOW' }, imageSlotId: 'challenge-image-2' },
+  { id: 3, title: 'Frühlingsmenü', date: '2026-06-14', dishName: 'Risotto', status: 'REVEALED',
+    cookAId: 2, cookBId: 5, guestIds: [7,9,10], guestSubmitted: {7:true,9:true,10:true},
+    results: { A_MUNDGEFUEHL:4, B_MUNDGEFUEHL:2, A_TELLERSPRACHE:5, B_TELLERSPRACHE:3, A_GESCHMACK:3, B_GESCHMACK:4 },
+    rivalryText: 'Marco Huber vs Petra Steiner — 1 win / 0 wins / 0 draws across 1 challenge.',
+    cookColors: { 2: 'YELLOW', 5: 'RED' }, imageSlotId: 'challenge-image-3' },
+  { id: 4, title: 'Dessert Duell', date: '2026-08-09', dishName: 'Tiramisu', status: 'OPEN',
+    cookAId: 2, cookBId: 4, guestIds: [6,8,9,10], guestSubmitted: {}, cookColors: {}, imageSlotId: 'challenge-image-4' },
+]);
+
+const COLOR_HEX = { RED: '#c0392b', YELLOW: '#e0b400' };
+
+const initialAccounts = () => ([
+  { id: 1, name: 'Anna Novak', email: 'anna@cookingchallenge.example', roles: ['ADMIN','ORGANIZER'] },
+  { id: 2, name: 'Marco Huber', email: 'marco@cookingchallenge.example', roles: ['USER'] },
+  { id: 3, name: 'Lea Gruber', email: 'lea@cookingchallenge.example', roles: ['USER'] },
+  { id: 4, name: 'Jonas Berger', email: 'jonas@cookingchallenge.example', roles: ['USER'] },
+  { id: 5, name: 'Petra Steiner', email: 'petra@cookingchallenge.example', roles: ['USER'] },
+  { id: 6, name: 'Felix Wagner', email: 'felix@cookingchallenge.example', roles: ['USER'] },
+  { id: 7, name: 'Sophie Lang', email: 'sophie@cookingchallenge.example', roles: ['USER'] },
+  { id: 8, name: 'Tobias Fink', email: 'tobias@cookingchallenge.example', roles: ['USER'] },
+  { id: 9, name: 'Nina Krammer', email: 'nina@cookingchallenge.example', roles: ['USER'] },
+  { id: 10, name: 'David Moser', email: 'david@cookingchallenge.example', roles: ['USER'] },
+]);
+
+const GUEST_ID = 6;
+const GUEST_NAME = 'Felix Wagner';
+const COOK_ID = 2;
+
+function firstName(full) { return (full || '').split(' ')[0]; }
+function fmtDate(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function chipCls(selected) { return selected ? 'md-chip md-chip--selected' : 'md-chip'; }
+function statusChipCls(revealed) { return revealed ? 'md-chip md-chip--green' : 'md-chip md-chip--red'; }
+
+class Component extends DCLogic {
+  state = {
+    screen: 'login',
+    expiredKind: 'link',
+    organizerName: 'Anna Novak',
+    loginEmail: '', loginPassword: '',
+    selectedChallengeId: null, detailReturnScreen: 'history', selectedRivalryIdA: null, selectedRivalryIdB: null,
+    createOpen: false, acctCreateOpen: false, challengeEditOpen: false, newChallengeDraftId: null,
+    challengeEditData: { id: null, cookAId: '', cookBId: '', guestIds: [] },
+    revealingId: null, revealConfirmId: null, unrevealConfirmId: null,
+    sendLinksOpen: false, sendLinksChallengeId: null, sendLinksSelectedIds: [], sendLinksSentChallengeId: null,
+    colorConfirm: null, qrChallengeId: null,
+    registerForm: { firstName: '', lastName: '', email: '' }, registerSubmitted: false,
+    scoringChallengeId: null, scoringAnswers: {}, scoringSubmitted: false, guestResultsChallengeId: null, resultsReturnScreen: 'guestHome', scoringHover: {},
+    newChallenge: { title: '', date: '', dishName: '', cookAId: '', cookBId: '', guestIds: [] },
+    newAccount: { id: null, firstName: '', lastName: '', email: '', roles: [] },
+    challenges: initialChallenges(),
+    accounts: initialAccounts(),
+  };
+
+  go(screen) { this.setState({ screen }); }
+  login(e) { e.preventDefault(); this.setState({ screen: 'history' }); }
+  logout() { this.setState({ screen: 'login', loginEmail: '', loginPassword: '' }); }
+  openChallenge(id, returnScreen) { this.setState({ screen: 'detail', selectedChallengeId: id, detailReturnScreen: returnScreen || 'history' }); }
+  openRivalry(idA, idB) { this.setState({ screen: 'rivalryDetail', selectedRivalryIdA: idA, selectedRivalryIdB: idB }); }
+
+  openCreate() { this.setState({ createOpen: true, newChallengeDraftId: Date.now() }); }
+  closeCreate() { this.setState({ createOpen: false, newChallenge: { title: '', date: '', dishName: '', cookAId: '', cookBId: '', guestIds: [] } }); }
+  updateNC(field, value) { this.setState(s => ({ newChallenge: { ...s.newChallenge, [field]: value } })); }
+  toggleNCGuest(id) {
+    this.setState(s => {
+      const has = s.newChallenge.guestIds.includes(id);
+      return { newChallenge: { ...s.newChallenge, guestIds: has ? s.newChallenge.guestIds.filter(g => g !== id) : [...s.newChallenge.guestIds, id] } };
+    });
+  }
+  submitCreateChallenge(e) {
+    e.preventDefault();
+    this.setState(s => {
+      const nc = s.newChallenge;
+      const id = s.newChallengeDraftId || Date.now();
+      const newC = { id, title: nc.title || 'Untitled', date: nc.date || new Date().toISOString().slice(0,10),
+        dishName: nc.dishName || 'TBD', status: 'OPEN', cookAId: Number(nc.cookAId) || null, cookBId: Number(nc.cookBId) || null,
+        guestIds: nc.guestIds, guestSubmitted: {}, cookColors: {}, imageSlotId: `challenge-image-${id}` };
+      return { challenges: [newC, ...s.challenges], createOpen: false, newChallenge: { title: '', date: '', dishName: '', cookAId: '', cookBId: '', guestIds: [] } };
+    });
+  }
+
+  openChallengeEdit(c) { this.setState({ challengeEditOpen: true, challengeEditData: { id: c.id, cookAId: c.cookAId || '', cookBId: c.cookBId || '', guestIds: [...c.guestIds] } }); }
+  closeChallengeEdit() { this.setState({ challengeEditOpen: false, challengeEditData: { id: null, cookAId: '', cookBId: '', guestIds: [] } }); }
+  updateCE(field, value) { this.setState(s => ({ challengeEditData: { ...s.challengeEditData, [field]: value } })); }
+  toggleCEGuest(id) {
+    this.setState(s => {
+      const has = s.challengeEditData.guestIds.includes(id);
+      return { challengeEditData: { ...s.challengeEditData, guestIds: has ? s.challengeEditData.guestIds.filter(g => g !== id) : [...s.challengeEditData.guestIds, id] } };
+    });
+  }
+  submitChallengeEdit(e) {
+    e.preventDefault();
+    this.setState(s => ({
+      challenges: s.challenges.map(c => c.id === s.challengeEditData.id
+        ? { ...c, cookAId: Number(s.challengeEditData.cookAId) || null, cookBId: Number(s.challengeEditData.cookBId) || null, guestIds: s.challengeEditData.guestIds }
+        : c),
+      challengeEditOpen: false, challengeEditData: { id: null, cookAId: '', cookBId: '', guestIds: [] },
+    }));
+  }
+
+  openAcctCreate() { this.setState({ acctCreateOpen: true, newAccount: { id: null, firstName: '', lastName: '', email: '', roles: [] } }); }
+  openAcctEdit(account) {
+    const [firstName = '', ...rest] = (account.name || '').split(' ');
+    this.setState({ acctCreateOpen: true, newAccount: { id: account.id, firstName, lastName: rest.join(' '), email: account.email, roles: [...account.roles] } });
+  }
+  closeAcctCreate() { this.setState({ acctCreateOpen: false, newAccount: { id: null, firstName: '', lastName: '', email: '', roles: [] } }); }
+  updateNA(field, value) { this.setState(s => ({ newAccount: { ...s.newAccount, [field]: value } })); }
+  toggleNARole(role) {
+    this.setState(s => {
+      const has = s.newAccount.roles.includes(role);
+      return { newAccount: { ...s.newAccount, roles: has ? s.newAccount.roles.filter(r => r !== role) : [...s.newAccount.roles, role] } };
+    });
+  }
+  submitCreateAccount(e) {
+    e.preventDefault();
+    this.setState(s => {
+      const na = s.newAccount;
+      const roles = Array.from(new Set([...na.roles, 'USER']));
+      const name = `${na.firstName} ${na.lastName}`.trim() || 'Unnamed';
+      if (na.id) {
+        return {
+          accounts: s.accounts.map(a => a.id === na.id ? { ...a, name, email: na.email || '', roles } : a),
+          acctCreateOpen: false, newAccount: { id: null, firstName: '', lastName: '', email: '', roles: [] },
+        };
+      }
+      return {
+        accounts: [...s.accounts, { id: Date.now(), name, email: na.email || '', roles }],
+        acctCreateOpen: false, newAccount: { id: null, firstName: '', lastName: '', email: '', roles: [] },
+      };
+    });
+  }
+
+  askReveal(id) { this.setState({ revealConfirmId: id }); }
+  closeRevealConfirm() { this.setState({ revealConfirmId: null }); }
+  confirmReveal() { const id = this.state.revealConfirmId; this.setState({ revealConfirmId: null }); this.triggerReveal(id); }
+  askUnreveal(id) { this.setState({ unrevealConfirmId: id }); }
+  closeUnrevealConfirm() { this.setState({ unrevealConfirmId: null }); }
+  confirmUnreveal() {
+    const id = this.state.unrevealConfirmId;
+    this.setState(s => ({ unrevealConfirmId: null, challenges: s.challenges.map(c => c.id === id ? { ...c, status: 'OPEN' } : c) }));
+  }
+  triggerReveal(id) {
+    if (!this.props.showRevealAnimation) {
+      this.setState(s => ({ challenges: s.challenges.map(c => c.id === id ? { ...c, status: 'REVEALED', results: c.results || this.computeMockResults() } : c) }));
+      return;
+    }
+    this.setState({ revealingId: id });
+    setTimeout(() => {
+      this.setState(s => ({ revealingId: null, challenges: s.challenges.map(c => c.id === id ? { ...c, status: 'REVEALED', results: c.results || this.computeMockResults() } : c) }));
+    }, 1100);
+  }
+  computeMockResults() {
+    const r = {}; CATEGORIES.forEach(cat => { r[`A_${cat.key}`] = 3 + Math.round(Math.random()*2); r[`B_${cat.key}`] = 3 + Math.round(Math.random()*2); }); return r;
+  }
+  openSendLinks(c) {
+    const participantIds = [c.cookAId, c.cookBId, ...c.guestIds].filter(Boolean);
+    this.setState({ sendLinksOpen: true, sendLinksChallengeId: c.id, sendLinksSelectedIds: [...new Set(participantIds)] });
+  }
+  closeSendLinks() { this.setState({ sendLinksOpen: false, sendLinksChallengeId: null, sendLinksSelectedIds: [] }); }
+  toggleSendLinksParticipant(id) {
+    this.setState(s => {
+      const has = s.sendLinksSelectedIds.includes(id);
+      return { sendLinksSelectedIds: has ? s.sendLinksSelectedIds.filter(x => x !== id) : [...s.sendLinksSelectedIds, id] };
+    });
+  }
+  submitSendLinks(e) {
+    e.preventDefault();
+    const challengeId = this.state.sendLinksChallengeId;
+    this.setState({ sendLinksOpen: false, sendLinksChallengeId: null, sendLinksSelectedIds: [], sendLinksSentChallengeId: challengeId });
+    setTimeout(() => this.setState(s => s.sendLinksSentChallengeId === challengeId ? { sendLinksSentChallengeId: null } : {}), 3000);
+  }
+
+  openGuestResults(id, returnScreen) { this.setState({ screen: 'guestResults', guestResultsChallengeId: id, resultsReturnScreen: returnScreen || 'guestHome' }); }
+  updateRegister(field, value) { this.setState(s => ({ registerForm: { ...s.registerForm, [field]: value } })); }
+  submitRegister(e) {
+    e.preventDefault();
+    this.setState(s => ({
+      registerSubmitted: true,
+      accounts: [...s.accounts, {
+        id: Date.now(),
+        name: `${s.registerForm.firstName} ${s.registerForm.lastName}`.trim() || 'Unnamed',
+        email: s.registerForm.email || '',
+        roles: ['USER'],
+      }],
+    }));
+  }
+  openQr(challengeId) { this.setState({ qrChallengeId: challengeId }); }
+  closeQr() { this.setState({ qrChallengeId: null }); }
+  askChooseColor(challengeId, color) { this.setState({ colorConfirm: { challengeId, color } }); }
+  closeColorConfirm() { this.setState({ colorConfirm: null }); }
+  confirmChooseColor() {
+    const { challengeId, color } = this.state.colorConfirm;
+    this.setState(s => ({
+      colorConfirm: null,
+      challenges: s.challenges.map(c => {
+        if (c.id !== challengeId) return c;
+        const otherId = c.cookAId === COOK_ID ? c.cookBId : c.cookAId;
+        const otherColor = color === 'RED' ? 'YELLOW' : 'RED';
+        return { ...c, cookColors: { ...c.cookColors, [COOK_ID]: color, [otherId]: otherColor } };
+      }),
+    }));
+  }
+  scoreChallenge(id) {
+    const c = this.state.challenges.find(ch => ch.id === id);
+    const prior = (c && c.guestScores && c.guestScores[GUEST_ID]) || {};
+    this.setState({ screen: 'scoring', scoringChallengeId: id, scoringAnswers: { ...prior }, scoringSubmitted: false });
+  }
+  setScore(dish, catKey, v) { this.setState(s => ({ scoringAnswers: { ...s.scoringAnswers, [`${dish}_${catKey}`]: v } })); }
+  setScoringHover(key, v) { this.setState(s => ({ scoringHover: { ...s.scoringHover, [key]: v } })); }
+  clearScoringHover(key) { this.setState(s => ({ scoringHover: { ...s.scoringHover, [key]: undefined } })); }
+  submitScores() {
+    this.setState(s => ({
+      scoringSubmitted: true,
+      challenges: s.challenges.map(c => c.id === s.scoringChallengeId
+        ? { ...c, guestSubmitted: { ...c.guestSubmitted, [GUEST_ID]: true }, guestScores: { ...(c.guestScores || {}), [GUEST_ID]: { ...s.scoringAnswers } } }
+        : c),
+    }));
+  }
+  backToGuestHome() { this.setState({ screen: 'guestHome' }); }
+
+  renderVals() {
+    const s = this.state;
+    const accountById = id => s.accounts.find(a => a.id === id);
+    const challenges = s.challenges.map(c => {
+      const submittedCount = Object.values(c.guestSubmitted || {}).filter(Boolean).length;
+      const cookA = accountById(c.cookAId), cookB = accountById(c.cookBId);
+      const cookANameL = cookA ? firstName(cookA.name) : 'Cook A', cookBNameL = cookB ? firstName(cookB.name) : 'Cook B';
+      const winStyle = 'background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);padding:1px 6px;border-radius:4px;';
+      let cookAStyle = '', cookBStyle = '';
+      if (c.status === 'REVEALED' && c.results) {
+        let aWins = 0, bWins = 0;
+        CATEGORIES.forEach(cat => { const av = c.results[`A_${cat.key}`], bv = c.results[`B_${cat.key}`]; if (av > bv) aWins++; else if (bv > av) bWins++; });
+        if (aWins > bWins) cookAStyle = winStyle; else if (bWins > aWins) cookBStyle = winStyle;
+      }
+      return {
+        ...c,
+        dateLabel: fmtDate(c.date),
+        statusLabel: c.status === 'OPEN' ? 'Open' : 'Revealed',
+        statusChipClass: statusChipCls(c.status !== 'OPEN'),
+        progressLabel: c.status === 'OPEN' ? `${submittedCount}/${c.guestIds.length} submitted` : 'Results ready',
+        cookAName: cookANameL, cookBName: cookBNameL, cookAStyle, cookBStyle,
+        openMe: () => this.openChallenge(c.id),
+      };
+    });
+
+    let challenge = null;
+    const selected = s.challenges.find(c => c.id === s.selectedChallengeId);
+    if (selected) {
+      const submittedCount = Object.values(selected.guestSubmitted || {}).filter(Boolean).length;
+      const cookA = accountById(selected.cookAId), cookB = accountById(selected.cookBId);
+      const isOpen = selected.status === 'OPEN';
+      const isRevealed = selected.status === 'REVEALED';
+      let categoryRows = [], overallWinnerLabel = '';
+      if (isRevealed && selected.results) {
+        let aWins = 0, bWins = 0;
+        categoryRows = CATEGORIES.map(cat => {
+          const aScore = selected.results[`A_${cat.key}`], bScore = selected.results[`B_${cat.key}`];
+          let winnerLabel = 'Tie';
+          if (aScore > bScore) { winnerLabel = cookA ? cookA.name : 'Dish A'; aWins++; }
+          else if (bScore > aScore) { winnerLabel = cookB ? cookB.name : 'Dish B'; bWins++; }
+          return { label: cat.label, aScore, bScore, winnerLabel, aIsWinner: aScore > bScore, bIsWinner: bScore > aScore };
+        });
+        overallWinnerLabel = aWins === bWins ? 'Draw' : (aWins > bWins ? (cookA ? cookA.name : 'Cook A') : (cookB ? cookB.name : 'Cook B'));
+      }
+      challenge = {
+        ...selected,
+        dateLabel: fmtDate(selected.date),
+        statusLabel: isOpen ? 'Open' : 'Revealed',
+        statusChipClass: statusChipCls(!isOpen),
+        progressLabel: isOpen ? `${submittedCount}/${selected.guestIds.length} submitted` : 'Results ready',
+        isOpen, isRevealed,
+        cookAName: cookA ? cookA.name : 'Cook A', cookBName: cookB ? cookB.name : 'Cook B',
+        cookAHeaderStyle: (selected.cookColors || {})[selected.cookAId] ? `background:${COLOR_HEX[(selected.cookColors || {})[selected.cookAId]]};color:#fff;` : '',
+        cookBHeaderStyle: (selected.cookColors || {})[selected.cookBId] ? `background:${COLOR_HEX[(selected.cookColors || {})[selected.cookBId]]};color:#fff;` : '',
+        cookATintStyle: (selected.cookColors || {})[selected.cookAId] ? `background:${COLOR_HEX[(selected.cookColors || {})[selected.cookAId]]}22;` : '',
+        cookBTintStyle: (selected.cookColors || {})[selected.cookBId] ? `background:${COLOR_HEX[(selected.cookColors || {})[selected.cookBId]]}22;` : '',
+        categoryRows: categoryRows.map(row => ({
+          ...row,
+          aCellStyle: (selected.cookColors || {})[selected.cookAId] ? `background:${COLOR_HEX[(selected.cookColors || {})[selected.cookAId]]}22;` : '',
+          bCellStyle: (selected.cookColors || {})[selected.cookBId] ? `background:${COLOR_HEX[(selected.cookColors || {})[selected.cookBId]]}22;` : '',
+          aBoldStyle: row.aIsWinner ? 'font-weight:600;' : '', bBoldStyle: row.bIsWinner ? 'font-weight:600;' : '',
+        })),
+        overallWinnerLabel,
+        cookAIsOverallWinner: overallWinnerLabel === (cookA ? cookA.name : 'Cook A') && overallWinnerLabel !== 'Draw',
+        cookBIsOverallWinner: overallWinnerLabel === (cookB ? cookB.name : 'Cook B') && overallWinnerLabel !== 'Draw',
+        cookAFirstName: (cookA ? cookA.name : 'Cook A').split(' ')[0], cookBFirstName: (cookB ? cookB.name : 'Cook B').split(' ')[0],
+        h2hCookACrowns: s.challenges.filter(oc => oc.status === 'REVEALED' && oc.results && ((oc.cookAId === selected.cookAId && oc.cookBId === selected.cookBId) || (oc.cookAId === selected.cookBId && oc.cookBId === selected.cookAId))).reduce((n, oc) => {
+          let aw = 0, bw = 0; CATEGORIES.forEach(cat => { const av = oc.results[`A_${cat.key}`], bv = oc.results[`B_${cat.key}`]; if (av > bv) aw++; else if (bv > av) bw++; });
+          const winnerId = aw === bw ? null : (aw > bw ? oc.cookAId : oc.cookBId);
+          return n + (winnerId === selected.cookAId ? 1 : 0);
+        }, 0),
+        h2hCookBCrowns: s.challenges.filter(oc => oc.status === 'REVEALED' && oc.results && ((oc.cookAId === selected.cookAId && oc.cookBId === selected.cookBId) || (oc.cookAId === selected.cookBId && oc.cookBId === selected.cookAId))).reduce((n, oc) => {
+          let aw = 0, bw = 0; CATEGORIES.forEach(cat => { const av = oc.results[`A_${cat.key}`], bv = oc.results[`B_${cat.key}`]; if (av > bv) aw++; else if (bv > av) bw++; });
+          const winnerId = aw === bw ? null : (aw > bw ? oc.cookAId : oc.cookBId);
+          return n + (winnerId === selected.cookBId ? 1 : 0);
+        }, 0),
+        get cookACrownsLabel() { return '👑'.repeat(this.h2hCookACrowns) || '—'; },
+        get cookBCrownsLabel() { return '👑'.repeat(this.h2hCookBCrowns) || '—'; },
+        totalA: selected.results ? CATEGORIES.reduce((sum, cat) => sum + (selected.results[`A_${cat.key}`] || 0), 0) : 0,
+        totalB: selected.results ? CATEGORIES.reduce((sum, cat) => sum + (selected.results[`B_${cat.key}`] || 0), 0) : 0,
+        rivalryText: selected.rivalryText || 'No prior head-to-head record between these cooks yet.',
+        guestRows: selected.guestIds.map(gid => {
+          const acc = accountById(gid);
+          const submitted = !!(selected.guestSubmitted || {})[gid];
+          return { name: acc ? acc.name : `Guest ${gid}`, statusLabel: submitted ? 'Submitted' : 'Pending', chipClass: submitted ? 'md-chip md-chip--green' : chipCls(false) };
+        }),
+        reveal: () => this.triggerReveal(selected.id),
+        editCooksGuests: () => this.openChallengeEdit(selected),
+        askReveal: () => this.askReveal(selected.id),
+        openSendLinks: () => this.openSendLinks(selected),
+        justSentLinks: s.sendLinksSentChallengeId === selected.id,
+        askUnreveal: () => this.askUnreveal(selected.id),
+        openQr: () => this.openQr(selected.id),
+      };
+    }
+    let sendLinksItems = [];
+    const slChallenge = s.challenges.find(c => c.id === s.sendLinksChallengeId);
+    if (slChallenge) {
+      const roleFor = id => id === slChallenge.cookAId ? 'Cook A' : (id === slChallenge.cookBId ? 'Cook B' : 'Guest');
+      const ids = [...new Set([slChallenge.cookAId, slChallenge.cookBId, ...slChallenge.guestIds].filter(Boolean))];
+      sendLinksItems = ids.map(id => {
+        const acc = accountById(id);
+        return { name: acc ? acc.name : `#${id}`, roleLabel: roleFor(id), checked: s.sendLinksSelectedIds.includes(id), toggle: () => this.toggleSendLinksParticipant(id) };
+      });
+    }
+    const ceGuestCheckItems = s.accounts.map(a => ({
+      name: a.name, checked: s.challengeEditData.guestIds.includes(a.id), toggle: () => this.toggleCEGuest(a.id),
+    }));
+
+    const pairMap = new Map();
+    s.challenges.filter(c => c.cookAId && c.cookBId).forEach(c => {
+      const key = [c.cookAId, c.cookBId].sort((x, y) => x - y).join('-');
+      const entry = pairMap.get(key) || { idA: Math.min(c.cookAId, c.cookBId), idB: Math.max(c.cookAId, c.cookBId), winsA: 0, winsB: 0, draws: 0, revealedTotal: 0, openCount: 0 };
+      if (c.status === 'REVEALED' && c.results) {
+        let aWins = 0, bWins = 0;
+        CATEGORIES.forEach(cat => {
+          const aScore = c.results[`A_${cat.key}`], bScore = c.results[`B_${cat.key}`];
+          if (aScore > bScore) aWins++; else if (bScore > aScore) bWins++;
+        });
+        entry.revealedTotal++;
+        if (aWins === bWins) entry.draws++;
+        else {
+          const winnerId = aWins > bWins ? c.cookAId : c.cookBId;
+          if (winnerId === entry.idA) entry.winsA++; else entry.winsB++;
+        }
+      } else {
+        entry.openCount++;
+      }
+      pairMap.set(key, entry);
+    });
+    const rivalries = Array.from(pairMap.values()).map(e => {
+      const a = accountById(e.idA), b = accountById(e.idB);
+      const parts = [];
+      if (e.revealedTotal > 0) parts.push(`${e.revealedTotal} revealed`);
+      if (e.openCount > 0) parts.push(`${e.openCount} open`);
+      return {
+        cookAName: a ? firstName(a.name) : `#${e.idA}`, cookBName: b ? firstName(b.name) : `#${e.idB}`,
+        cookAWins: e.winsA, cookBWins: e.winsB, draws: e.draws,
+        total: e.revealedTotal + e.openCount, openCount: e.openCount,
+        totalLabel: parts.join(' · '),
+        openMe: () => this.openRivalry(e.idA, e.idB),
+      };
+    });
+
+    let rivalryDetail = null;
+    if (s.selectedRivalryIdA && s.selectedRivalryIdB) {
+      const idA = s.selectedRivalryIdA, idB = s.selectedRivalryIdB;
+      const key = [idA, idB].sort((x, y) => x - y).join('-');
+      const agg = pairMap.get(key) || { idA: Math.min(idA, idB), idB: Math.max(idA, idB), winsA: 0, winsB: 0, draws: 0, revealedTotal: 0, openCount: 0 };
+      const a = accountById(agg.idA), b = accountById(agg.idB);
+      const pairChallenges = s.challenges.filter(c => (c.cookAId === idA && c.cookBId === idB) || (c.cookAId === idB && c.cookBId === idA)).map(c => {
+        let outcomeLabel = 'Pending';
+        if (c.status === 'REVEALED' && c.results) {
+          let aWins = 0, bWins = 0;
+          CATEGORIES.forEach(cat => { const av = c.results[`A_${cat.key}`], bv = c.results[`B_${cat.key}`]; if (av > bv) aWins++; else if (bv > av) bWins++; });
+          const cookA = accountById(c.cookAId), cookB = accountById(c.cookBId);
+          outcomeLabel = aWins === bWins ? 'Draw' : `${aWins > bWins ? (cookA ? firstName(cookA.name) : 'Cook A') : (cookB ? firstName(cookB.name) : 'Cook B')} won`;
+        }
+        return { ...c, dateLabel: fmtDate(c.date), statusLabel: c.status === 'OPEN' ? 'Open' : 'Revealed', statusChipClass: statusChipCls(c.status !== 'OPEN'), outcomeLabel, openMe: () => this.openChallenge(c.id, 'rivalryDetail') };
+      });
+      rivalryDetail = { cookAName: a ? firstName(a.name) : `#${agg.idA}`, cookBName: b ? firstName(b.name) : `#${agg.idB}`, cookAWins: agg.winsA, cookBWins: agg.winsB, draws: agg.draws, total: agg.revealedTotal + agg.openCount, openCount: agg.openCount, challenges: pairChallenges };
+    }
+
+    const guestChallenges = s.challenges.filter(c => c.guestIds.includes(GUEST_ID));
+    const guestOpen = guestChallenges.filter(c => c.status === 'OPEN').map(c => {
+      const submitted = !!(c.guestSubmitted || {})[GUEST_ID];
+      return { ...c, dateLabel: fmtDate(c.date), submitted, scoreBtnLabel: submitted ? 'Edit scores' : 'Score now', scoreBtnClass: submitted ? 'md-button md-button--outlined' : 'md-button md-button--filled cc-black-btn', scoreMe: () => this.scoreChallenge(c.id) };
+    });
+    const guestPast = guestChallenges.filter(c => c.status !== 'OPEN').map(c => ({
+      ...c, dateLabel: fmtDate(c.date), tagLabel: 'Revealed — view results', viewMe: () => this.openGuestResults(c.id, 'guestHome'),
+    }));
+
+    let guestResults = null;
+    const grc = s.challenges.find(c => c.id === s.guestResultsChallengeId);
+    if (grc && grc.results) {
+      const cookA = accountById(grc.cookAId), cookB = accountById(grc.cookBId);
+      let aWins = 0, bWins = 0;
+      const categoryRows = CATEGORIES.map(cat => {
+        const aScore = grc.results[`A_${cat.key}`], bScore = grc.results[`B_${cat.key}`];
+        let winnerLabel = 'Tie';
+        if (aScore > bScore) { winnerLabel = cookA ? cookA.name : 'Dish A'; aWins++; }
+        else if (bScore > aScore) { winnerLabel = cookB ? cookB.name : 'Dish B'; bWins++; }
+        return { label: cat.label, aScore, bScore, winnerLabel, aIsWinner: aScore > bScore, bIsWinner: bScore > aScore };
+      });
+      const overallWinnerLabel = aWins === bWins ? 'Draw' : (aWins > bWins ? (cookA ? cookA.name : 'Cook A') : (cookB ? cookB.name : 'Cook B'));
+      const grColorA = (grc.cookColors || {})[grc.cookAId], grColorB = (grc.cookColors || {})[grc.cookBId];
+      const grTintA = grColorA ? `background:${COLOR_HEX[grColorA]}22;` : '', grTintB = grColorB ? `background:${COLOR_HEX[grColorB]}22;` : '';
+      const grCategoryRows = categoryRows.map(row => ({ ...row, aCellStyle: grTintA, bCellStyle: grTintB, aBoldStyle: row.aIsWinner ? 'font-weight:600;' : '', bBoldStyle: row.bIsWinner ? 'font-weight:600;' : '' }));
+      const grH2hA = s.challenges.filter(oc => oc.status === 'REVEALED' && oc.results && ((oc.cookAId === grc.cookAId && oc.cookBId === grc.cookBId) || (oc.cookAId === grc.cookBId && oc.cookBId === grc.cookAId))).reduce((n, oc) => {
+        let aw = 0, bw = 0; CATEGORIES.forEach(cat => { const av = oc.results[`A_${cat.key}`], bv = oc.results[`B_${cat.key}`]; if (av > bv) aw++; else if (bv > av) bw++; });
+        const winnerId = aw === bw ? null : (aw > bw ? oc.cookAId : oc.cookBId);
+        return n + (winnerId === grc.cookAId ? 1 : 0);
+      }, 0);
+      const grH2hB = s.challenges.filter(oc => oc.status === 'REVEALED' && oc.results && ((oc.cookAId === grc.cookAId && oc.cookBId === grc.cookBId) || (oc.cookAId === grc.cookBId && oc.cookBId === grc.cookAId))).reduce((n, oc) => {
+        let aw = 0, bw = 0; CATEGORIES.forEach(cat => { const av = oc.results[`A_${cat.key}`], bv = oc.results[`B_${cat.key}`]; if (av > bv) aw++; else if (bv > av) bw++; });
+        const winnerId = aw === bw ? null : (aw > bw ? oc.cookAId : oc.cookBId);
+        return n + (winnerId === grc.cookBId ? 1 : 0);
+      }, 0);
+      guestResults = {
+        ...grc, dateLabel: fmtDate(grc.date), cookAName: cookA ? cookA.name : 'Cook A', cookBName: cookB ? cookB.name : 'Cook B', categoryRows: grCategoryRows, overallWinnerLabel,
+        cookACrownsLabel: '👑'.repeat(grH2hA) || '—', cookBCrownsLabel: '👑'.repeat(grH2hB) || '—',
+        cookAHeaderStyle: grColorA ? `background:${COLOR_HEX[grColorA]};color:#fff;` : '', cookBHeaderStyle: grColorB ? `background:${COLOR_HEX[grColorB]};color:#fff;` : '',
+        cookATintStyle: grTintA, cookBTintStyle: grTintB,
+        cookAIsOverallWinner: overallWinnerLabel === (cookA ? cookA.name : 'Cook A') && overallWinnerLabel !== 'Draw',
+        cookBIsOverallWinner: overallWinnerLabel === (cookB ? cookB.name : 'Cook B') && overallWinnerLabel !== 'Draw',
+        cookAFirstName: (cookA ? cookA.name : 'Cook A').split(' ')[0], cookBFirstName: (cookB ? cookB.name : 'Cook B').split(' ')[0],
+        totalA: CATEGORIES.reduce((sum, cat) => sum + (grc.results[`A_${cat.key}`] || 0), 0),
+        totalB: CATEGORIES.reduce((sum, cat) => sum + (grc.results[`B_${cat.key}`] || 0), 0),
+      };
+    }
+
+    const cookChallenges = s.challenges.filter(c => c.cookAId === COOK_ID || c.cookBId === COOK_ID);
+    const cookOpen = cookChallenges.filter(c => c.status === 'OPEN').map(c => {
+      const myColor = (c.cookColors || {})[COOK_ID];
+      const otherId = c.cookAId === COOK_ID ? c.cookBId : c.cookAId;
+      return {
+        ...c, dateLabel: fmtDate(c.date), colorChosen: !!myColor, needsColor: !myColor,
+        myColorHex: myColor ? COLOR_HEX[myColor] : '', myColorLabel: myColor ? (myColor === 'RED' ? 'Red' : 'Yellow') : '',
+        radioName: `cook-color-${c.id}`,
+        pickRed: () => this.askChooseColor(c.id, 'RED'), pickYellow: () => this.askChooseColor(c.id, 'YELLOW'),
+      };
+    });
+    const cookPast = cookChallenges.filter(c => c.status !== 'OPEN').map(c => ({ ...c, dateLabel: fmtDate(c.date), viewMe: () => this.openGuestResults(c.id, 'cookHome') }));
+
+    let scoringChallenge = null, scoringRows = [], submitDisabled = true;
+    const sc = s.challenges.find(c => c.id === s.scoringChallengeId);
+    if (sc) {
+      const colorA = (sc.cookColors || {})[sc.cookAId], colorB = (sc.cookColors || {})[sc.cookBId];
+      scoringChallenge = {
+        ...sc, dateLabel: fmtDate(sc.date),
+        colorALabel: colorA ? (colorA === 'RED' ? 'Red' : 'Yellow') : 'Dish A', colorAHex: colorA ? COLOR_HEX[colorA] : '#ccc',
+        colorBLabel: colorB ? (colorB === 'RED' ? 'Red' : 'Yellow') : 'Dish B', colorBHex: colorB ? COLOR_HEX[colorB] : '#ccc',
+      };
+      const colorAHex = colorA ? COLOR_HEX[colorA] : 'var(--md-sys-color-primary)', colorBHex = colorB ? COLOR_HEX[colorB] : 'var(--md-sys-color-primary)';
+      const buildOptions = (dish, catKey, fillHex) => {
+        const key = `${dish}_${catKey}`;
+        const selected = s.scoringAnswers[key] || 0;
+        const hovered = s.scoringHover[key];
+        const displayVal = hovered !== undefined ? hovered : selected;
+        return [1,2,3,4,5].map(v => ({
+          v,
+          style: `font-size:28px;line-height:1;cursor:pointer;color:${v <= displayVal ? fillHex : 'var(--md-sys-color-outline-variant)'};`,
+          onClick: () => this.setScore(dish, catKey, v),
+          onEnter: () => this.setScoringHover(key, v),
+          onLeave: () => this.clearScoringHover(key),
+        }));
+      };
+      scoringRows = CATEGORIES.map(cat => ({ label: cat.label, dishA: buildOptions('A', cat.key, colorAHex), dishB: buildOptions('B', cat.key, colorBHex) }));
+      submitDisabled = !CATEGORIES.every(cat => s.scoringAnswers[`A_${cat.key}`] !== undefined && s.scoringAnswers[`B_${cat.key}`] !== undefined);
+    }
+    const submitBtnLabel = (sc && (sc.guestSubmitted || {})[GUEST_ID]) ? 'Save changes' : 'Submit scores';
+
+    const guestCheckItems = s.accounts.map(a => ({
+      name: a.name, checked: s.newChallenge.guestIds.includes(a.id), toggle: () => this.toggleNCGuest(a.id),
+    }));
+    const roleOptions = ['ADMIN', 'ORGANIZER', 'USER'];
+    const roleCheckItems = roleOptions.map(r => r === 'USER'
+      ? { label: r, checked: true, disabled: true, labelStyle: 'opacity:.45;', toggle: () => {} }
+      : { label: r, checked: s.newAccount.roles.includes(r), disabled: false, labelStyle: '', toggle: () => this.toggleNARole(r) });
+
+    const screen = s.screen;
+    const navBase = screen === 'detail' ? s.detailReturnScreen : (screen === 'rivalryDetail' ? 'rivalries' : screen);
+    const tabCls = key => 'md-tab' + (navBase === key ? ' md-tab--active' : '');
+
+    return {
+      screen,
+      isLogin: screen === 'login', isHistory: screen === 'history', isDetail: screen === 'detail',
+      isAccounts: screen === 'accounts', isGuestHome: screen === 'guestHome', isScoring: screen === 'scoring',
+      isRivalries: screen === 'rivalries', isRivalryDetail: screen === 'rivalryDetail', isGuestResults: screen === 'guestResults',
+      isCookHome: screen === 'cookHome', isRegister: screen === 'register',
+      isOrganizerScreen: screen === 'history' || screen === 'detail' || screen === 'accounts' || screen === 'rivalries' || screen === 'rivalryDetail',
+      tabHistoryClass: tabCls('history'), tabAccountsClass: tabCls('accounts'), tabRivalriesClass: tabCls('rivalries'),
+      organizerName: s.organizerName,
+      loginEmail: s.loginEmail, loginPassword: s.loginPassword,
+      onLoginEmail: e => this.setState({ loginEmail: e.target.value }),
+      onLoginPassword: e => this.setState({ loginPassword: e.target.value }),
+      login: e => this.login(e), logout: () => this.logout(),
+      goLogin: e => { if (e) e.preventDefault(); this.go('login'); },
+      goHistory: e => { if (e) e.preventDefault(); this.go('history'); },
+      goAccounts: e => { if (e) e.preventDefault(); this.go('accounts'); },
+      goRivalries: e => { if (e) e.preventDefault(); this.go('rivalries'); },
+      goGuestHome: e => { if (e) e.preventDefault(); this.go('guestHome'); },
+      goResultsBack: e => { if (e) e.preventDefault(); this.go(s.resultsReturnScreen); },
+      goCookHome: e => { if (e) e.preventDefault(); this.go('cookHome'); },
+      goRegister: e => { if (e) e.preventDefault(); this.go('register'); },
+      goExpiredLink: e => { if (e) e.preventDefault(); this.setState({ screen: 'expired', expiredKind: 'link' }); },
+      goExpiredQr: e => { if (e) e.preventDefault(); this.setState({ screen: 'expired', expiredKind: 'qr' }); },
+      isExpired: screen === 'expired',
+      expiredKicker: s.expiredKind === 'qr' ? 'QR code expired' : 'Link expired',
+      expiredHeadline: s.expiredKind === 'qr' ? 'This QR code is no longer valid' : 'This link is no longer valid',
+      expiredBody: s.expiredKind === 'qr'
+        ? 'The registration QR code for this cook-off has expired. Ask the organizer to show a fresh code or send you a personalized link by email.'
+        : 'Your personalized access link has expired. Contact the organizer and ask them to resend your link for this challenge.',
+      registerForm: s.registerForm, registerSubmitted: s.registerSubmitted, registerNotSubmitted: !s.registerSubmitted,
+      submitRegister: e => this.submitRegister(e),
+      onRegFirst: e => this.updateRegister('firstName', e.target.value),
+      onRegLast: e => this.updateRegister('lastName', e.target.value),
+      onRegEmail: e => this.updateRegister('email', e.target.value),
+      challenges, challenge, challengeIsRevealing: s.revealingId === s.selectedChallengeId,
+      detailBack: e => { if (e) e.preventDefault(); this.go(s.detailReturnScreen); },
+      detailBackLabel: s.detailReturnScreen === 'rivalryDetail' ? 'Back to rivalry' : 'All challenges',
+      accounts: s.accounts.map(a => ({ ...a, roleTags: a.roles.map(r => ({ label: r, cls: r === 'ADMIN' ? 'md-chip md-chip--selected' : 'md-chip' })), editMe: () => this.openAcctEdit(a) })),
+      rivalries, rivalriesEmpty: rivalries.length === 0, rivalryDetail,
+      cookName: firstName((accountById(COOK_ID) || {}).name) || 'Cook', cookOpen, cookOpenEmpty: cookOpen.length === 0, cookPast,
+      guestName: firstName(GUEST_NAME), guestOpen, guestOpenEmpty: guestOpen.length === 0, guestPast, guestResults,
+      scoringChallenge, scoringRows, submitDisabled, submitBtnLabel, scoringSubmitted: s.scoringSubmitted, scoringNotSubmitted: !s.scoringSubmitted,
+      backToGuestHome: () => this.backToGuestHome(), submitScores: () => this.submitScores(),
+      createOpen: s.createOpen, openCreate: () => this.openCreate(), closeCreate: e => { if (e) e.preventDefault(); this.closeCreate(); },
+      newChallenge: s.newChallenge, submitCreateChallenge: e => this.submitCreateChallenge(e),
+      newChallengeImageSlotId: `challenge-image-${s.newChallengeDraftId || 'draft'}`,
+      onNCTitle: e => this.updateNC('title', e.target.value), onNCDate: e => this.updateNC('date', e.target.value),
+      onNCDish: e => this.updateNC('dishName', e.target.value), onNCCookA: e => this.updateNC('cookAId', e.target.value),
+      onNCCookB: e => this.updateNC('cookBId', e.target.value), guestCheckItems,
+      acctCreateOpen: s.acctCreateOpen, openAcctCreate: () => this.openAcctCreate(), closeAcctCreate: e => { if (e) e.preventDefault(); this.closeAcctCreate(); },
+      newAccount: s.newAccount, submitCreateAccount: e => this.submitCreateAccount(e),
+      acctDialogTitle: s.newAccount.id ? 'Edit account' : 'New account',
+      acctDialogSubmitLabel: s.newAccount.id ? 'Save changes' : 'Create account',
+      revealConfirmOpen: !!s.revealConfirmId, closeRevealConfirm: () => this.closeRevealConfirm(), confirmReveal: () => this.confirmReveal(),
+      unrevealConfirmOpen: !!s.unrevealConfirmId, closeUnrevealConfirm: () => this.closeUnrevealConfirm(), confirmUnreveal: () => this.confirmUnreveal(),
+      colorConfirmOpen: !!s.colorConfirm, colorConfirmLabel: s.colorConfirm ? (s.colorConfirm.color === 'RED' ? 'Red' : 'Yellow') : '',
+      closeColorConfirm: () => this.closeColorConfirm(), confirmChooseColor: () => this.confirmChooseColor(),
+      qrOpen: !!s.qrChallengeId, closeQr: () => this.closeQr(),
+      qrChallengeName: (s.challenges.find(c => c.id === s.qrChallengeId) || {}).dishName || '',
+      qrImageUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('https://cookoff.app/register?challenge=' + s.qrChallengeId)}`,
+      sendLinksOpen: s.sendLinksOpen, sendLinksItems, sendLinksNoneSelected: s.sendLinksSelectedIds.length === 0,
+      closeSendLinks: e => { if (e) e.preventDefault(); this.closeSendLinks(); }, submitSendLinks: e => this.submitSendLinks(e),
+      challengeEditOpen: s.challengeEditOpen, challengeEditData: s.challengeEditData, ceGuestCheckItems,
+      closeChallengeEdit: e => { if (e) e.preventDefault(); this.closeChallengeEdit(); },
+      submitChallengeEdit: e => this.submitChallengeEdit(e),
+      onCECookA: e => this.updateCE('cookAId', e.target.value), onCECookB: e => this.updateCE('cookBId', e.target.value),
+      onNAFirst: e => this.updateNA('firstName', e.target.value), onNALast: e => this.updateNA('lastName', e.target.value), onNAEmail: e => this.updateNA('email', e.target.value),
+      roleCheckItems,
+      showDevNavFlag: this.props.showDevNav !== false,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

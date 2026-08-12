@@ -41,15 +41,32 @@ describe('ChallengeHistory', () => {
   it('renders a card per challenge on load', () => {
     const listChallenges = vi
       .fn()
-      .mockReturnValue(of({ data: [challenge], pagination: { totalElements: 1 }, meta: {} }));
+      .mockReturnValue(of({ data: [challenge], pagination: { totalElements: 1, totalPages: 1 }, meta: {} }));
     const { fixture } = setup(listChallenges);
 
-    expect(listChallenges).toHaveBeenCalledWith(0, 12);
+    expect(listChallenges).toHaveBeenCalledWith(0, 50);
     expect(fixture.nativeElement.querySelectorAll('app-challenge-card').length).toBe(1);
   });
 
+  it('fetches every page and merges them into one unpaginated grid', () => {
+    const page0 = { ...challenge, id: 'chal-1' };
+    const page1 = { ...challenge, id: 'chal-2' };
+    const listChallenges = vi
+      .fn()
+      .mockReturnValueOnce(of({ data: [page0], pagination: { totalElements: 2, totalPages: 2 }, meta: {} }))
+      .mockReturnValueOnce(of({ data: [page1], pagination: { totalElements: 2, totalPages: 2 }, meta: {} }));
+    const { fixture } = setup(listChallenges);
+
+    expect(listChallenges).toHaveBeenCalledWith(0, 50);
+    expect(listChallenges).toHaveBeenCalledWith(1, 50);
+    expect(fixture.nativeElement.querySelector('mat-paginator')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('app-challenge-card').length).toBe(2);
+  });
+
   it('shows an empty state with a New challenge action when there are none', () => {
-    const listChallenges = vi.fn().mockReturnValue(of({ data: [], pagination: { totalElements: 0 }, meta: {} }));
+    const listChallenges = vi
+      .fn()
+      .mockReturnValue(of({ data: [], pagination: { totalElements: 0, totalPages: 0 }, meta: {} }));
     const { fixture } = setup(listChallenges);
 
     expect(fixture.nativeElement.querySelector('app-empty-state')).not.toBeNull();
@@ -73,7 +90,7 @@ describe('ChallengeHistory', () => {
   it('navigates to the challenge detail route when a card is opened', () => {
     const listChallenges = vi
       .fn()
-      .mockReturnValue(of({ data: [challenge], pagination: { totalElements: 1 }, meta: {} }));
+      .mockReturnValue(of({ data: [challenge], pagination: { totalElements: 1, totalPages: 1 }, meta: {} }));
     const { fixture } = setup(listChallenges);
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigate');
@@ -88,7 +105,7 @@ describe('ChallengeHistory', () => {
     async () => {
       const listChallenges = vi
         .fn()
-        .mockReturnValue(of({ data: [challenge], pagination: { totalElements: 1 }, meta: {} }));
+        .mockReturnValue(of({ data: [challenge], pagination: { totalElements: 1, totalPages: 1 }, meta: {} }));
       const { fixture } = setup(listChallenges);
 
       await expectNoAxeViolations(fixture.nativeElement);

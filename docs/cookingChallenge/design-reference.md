@@ -1,6 +1,32 @@
 # Design Reference
 
 The UI/UX source of truth for `cookingChallenge-angular` lives in Claude Design (claude.ai/design), not in this repo.
+Use the claude_design MCP (https://api.anthropic.com/v1/design/mcp, auth via /design-login) to import this project:
+https://claude.ai/design/p/eddd583d-a944-4319-a1a6-c853a5f2fe57?file=CookingChallenge.dc.html
+
+Focus on these files (the whole project is readable):
+- `CookingChallenge.dc.html`
+
+Also read these files the selection imports:
+- `_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/_ds_bundle.js`
+- `_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/components.css`
+- `_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/styles.css`
+- `_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/colors.css`
+- `_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/elevation.css`
+- `_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/icons.css`
+- `_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/shape.css`
+- `_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/spacing.css`
+- `_ds/cookoff-material-3-98ca423e-bdb3-42b6-a67b-f8de3b1d4b4e/tokens/typography.css`
+- `image-slot.js`
+- `support.js`
+
+As of 2026-08-12 these are also mirrored locally for offline reading/rendering:
+`docs/cookingChallenge/CookoffFrontendMockups/` (the file set above, unbundled) and
+`docs/cookingChallenge/CookOff Frontend (offline).html` (single self-contained file, fonts/images
+inlined — no server or relative-path dependency, still text-searchable for CSS/markup; best one to
+point a browser at for screenshots/computed-style comparisons). See
+[`plans/frontend-pixel-fidelity-sweep-plan.md`](plans/frontend-pixel-fidelity-sweep-plan.md) for
+the active pixel-fidelity sweep using these.
 
 ## Design source — Angular Material 3 (current)
 

@@ -2,7 +2,6 @@ import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 
 import { Challenge, ChallengesApi } from '../../../core/api/generated';
@@ -14,23 +13,14 @@ import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loa
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { NewChallengeDialog } from '../new-challenge-dialog/new-challenge-dialog';
 
-const PAGE_SIZE = 12;
+const FETCH_PAGE_SIZE = 50;
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
-/** `GET /api/v1/challenges`, paginated — see the frontend plan's Phase 5. */
+/** `GET /api/v1/challenges` — fetches every page and renders one unpaginated grid, see the frontend plan's Phase 5. */
 @Component({
   selector: 'app-challenge-history',
-  imports: [
-    ChallengeCard,
-    EmptyState,
-    ErrorState,
-    LoadingSkeleton,
-    MatButtonModule,
-    MatIconModule,
-    MatPaginatorModule,
-    PageHeader
-  ],
+  imports: [ChallengeCard, EmptyState, ErrorState, LoadingSkeleton, MatButtonModule, MatIconModule, PageHeader],
   templateUrl: './challenge-history.html',
   styleUrl: './challenge-history.scss'
 })
@@ -41,9 +31,6 @@ export class ChallengeHistory {
 
   protected readonly state = signal<LoadState>('loading');
   protected readonly challenges = signal<Challenge[]>([]);
-  protected readonly page = signal(0);
-  protected readonly totalElements = signal(0);
-  protected readonly pageSize = PAGE_SIZE;
   protected readonly errorMessage = signal('');
 
   constructor() {
@@ -52,22 +39,25 @@ export class ChallengeHistory {
 
   protected load(): void {
     this.state.set('loading');
-    this.challengesApi.listChallenges(this.page(), this.pageSize).subscribe({
+    this.challenges.set([]);
+    this.loadPage(0);
+  }
+
+  private loadPage(page: number): void {
+    this.challengesApi.listChallenges(page, FETCH_PAGE_SIZE).subscribe({
       next: (response) => {
-        this.challenges.set(response.data);
-        this.totalElements.set(response.pagination.totalElements);
-        this.state.set('loaded');
+        this.challenges.update((current) => [...current, ...response.data]);
+        if (page + 1 < response.pagination.totalPages) {
+          this.loadPage(page + 1);
+        } else {
+          this.state.set('loaded');
+        }
       },
       error: (error: ApiError) => {
         this.errorMessage.set(error.message);
         this.state.set('error');
       }
     });
-  }
-
-  protected onPage(event: PageEvent): void {
-    this.page.set(event.pageIndex);
-    this.load();
   }
 
   protected openChallenge(id: string): void {
@@ -78,7 +68,6 @@ export class ChallengeHistory {
     const ref = this.dialog.open(NewChallengeDialog, { width: '560px' });
     ref.afterClosed().subscribe((created) => {
       if (created) {
-        this.page.set(0);
         this.load();
       }
     });

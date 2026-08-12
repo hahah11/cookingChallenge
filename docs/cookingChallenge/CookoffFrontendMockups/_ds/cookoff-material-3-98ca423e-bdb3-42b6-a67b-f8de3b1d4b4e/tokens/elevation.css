@@ -1,0 +1,31 @@
+/* CookOff M3 — elevation (5 levels) and interaction state-layer opacities. */
+:root{
+  --md-sys-elevation-level0: none;
+  --md-sys-elevation-level1: 0 1px 2px 0 rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
+  --md-sys-elevation-level2: 0 1px 2px 0 rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15);
+  --md-sys-elevation-level3: 0 1px 3px 0 rgba(0,0,0,0.30), 0 4px 8px 3px rgba(0,0,0,0.15);
+  --md-sys-elevation-level4: 0 2px 3px 0 rgba(0,0,0,0.30), 0 6px 10px 4px rgba(0,0,0,0.15);
+  --md-sys-elevation-level5: 0 4px 4px 0 rgba(0,0,0,0.30), 0 8px 12px 6px rgba(0,0,0,0.15);
+
+  /* surface tint overlays layered under the shadow on tinted surfaces (cards, menus, sheets) */
+  --md-sys-elevation-tint-level0: 0%;
+  --md-sys-elevation-tint-level1: 5%;
+  --md-sys-elevation-tint-level2: 8%;
+  --md-sys-elevation-tint-level3: 11%;
+  --md-sys-elevation-tint-level4: 12%;
+  --md-sys-elevation-tint-level5: 14%;
+
+  /* state-layer opacities applied as a surfaceTint/onSurface wash over interactive elements */
+  --md-sys-state-hover-opacity: 0.08; /* @kind other */
+  --md-sys-state-focus-opacity: 0.10; /* @kind other */
+  --md-sys-state-pressed-opacity: 0.10; /* @kind other */
+  --md-sys-state-dragged-opacity: 0.16; /* @kind other */
+  --md-sys-state-disabled-container-opacity: 0.12; /* @kind other */
+  --md-sys-state-disabled-content-opacity: 0.38; /* @kind other */
+
+  --md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1); /* @kind other */
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.3, 0, 0, 1); /* @kind other */
+  --md-sys-motion-duration-short: 150ms; /* @kind other */
+  --md-sys-motion-duration-medium: 250ms; /* @kind other */
+  --md-sys-motion-duration-long: 400ms; /* @kind other */
+}

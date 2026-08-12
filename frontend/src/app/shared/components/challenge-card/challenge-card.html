@@ -40,12 +40,9 @@
     <div class="challenge-card__footer">
       <app-status-tag [status]="challenge().status" />
       @if (challenge().status === ChallengeStatus.OPEN) {
-        <div class="challenge-card__progress">
-          <mat-progress-bar aria-hidden="true" [attr.tabindex]="null" mode="determinate" [value]="progressPercent()" />
-          <span class="challenge-card__progress-text">
-            {{ challenge().submittedGuestCount }}/{{ challenge().totalGuestCount }} submitted
-          </span>
-        </div>
+        <span class="challenge-card__progress-text">
+          {{ challenge().submittedGuestCount }}/{{ challenge().totalGuestCount }} submitted
+        </span>
       } @else {
         <span class="challenge-card__progress-text">Results ready</span>
       }

@@ -1,0 +1,12 @@
+/* CookOff M3 — shape scale. M3's rounded-corner system, distinct from the
+   source app's zero-radius look — shape is one of the things this system
+   intentionally realigns to Material 3. */
+:root{
+  --md-sys-shape-corner-none: 0px;
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 999px;
+}
