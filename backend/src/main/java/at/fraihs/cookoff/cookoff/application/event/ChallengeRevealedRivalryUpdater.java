@@ -6,6 +6,8 @@ import at.fraihs.cookoff.cookoff.application.port.CookRivalryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -17,6 +19,7 @@ public class ChallengeRevealedRivalryUpdater {
     private final CookRivalryRepository cookRivalryRepository;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(ChallengeRevealed event) {
         CookRivalry rivalry = cookRivalryRepository.findByPair(event.cookAAccountId(), event.cookBAccountId())
                 .orElseGet(() -> CookRivalry.start(event.cookAAccountId(), event.cookBAccountId()));

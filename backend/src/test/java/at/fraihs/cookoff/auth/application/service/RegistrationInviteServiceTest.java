@@ -76,4 +76,15 @@ class RegistrationInviteServiceTest {
 
         assertThrows(InvalidOrExpiredLinkException.class, () -> service.verify("tok"));
     }
+
+    @Test
+    void should_treatExpiryInstantItself_as_alreadyExpired() {
+        // isExpired uses !now.isBefore(expiresAt) - the boundary instant itself counts as
+        // expired, not valid; this pins that down explicitly rather than only testing
+        // "clearly expired" and "clearly valid".
+        Instant expiresAt = Instant.now();
+        RegistrationInvite invite = new RegistrationInvite(1L, AccountId.generate(), 42L, "tok", expiresAt);
+
+        assertTrue(invite.isExpired(expiresAt));
+    }
 }

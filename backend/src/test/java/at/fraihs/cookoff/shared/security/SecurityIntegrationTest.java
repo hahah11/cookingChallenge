@@ -4,6 +4,7 @@ import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.application.service.CreateAccountService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.service.CreateChallengeService;
+import at.fraihs.cookoff.shared.testsupport.GuestOnboardingTestSupport;
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
 import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ChallengeRestDto;
@@ -14,7 +15,6 @@ import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,7 +23,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -137,7 +136,7 @@ class SecurityIntegrationTest {
     @Test
     void should_return200_when_jwtFromAccessLinkExchangeHitsGuestEndpoint() throws Exception {
         String linkToken = issueLinkTokenForNewGuest();
-        String jwt = exchangeAccessLinkForJwt(linkToken);
+        String jwt = GuestOnboardingTestSupport.exchangeAccessLinkForJwt(mockMvc, objectMapper, linkToken);
 
         mockMvc.perform(get("/api/v1/me/home").header("Authorization", "Bearer " + jwt))
                 .andExpect(status().isOk());
@@ -198,24 +197,6 @@ class SecurityIntegrationTest {
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        return extractAccessToken(responseBody);
-    }
-
-    private String exchangeAccessLinkForJwt(String linkToken) throws Exception {
-        String responseBody = mockMvc.perform(post("/api/v1/auth/access-link-login")
-                        .contentType("application/json")
-                        .content("{\"token\":\"" + linkToken + "\"}"))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-        return extractAccessToken(responseBody);
-    }
-
-    @SuppressWarnings("unchecked")
-    private String extractAccessToken(String responseBody) throws Exception {
-        Map<String, Object> body = objectMapper.readValue(responseBody, Map.class);
-        Map<String, Object> data = (Map<String, Object>) body.get("data");
-        String token = (String) data.get("accessToken");
-        assertNotNull(token);
-        return token;
+        return GuestOnboardingTestSupport.extractStringField(objectMapper, responseBody, "accessToken");
     }
 }
