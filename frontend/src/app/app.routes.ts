@@ -31,6 +31,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/register/public-registration/public-registration').then((m) => m.PublicRegistration)
   },
+  {
+    path: 'link-expired',
+    title: 'Link expired',
+    loadComponent: () => import('./features/auth/link-expired/link-expired').then((m) => m.LinkExpired)
+  },
   { path: '', pathMatch: 'full', redirectTo: rootRedirect },
   {
     path: '',

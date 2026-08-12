@@ -17,8 +17,8 @@ export interface EditParticipantsDialogData {
   guestAccountIds: string[];
 }
 
-/** Large enough to cover every account without a second page — see the frontend plan's Phase 5. */
-const ACCOUNTS_PAGE_SIZE = 200;
+/** Backend's SizeParam caps at 100 (openapi/cookingchallenge-api.yaml) — see the frontend plan's Phase 5. */
+const ACCOUNTS_PAGE_SIZE = 100;
 
 /**
  * Reassigns cooks and/or adds or removes guests on an OPEN challenge.

@@ -1,0 +1,9 @@
+<mat-card appearance="raised" class="link-expired__card">
+  <mat-card-content class="link-expired__content">
+    <mat-icon class="link-expired__icon" aria-hidden="true">link_off</mat-icon>
+    <p class="link-expired__kicker">{{ copy().kicker }}</p>
+    <h1 class="link-expired__headline">{{ copy().headline }}</h1>
+    <p class="link-expired__body">{{ copy().body }}</p>
+    <a mat-stroked-button routerLink="/login" class="link-expired__action">Back to start</a>
+  </mat-card-content>
+</mat-card>

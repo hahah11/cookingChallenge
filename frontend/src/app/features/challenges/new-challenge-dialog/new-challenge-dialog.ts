@@ -23,8 +23,8 @@ interface NewChallengeFormModel {
   cookBAccountId: string;
 }
 
-/** Large enough to cover every account without a second page — see the frontend plan's Phase 5. */
-const ACCOUNTS_PAGE_SIZE = 200;
+/** Backend's SizeParam caps at 100 (openapi/cookingchallenge-api.yaml) — see the frontend plan's Phase 5. */
+const ACCOUNTS_PAGE_SIZE = 100;
 
 /**
  * `POST /challenges` then, only if a photo was picked, `PATCH /challenges/{id}/image` —

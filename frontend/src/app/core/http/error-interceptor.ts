@@ -13,6 +13,10 @@ import { toApiError } from '../errors/api-error';
  * The backend generates a fresh RSA keypair on every restart, so every token dies with the
  * server — an `UNAUTHENTICATED` response always means the session is dead, never just this one
  * request, so it's handled globally here rather than per-feature.
+ *
+ * Organizers always re-authenticate with a password, so `/login` is a real next step for them.
+ * Guests only ever get in via a QR code or an emailed access link — they have no credentials to
+ * log in with, so sending them to `/login` is a dead end. They go to `/link-expired` instead.
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(Auth);
@@ -25,7 +29,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (apiError.code === 'UNAUTHENTICATED') {
         const wasOrganizer = auth.isOrganizer();
         auth.logout();
-        void router.navigateByUrl(wasOrganizer ? '/login' : '/home');
+        void router.navigateByUrl(wasOrganizer ? '/login' : '/link-expired');
       }
 
       return throwError(() => apiError);
