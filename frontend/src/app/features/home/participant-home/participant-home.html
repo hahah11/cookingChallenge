@@ -10,7 +10,7 @@
   }
   @case ('loaded') {
     @if (home(); as home) {
-      <app-page-header kicker="CookOff" [title]="'Hi, ' + home.displayName" />
+      <app-page-header kicker="Your personalized link" [title]="'Hi, ' + home.displayName" />
 
       @if (home.open.length === 0) {
         <app-empty-state

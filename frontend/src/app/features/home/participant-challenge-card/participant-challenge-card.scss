@@ -6,11 +6,22 @@
   overflow: hidden;
 }
 
+.participant-challenge-card__row {
+  display: flex;
+  align-items: stretch;
+}
+
 .participant-challenge-card__content {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--md-sys-spacing-1);
+  justify-content: center;
+  gap: var(--md-sys-spacing-2);
+}
+
+.participant-challenge-card__photo {
+  flex: 1;
 }
 
 .participant-challenge-card__kicker {
@@ -77,12 +88,7 @@
 
 .participant-challenge-card__edit-score {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: var(--md-sys-spacing-2);
-}
-
-.participant-challenge-card__submitted-tag {
-  font: var(--mat-sys-label-medium);
-  color: var(--cc-color-success);
 }

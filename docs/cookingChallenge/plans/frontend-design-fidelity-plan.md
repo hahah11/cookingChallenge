@@ -1,5 +1,17 @@
 # Bring the frontend in line with the CookOff Material 3 design, and retire the old design-doc citation
 
+## Status (2026-08-12 — Parts C and D implemented)
+
+Part B7 (Participant Home) was marked resolved on 2026-08-11, but a live comparison against
+`http://localhost:4200/home?token=...` on 2026-08-12 found the guest-facing card layout itself
+was never actually brought in line with the canvas — only copy/section-heading issues were
+caught in the original pass, not the card's structure/style. **Part C (C1–C6) is now implemented**
+— see its own status line below for what changed and how it was verified.
+
+Same day, a follow-up audit of the blind-scoring screen (B8 in the historical record below had
+only checked copy/success-state, not structure) found four more gaps against the canvas's
+`isScoring` block. **Part D (D1–D4) is now implemented** — see its own section below.
+
 ## Status (2026-08-11 re-audit)
 
 Part A (doc citation cleanup) and nearly all of Part B's findings below are **done** — verified by re-reading every changed template against the live canvas markup (`DesignSync get_file`, `CookingChallenge.dc.html`, project `eddd583d-a944-4319-a1a6-c853a5f2fe57`) rather than trusting the original audit's notes, which had already gone stale in places (e.g. B5 #21 claimed the "New account" flow didn't exist; it does, and works). Sections B1–B11 below are kept as a historical record of what was found and fixed, each item marked with its current status.
@@ -132,6 +144,100 @@ Findings from the original 6-item pass are marked **[core]**. Everything else wa
 | 38 | `font-weight: 600` on organizer-shell active link **[core]** | ✅ Fixed (superseded — organizer-shell was rebuilt on `mat-tab-nav-bar` today, which uses Material's own active-tab treatment) |
 | 39 | `star-rating` used a raw `★` glyph **[core]** | ✅ Fixed — Material Symbols `star` with `FILL` toggle |
 | 40 | organizer-shell nav links missing ripple **[core]** | ✅ Fixed (superseded — `mat-tab-link` has its own ripple) |
+
+---
+
+## Part C. Guest/Participant Home card fidelity (2026-08-12) — **status: implemented 2026-08-12**
+
+Re-audited by comparing the live app (`http://localhost:4200/home?token=...`, screenshot taken
+2026-08-12) against the canvas's `isGuestHome` block (`CookingChallenge.dc.html`, project
+`eddd583d-a944-4319-a1a6-c853a5f2fe57` — `<sc-if value="{{ isGuestHome }}">…</sc-if>`) side by
+side. Current files: `features/home/participant-home/participant-home.html`/`.scss`,
+`features/home/participant-challenge-card/participant-challenge-card.html`/`.scss`.
+
+The screen-level structure (header, "Open scoring requests" / "Past challenges" sections, empty
+state copy) already matches — B7's original pass got that right. What it missed is the **open
+challenge card** itself, which currently looks nothing like the canvas:
+
+| # | Canvas (`isGuestHome`) | Live app (was) | Fix | Status |
+|---|---|---|---|---|
+| C1 | One card per row, full width, **horizontal split**: content on the left (~50%), photo on the right (~50%, `aspect-ratio:4/3`) | `participant-home__grid` is a `repeat(auto-fill, minmax(260px,1fr))` **grid** of narrow cards; each card stacks photo-on-top, content-below (`app-challenge-photo` precedes `mat-card-content` in the DOM, no row layout) | Change `.participant-home__grid` to a single-column vertical list (`flex-direction: column`); restructure `participant-challenge-card.html` into a flex row with content first, `app-challenge-photo` second, each `flex:1`, photo `aspect-ratio: 4/3` | ✅ Fixed |
+| C2 | `md-card md-card--filled` | `<mat-card appearance="outlined">` | Change to `appearance="filled"` | ✅ Fixed |
+| C3 | No status chip at all on open cards — section heading ("Open scoring requests") already conveys it | `<app-status-tag [status]="challenge().status" />` unconditionally rendered, always showing "Open" | Remove — per B7/design-reference.md's own established finding, `HomeService` only ever puts `status === OPEN` challenges into `home.open`, and this component is only ever instantiated from `home.open`, so the chip is provably always redundant here, same "unreachable variance" reasoning already used to remove the dead "Revealed — view results" branch | ✅ Fixed — `StatusTag` import dropped too |
+| C4 | `cc-kicker` reads **"Your personalized link"** | `<app-page-header kicker="CookOff" .../>` — the generic brand kicker used elsewhere | Add a page-specific kicker override, `kicker="Your personalized link"`, on `participant-home.html`'s `<app-page-header>` | ✅ Fixed |
+| C5 | "Submitted — editable until reveal" is a real chip (`md-chip md-chip--selected`) on its own line, **above** the score/edit button | Plain `<span class="participant-challenge-card__submitted-tag">` (colored text, not a chip), sitting **inline beside** "Edit scores" in a `flex-wrap` row | Render as a `mat-chip` (`highlighted disableRipple`, no custom color override — same treatment the app already gives generic "selected" chips elsewhere, e.g. accounts-admin role chips), stacked above the button in a column | ✅ Fixed |
+| C6 | Section title `md-typescale-title-small` | `.participant-home__section-title { font: var(--mat-sys-title-medium); }` | Change to `--mat-sys-title-small` | ✅ Fixed |
+
+**Confirmed intentional, not a fix:** the canvas's "← Organizer login" back-link at the top of
+`isGuestHome` is the same class of prototype-internal screen-switcher already decided
+mockup-only for organizer-login's two "Preview a guest's/cook's personalized link" buttons (see
+item #4 in the "Resolved-today" section above) — a guest arriving via a real emailed link has no
+"organizer login" to go back to in production. No action.
+
+**Out of scope for this pass:** `participant-challenge-card` is also used for the cook-facing
+case (`canPickColor` swatch branch) — a deliberate merge of the canvas's separate `isGuestHome`/
+`isCookHome` cards into one adaptive component, not something to unmerge. The canvas's
+`isCookHome` card style differs again (`md-card--outlined`, gray background, no photo at all) —
+whether the merged component should visually flex between the two canvas styles per-role, or
+settle on one, wasn't audited here and would need its own pass with a cook-role test account.
+
+### Verification — Part C, done 2026-08-12
+1. Applied C1–C6 to `participant-home.html`/`.scss` and `participant-challenge-card.html`/`.scss`.
+2. `participant-home.spec.ts` / `participant-challenge-card.spec.ts` needed no assertion changes —
+   neither had a test tied to the removed status chip or the old photo-then-content DOM order, and
+   the `.participant-challenge-card__submitted-tag` selector still resolves (kept on the new
+   `mat-chip`).
+3. `npx ng test` — 127/128 passing; the one failure (`error-interceptor.spec.ts`, non-UNAUTHENTICATED
+   401 handling) reproduces identically on `main` before this change (confirmed via `git stash`) —
+   pre-existing, unrelated to design fidelity. `npx ng build` and `npm run lint` both clean.
+4. Live check: not run. No known credentials for an organizer account with seed challenge/guest
+   data in the dev DB (same gap already noted for Challenge Detail/dialogs in the "Verification"
+   section below) — guessing a password to obtain one is out of bounds. Verified instead by close
+   structural comparison against the canvas's `isGuestHome` markup (`CookingChallenge.dc.html`)
+   pulled directly via `DesignSync get_file`, matching flex layout, spacing tokens (`gap:8px` →
+   `--md-sys-spacing-2`, `gap:12px`/`margin-bottom:24px` → `--md-sys-spacing-3`/`-6`), and the
+   `aspect-ratio:4/3` photo split verbatim.
+
+---
+
+## Part D. Blind Scoring screen fidelity (2026-08-12) — **status: implemented 2026-08-12**
+
+B8's original pass (see historical record above) only checked the success state, the submit
+button label, and the instructional paragraph's presence — not the screen's structure. Re-audited
+by comparing `features/challenges/blind-scoring/blind-scoring.html`/`.scss` against the canvas's
+`isScoring` → `scoringNotSubmitted` block (`CookingChallenge.dc.html`, pulled fresh via
+`DesignSync get_file` against project `eddd583d-a944-4319-a1a6-c853a5f2fe57`).
+
+| # | Canvas (`scoringNotSubmitted`) | Live app (was) | Fix |
+|---|---|---|---|
+| D1 | "← Home" text button (`arrow_back` + "Home") above the kicker/title | No back link anywhere in the scoring form state | Added `<a mat-button routerLink="/home">` with `arrow_back` `mat-icon`, matching the existing `challenge-detail__back`/`rivalry-detail__back` convention used elsewhere in the app |
+| D2 | `<hr class="md-divider">` between the instructions paragraph and the scoring grid | No divider | Added `<mat-divider>` (same component `organizer-login` already uses), with matching `margin-bottom:20px` (`--md-sys-spacing-5`) on both the paragraph above it and itself, mirroring the canvas's inline styles |
+| D3 | Grid `gap:12px 16px` (row-gap/col-gap) | Uniform `gap: var(--md-sys-spacing-2)` (8px) | Changed to `gap: var(--md-sys-spacing-3) var(--md-sys-spacing-4)` (12px/16px) |
+| D4 | Submit button `width:100%;margin-top:24px` | No `.blind-scoring__submit` rule existed at all — button sized to content, no top margin | Added the missing rule: `width: 100%; margin-top: var(--md-sys-spacing-6)` |
+
+**Also tightened, minor:** `.blind-scoring__category` was `label-large` (bold-ish), design and the
+sibling `results-table` component both use plain `body-medium` for row-header text — changed to
+match.
+
+**Confirmed intentional, not a fix:** the canvas's plate-column header is a bare color bar with no
+text (`background:{{ colorHex }};height:8px`); the real app instead renders a solid color box with
+the plate's name ("Red"/"Yellow") — required by this codebase's own accessibility rule in
+`styles/_plate-color.scss` ("Never conveys meaning by color alone — pair every tint with text or an
+icon (WCAG AA)"), and explicitly locked in by an existing test
+(`blind-scoring.spec.ts`: "renders a plate-color bar per dish, with a visible name — never color
+alone"). Matching the canvas here would regress accessibility, so left as-is — same class of
+deliberate deviation as the trophy-icon-vs-crown-emoji and table-vs-flex-list decisions already
+logged in `design-reference.md`.
+
+### Verification — Part D, done 2026-08-12
+1. Applied D1–D4 to `blind-scoring.html`/`.ts`/`.scss`.
+2. `blind-scoring.spec.ts` needed no changes — none of its 8 tests assert on the back link,
+   divider, or submit-button CSS, and the plate-color-with-name test still passes untouched.
+3. `npx ng test` — 127/128 passing, same single pre-existing failure as Part C
+   (`error-interceptor.spec.ts`, confirmed unrelated via `git stash`). `npx ng build` and
+   `npm run lint` both clean.
+4. Live check: not run, same missing-credentials gap as Part C. Verified by structural comparison
+   against the canvas's `isScoring` markup pulled directly via `DesignSync get_file`.
 
 ---
 

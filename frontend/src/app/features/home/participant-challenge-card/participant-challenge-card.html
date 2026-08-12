@@ -1,43 +1,48 @@
-<mat-card appearance="outlined" class="participant-challenge-card">
-  <app-challenge-photo
-    class="participant-challenge-card__photo"
-    [challengeId]="challenge().id"
-    [hasImage]="challenge().hasImage"
-    [alt]="challenge().dishName"
-  />
-  <mat-card-content class="participant-challenge-card__content">
-    <p class="participant-challenge-card__kicker">{{ challenge().date | date: 'mediumDate' }}</p>
-    <h3 class="participant-challenge-card__title">{{ challenge().dishName }}</h3>
-    <p class="participant-challenge-card__event">{{ challenge().title }}</p>
-    <app-status-tag [status]="challenge().status" />
+<mat-card appearance="filled" class="participant-challenge-card">
+  <div class="participant-challenge-card__row">
+    <mat-card-content class="participant-challenge-card__content">
+      <p class="participant-challenge-card__kicker">{{ challenge().date | date: 'mediumDate' }}</p>
+      <h3 class="participant-challenge-card__title">{{ challenge().dishName }}</h3>
+      <p class="participant-challenge-card__event">{{ challenge().title }}</p>
 
-    <div class="participant-challenge-card__action">
-      @if (challenge().canPickColor) {
-        <div class="participant-challenge-card__swatches" role="group" aria-label="Pick your plate color">
-          @for (color of pickableColors(); track color.id) {
-            <button
-              type="button"
-              class="participant-challenge-card__swatch plate-swatch"
-              [style.--plate-color]="color.hexCode"
-              [attr.aria-label]="'Pick ' + color.name"
-              [disabled]="colorPickBusy()"
-              (click)="pickColor.emit(color)"
-            ></button>
-          }
-        </div>
-      } @else if (ownColor(); as color) {
-        <p class="participant-challenge-card__own-color">
-          <span class="participant-challenge-card__swatch plate-swatch" [style.--plate-color]="color.hexCode" aria-hidden="true"></span>
-          You're plating <strong>{{ color.name }}</strong> — noted for guests once scoring opens.
-        </p>
-      } @else if (challenge().canScore && !challenge().submitted) {
-        <button mat-flat-button type="button" (click)="score.emit(challenge().id)">Score now</button>
-      } @else if (challenge().canScore && challenge().submitted) {
-        <div class="participant-challenge-card__edit-score">
-          <button mat-stroked-button type="button" (click)="score.emit(challenge().id)">Edit scores</button>
-          <span class="participant-challenge-card__submitted-tag">Submitted — editable until reveal</span>
-        </div>
-      }
-    </div>
-  </mat-card-content>
+      <div class="participant-challenge-card__action">
+        @if (challenge().canPickColor) {
+          <div class="participant-challenge-card__swatches" role="group" aria-label="Pick your plate color">
+            @for (color of pickableColors(); track color.id) {
+              <button
+                type="button"
+                class="participant-challenge-card__swatch plate-swatch"
+                [style.--plate-color]="color.hexCode"
+                [attr.aria-label]="'Pick ' + color.name"
+                [disabled]="colorPickBusy()"
+                (click)="pickColor.emit(color)"
+              ></button>
+            }
+          </div>
+        } @else if (ownColor(); as color) {
+          <p class="participant-challenge-card__own-color">
+            <span class="participant-challenge-card__swatch plate-swatch" [style.--plate-color]="color.hexCode" aria-hidden="true"></span>
+            You're plating <strong>{{ color.name }}</strong> — noted for guests once scoring opens.
+          </p>
+        } @else if (challenge().canScore && !challenge().submitted) {
+          <button mat-flat-button type="button" (click)="score.emit(challenge().id)">Score now</button>
+        } @else if (challenge().canScore && challenge().submitted) {
+          <div class="participant-challenge-card__edit-score">
+            <mat-chip-set>
+              <mat-chip class="participant-challenge-card__submitted-tag" highlighted disableRipple>
+                Submitted — editable until reveal
+              </mat-chip>
+            </mat-chip-set>
+            <button mat-stroked-button type="button" (click)="score.emit(challenge().id)">Edit scores</button>
+          </div>
+        }
+      </div>
+    </mat-card-content>
+    <app-challenge-photo
+      class="participant-challenge-card__photo"
+      [challengeId]="challenge().id"
+      [hasImage]="challenge().hasImage"
+      [alt]="challenge().dishName"
+    />
+  </div>
 </mat-card>

@@ -1,7 +1,15 @@
+.blind-scoring__back {
+  margin-bottom: var(--md-sys-spacing-2);
+}
+
 .blind-scoring__instructions {
-  margin: 0 0 var(--md-sys-spacing-4);
+  margin: 0 0 var(--md-sys-spacing-5);
   font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
+}
+
+.blind-scoring__divider {
+  margin-bottom: var(--md-sys-spacing-5);
 }
 
 .blind-scoring__success {
@@ -40,7 +48,7 @@
   // Plate columns never shrink below what 5 star hit-targets (44px each) need,
   // so the scroll container above takes over instead of squeezing stars unusably small.
   grid-template-columns: minmax(80px, 1fr) minmax(228px, 2fr) minmax(228px, 2fr);
-  gap: var(--md-sys-spacing-2);
+  gap: var(--md-sys-spacing-3) var(--md-sys-spacing-4);
 }
 
 .blind-scoring__row {
@@ -52,7 +60,7 @@
 }
 
 .blind-scoring__category {
-  font: var(--mat-sys-label-large);
+  font: var(--mat-sys-body-medium);
 }
 
 .blind-scoring__plate {
@@ -65,6 +73,11 @@
 .blind-scoring__error {
   margin: 0 0 var(--md-sys-spacing-4);
   color: var(--mat-sys-error);
+}
+
+.blind-scoring__submit {
+  width: 100%;
+  margin-top: var(--md-sys-spacing-6);
 }
 
 @media (max-width: 640px) {

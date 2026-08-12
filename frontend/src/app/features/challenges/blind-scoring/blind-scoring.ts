@@ -1,6 +1,8 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Router } from '@angular/router';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
+import { Router, RouterLink } from '@angular/router';
 
 import {
   Category,
@@ -34,7 +36,16 @@ type LoadState = 'loading' | 'loaded' | 'error';
  */
 @Component({
   selector: 'app-blind-scoring',
-  imports: [ErrorState, LoadingSkeleton, MatButtonModule, PageHeader, StarRating],
+  imports: [
+    ErrorState,
+    LoadingSkeleton,
+    MatButtonModule,
+    MatDividerModule,
+    MatIconModule,
+    PageHeader,
+    RouterLink,
+    StarRating
+  ],
   templateUrl: './blind-scoring.html',
   styleUrl: './blind-scoring.scss'
 })

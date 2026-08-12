@@ -7,6 +7,11 @@
   }
   @case ('loaded') {
     @if (challenge(); as challenge) {
+      <a mat-button type="button" routerLink="/home" class="blind-scoring__back">
+        <mat-icon aria-hidden="true">arrow_back</mat-icon>
+        Home
+      </a>
+
       <app-page-header [kicker]="challenge.date" [title]="challenge.dishName" />
 
       @if (submitted()) {
@@ -23,6 +28,7 @@
         <app-error-state message="You can't score this challenge." />
       } @else {
         <p class="blind-scoring__instructions">{{ instructionText() }}</p>
+        <mat-divider class="blind-scoring__divider" />
 
         <div class="blind-scoring__scroll">
           <div class="blind-scoring__grid" role="table" aria-label="Blind scoring — one row per category">
