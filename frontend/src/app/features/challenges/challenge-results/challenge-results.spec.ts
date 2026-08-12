@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, vi } from 'vitest';
 
@@ -47,6 +48,7 @@ describe('ChallengeResults', () => {
     TestBed.configureTestingModule({
       imports: [ChallengeResults],
       providers: [
+        provideRouter([]),
         { provide: ChallengesApi, useValue: { getChallengeImage: () => of(new Blob()), ...challengesApi } },
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta }) } },
         AppConfig
@@ -69,6 +71,14 @@ describe('ChallengeResults', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Unreveal');
     expect(fixture.nativeElement.querySelector('.status-tag__label').textContent.trim()).toBe('Revealed');
     expect(fixture.nativeElement.querySelector('app-challenge-photo')).not.toBeNull();
+  });
+
+  it('links back to /home', () => {
+    const getChallengeResults = vi.fn().mockReturnValue(of({ data: result, meta }));
+    const { fixture } = setup({ getChallengeResults });
+
+    const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.challenge-results__back');
+    expect(link.getAttribute('href')).toBe('/home');
   });
 
   it('shows a retryable error state on failure', () => {

@@ -1,5 +1,3 @@
-<app-page-header kicker="CookOff" title="Register" />
-
 @if (linkExpired()) {
   <app-error-state message="This code has expired. Ask your host for a new QR code." />
 } @else if (result(); as result) {
@@ -11,41 +9,47 @@
     </mat-card-content>
   </mat-card>
 } @else {
-  <form class="public-registration__form" (submit)="$event.preventDefault(); onSubmit()" novalidate>
-    <mat-form-field appearance="outline">
-      <mat-label>First name</mat-label>
-      <input matInput autocomplete="given-name" [formField]="registerForm.firstName" />
-      @if (registerForm.firstName().touched() && registerForm.firstName().invalid()) {
-        <mat-error>{{ registerForm.firstName().errors()[0]?.message }}</mat-error>
-      }
-    </mat-form-field>
+  <mat-card appearance="raised" class="public-registration__card">
+    <mat-card-content>
+      <app-page-header kicker="CookOff" title="Register" />
 
-    <mat-form-field appearance="outline">
-      <mat-label>Last name</mat-label>
-      <input matInput autocomplete="family-name" [formField]="registerForm.lastName" />
-      @if (registerForm.lastName().touched() && registerForm.lastName().invalid()) {
-        <mat-error>{{ registerForm.lastName().errors()[0]?.message }}</mat-error>
-      }
-    </mat-form-field>
+      <form class="public-registration__form" (submit)="$event.preventDefault(); onSubmit()" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>First name</mat-label>
+          <input matInput autocomplete="given-name" [formField]="registerForm.firstName" />
+          @if (registerForm.firstName().touched() && registerForm.firstName().invalid()) {
+            <mat-error>{{ registerForm.firstName().errors()[0]?.message }}</mat-error>
+          }
+        </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Email</mat-label>
-      <input matInput type="email" autocomplete="email" [formField]="registerForm.email" />
-      @if (registerForm.email().touched() && registerForm.email().invalid()) {
-        <mat-error>{{ registerForm.email().errors()[0]?.message }}</mat-error>
-      }
-    </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Last name</mat-label>
+          <input matInput autocomplete="family-name" [formField]="registerForm.lastName" />
+          @if (registerForm.lastName().touched() && registerForm.lastName().invalid()) {
+            <mat-error>{{ registerForm.lastName().errors()[0]?.message }}</mat-error>
+          }
+        </mat-form-field>
 
-    @if (formErrorMessage(); as message) {
-      <p class="public-registration__error" role="alert">{{ message }}</p>
-    }
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" autocomplete="email" [formField]="registerForm.email" />
+          @if (registerForm.email().touched() && registerForm.email().invalid()) {
+            <mat-error>{{ registerForm.email().errors()[0]?.message }}</mat-error>
+          }
+        </mat-form-field>
 
-    <button mat-flat-button type="submit" class="public-registration__submit" [disabled]="submitting()">
-      @if (submitting()) {
-        <mat-spinner diameter="20" />
-      } @else {
-        Register
-      }
-    </button>
-  </form>
+        @if (formErrorMessage(); as message) {
+          <p class="public-registration__error" role="alert">{{ message }}</p>
+        }
+
+        <button mat-flat-button type="submit" class="public-registration__submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Register
+          }
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
 }

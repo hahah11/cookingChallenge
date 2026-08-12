@@ -1,8 +1,10 @@
 import { Component, computed, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 
 import { SystemRole } from '../../core/api/generated';
 import { Auth } from '../../core/auth/auth';
@@ -32,6 +34,23 @@ interface OrganizerNavLink {
 export class OrganizerShell {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
+
+  constructor() {
+    // mat-tab-nav-bar's ink-bar realignment intermittently races with the
+    // `[active]` binding updating on navigation, leaving the underline
+    // under the previous tab. Dispatching a resize event nudges Material's
+    // own ink-bar recalculation, which listens for it independently of the
+    // (possibly-stale) content-check cycle. Deferred so the new `active`
+    // class has already been applied to the DOM before Material re-measures.
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed()
+      )
+      .subscribe(() => {
+        queueMicrotask(() => window.dispatchEvent(new Event('resize')));
+      });
+  }
 
   protected readonly links = computed<OrganizerNavLink[]>(() => {
     const links: OrganizerNavLink[] = [{ label: 'History', route: '/challenges' }];

@@ -1,7 +1,15 @@
 :host {
-  display: block;
-  max-width: 400px;
-  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: var(--md-sys-spacing-4);
+}
+
+.public-registration__card,
+.public-registration__success {
+  width: 100%;
+  max-width: 360px;
 }
 
 .public-registration__form {
@@ -37,6 +45,6 @@
 }
 
 .public-registration__submit {
-  align-self: flex-start;
+  width: 100%;
   margin-top: var(--md-sys-spacing-2);
 }

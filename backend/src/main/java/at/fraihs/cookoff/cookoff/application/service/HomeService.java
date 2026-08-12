@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Backs GET /api/v1/me/home: a personalized home for a guest or cook, per
- * openapi-first-api-plan.md's reframing. {@code open} holds challenges with a pending
- * action (an unsubmitted score for a guest/creator, or an unpicked color for a cook);
- * {@code past} holds every other challenge the requester participates in - already
- * actioned but still OPEN, or REVEALED.
+ * openapi-first-api-plan.md's reframing. {@code open} holds every OPEN challenge the
+ * requester participates in, whether or not there's still a pending action (an
+ * already-submitted score or already-picked color stays visible and editable there
+ * until reveal); {@code past} holds every REVEALED challenge.
  */
 @Service
 @RequiredArgsConstructor
@@ -43,8 +43,7 @@ public class HomeService {
                     .orElse(null);
             ParticipantChallengeRestDto view =
                     ChallengeModelMapper.toParticipantChallenge(challenge, mySubmission, accountId, accountLookup);
-            boolean pendingAction = (view.getCanScore() && !view.getSubmitted()) || view.getCanPickColor();
-            if (challenge.getStatus() == ChallengeStatus.OPEN && pendingAction) {
+            if (challenge.getStatus() == ChallengeStatus.OPEN) {
                 open.add(view);
             } else {
                 past.add(view);

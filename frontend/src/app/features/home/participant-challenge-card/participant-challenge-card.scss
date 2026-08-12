@@ -6,6 +6,10 @@
   overflow: hidden;
 }
 
+.participant-challenge-card--cook {
+  background: var(--mat-sys-surface-variant);
+}
+
 .participant-challenge-card__row {
   display: flex;
   align-items: stretch;
@@ -50,12 +54,12 @@
 
 .participant-challenge-card__swatches {
   display: flex;
-  gap: var(--md-sys-spacing-3);
+  gap: var(--md-sys-spacing-4);
 }
 
 .participant-challenge-card__swatch {
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   padding: 0;
   border: none;
   cursor: pointer;

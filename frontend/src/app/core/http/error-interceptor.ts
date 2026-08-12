@@ -28,7 +28,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (apiError.code === 'UNAUTHENTICATED' || httpError.status === 401) {
         const wasOrganizer = auth.isOrganizer();
         auth.logout();
-        void router.navigateByUrl(wasOrganizer ? '/login' : '/link-expired');
+        void router.navigateByUrl(wasOrganizer ? '/login' : '/link-expired?kind=link');
       }
 
       return throwError(() => apiError);

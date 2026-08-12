@@ -1,4 +1,8 @@
-<mat-card appearance="filled" class="participant-challenge-card">
+<mat-card
+  [appearance]="isCook() ? 'outlined' : 'filled'"
+  class="participant-challenge-card"
+  [class.participant-challenge-card--cook]="isCook()"
+>
   <div class="participant-challenge-card__row">
     <mat-card-content class="participant-challenge-card__content">
       <p class="participant-challenge-card__kicker">{{ challenge().date | date: 'mediumDate' }}</p>
@@ -38,11 +42,13 @@
         }
       </div>
     </mat-card-content>
-    <app-challenge-photo
-      class="participant-challenge-card__photo"
-      [challengeId]="challenge().id"
-      [hasImage]="challenge().hasImage"
-      [alt]="challenge().dishName"
-    />
+    @if (!isCook()) {
+      <app-challenge-photo
+        class="participant-challenge-card__photo"
+        [challengeId]="challenge().id"
+        [hasImage]="challenge().hasImage"
+        [alt]="challenge().dishName"
+      />
+    }
   </div>
 </mat-card>

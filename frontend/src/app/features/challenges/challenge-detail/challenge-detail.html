@@ -18,18 +18,13 @@
   }
   @case ('loaded') {
     @if (challenge(); as challenge) {
-      <app-page-header [title]="challenge.dishName" [kicker]="challenge.date">
-        <app-status-tag actions [status]="challenge.status" />
-      </app-page-header>
-
       <div class="challenge-detail__header">
-        <app-challenge-photo
-          class="challenge-detail__photo"
-          [challengeId]="challenge.challengeId"
-          [hasImage]="challenge.hasImage"
-          [alt]="challenge.dishName"
-        />
         <div class="challenge-detail__meta">
+          <p class="challenge-detail__kicker">{{ challenge.date }}</p>
+          <div class="challenge-detail__title-row">
+            <h1 class="challenge-detail__title">{{ challenge.dishName }}</h1>
+            <app-status-tag [status]="challenge.status" />
+          </div>
           <p class="challenge-detail__event">{{ challenge.title }}</p>
           <p class="challenge-detail__cooks">
             @for (cook of challenge.cookAssignments; track cook.accountId; let last = $last) {
@@ -37,6 +32,12 @@
             }
           </p>
         </div>
+        <app-challenge-photo
+          class="challenge-detail__photo"
+          [challengeId]="challenge.challengeId"
+          [hasImage]="challenge.hasImage"
+          [alt]="challenge.dishName"
+        />
       </div>
 
       @if (challenge.status === ChallengeStatus.OPEN) {

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { LinkExpired } from './link-expired';
@@ -37,6 +38,20 @@ describe('LinkExpired', () => {
 
     const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.link-expired__action');
     expect(link.getAttribute('href')).toBe('/login');
+  });
+
+  it('shows the access-link copy when reached via router navigation with no kind param, exactly how errorInterceptor reaches it', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([{ path: 'link-expired', component: LinkExpired }], withComponentInputBinding())
+      ]
+    });
+
+    const harness = await RouterTestingHarness.create('/link-expired');
+    harness.detectChanges();
+
+    expect(harness.routeNativeElement?.textContent).toContain('Link expired');
+    expect(harness.routeNativeElement?.textContent).toContain('This link is no longer valid');
   });
 
   it(

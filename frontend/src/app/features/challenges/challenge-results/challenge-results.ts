@@ -1,4 +1,7 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 
 import { ChallengeResult, ChallengesApi, ChallengeStatus } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
@@ -20,9 +23,23 @@ type LoadState = 'loading' | 'loaded' | 'error';
  */
 @Component({
   selector: 'app-challenge-results',
-  imports: [ChallengePhoto, ErrorState, LoadingSkeleton, PageHeader, ResultsTable, StatusTag],
+  imports: [
+    ChallengePhoto,
+    ErrorState,
+    LoadingSkeleton,
+    MatButtonModule,
+    MatIconModule,
+    PageHeader,
+    ResultsTable,
+    RouterLink,
+    StatusTag
+  ],
   templateUrl: './challenge-results.html',
   styles: `
+    .challenge-results__back {
+      margin-bottom: var(--md-sys-spacing-2);
+    }
+
     .challenge-results__photo {
       max-width: 320px;
       border-radius: var(--md-sys-shape-corner-medium);

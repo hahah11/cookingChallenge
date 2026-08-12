@@ -18,7 +18,6 @@ import { ChallengePhoto } from '../../../shared/components/challenge-photo/chall
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
-import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { ResultsTable } from '../../../shared/components/results-table/results-table';
 import { StatusTag } from '../../../shared/components/status-tag/status-tag';
 import { EditParticipantsDialog, EditParticipantsDialogData } from '../edit-participants-dialog/edit-participants-dialog';
@@ -43,7 +42,6 @@ const LINKS_SENT_FLASH_MS = 3000;
     LoadingSkeleton,
     MatButtonModule,
     MatIconModule,
-    PageHeader,
     ResultsTable,
     RouterLink,
     StatusTag

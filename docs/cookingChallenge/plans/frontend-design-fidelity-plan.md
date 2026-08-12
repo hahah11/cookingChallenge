@@ -1,5 +1,24 @@
 # Bring the frontend in line with the CookOff Material 3 design, and retire the old design-doc citation
 
+## Status (2026-08-12 — Part F implemented)
+
+The first fully **live** click-through audit against the running app (previous passes were all
+code-comparison only, for lack of an organizer password and seed data — both now available). Found
+and fixed one high-severity production bug (`/link-expired` threw and rendered blank in its one real
+use case), three medium-severity UI bugs (a collapsed photo drop-zone, a dead-end Results page, an
+unstyled Registration page), one intermittent visual bug (tab-nav ink bar), and one layout fidelity
+gap (Challenge Detail header). Also *ruled out* a scary-looking empty-Rivalries-page finding as a
+seed-data artifact rather than a live defect. **Part F below is now implemented** — see its own status
+line and verification section.
+
+## Status (2026-08-12 — Part E implemented)
+
+A user report on 2026-08-12 surfaced two more issues on `/home` (shared by both guest and cook
+roles): (1) still-`OPEN` challenges show up in the "Past challenges" list, and (2) the cook-facing
+card doesn't match the canvas's `isCookHome` styling, most visibly right after a cook picks their
+plate color. Investigation traced both to a single backend bucketing bug plus the already-flagged
+Part C "out of scope" item. **Part E below is now implemented** — see its own verification section.
+
 ## Status (2026-08-12 — Parts C and D implemented)
 
 Part B7 (Participant Home) was marked resolved on 2026-08-11, but a live comparison against
@@ -238,6 +257,355 @@ logged in `design-reference.md`.
    `npm run lint` both clean.
 4. Live check: not run, same missing-credentials gap as Part C. Verified by structural comparison
    against the canvas's `isScoring` markup pulled directly via `DesignSync get_file`.
+
+---
+
+## Part E. Home bucketing bug + cook-card fidelity (2026-08-12) — **status: implemented 2026-08-12**
+
+Reported by the user: (1) on both the guest and cook `/home` view, the "Past challenges" table
+shows challenges that are still `OPEN`, not just `REVEALED` ones; (2) the cook home doesn't look
+like the mockups, and (3) the state right after a cook picks their plate color doesn't match the
+mockups either. All three trace back to one root cause plus the styling gap Part C already flagged
+as out of scope.
+
+### Root cause
+
+`HomeService.execute()` (`backend/.../application/service/HomeService.java:46-51`) buckets by
+**`status == OPEN && pendingAction`**, not by status alone:
+
+```java
+boolean pendingAction = (view.getCanScore() && !view.getSubmitted()) || view.getCanPickColor();
+if (challenge.getStatus() == ChallengeStatus.OPEN && pendingAction) {
+    open.add(view);
+} else {
+    past.add(view);
+}
+```
+
+Any `OPEN` challenge with **no pending action** — a guest who already submitted, or a cook who
+already picked their color — falls into `past`, mixed in with genuinely `REVEALED` challenges.
+`participant-home.html:36-46`'s past list renders every row identically and unconditionally routes
+clicks to `/challenges/:id/results` (`participant-home.ts:110-112`), but
+`GetChallengeResultsService.execute()` (`backend/.../GetChallengeResultsService.java:57-58`) throws
+a 409 (`ChallengeNotRevealedException`) for anything not actually `REVEALED`. That's issue (1).
+
+This is also issue (3), confirmed against the domain model: a plain cook's `canScore` is
+`isGuest(accountId) || accountId.equals(createdBy)` (`Challenge.java:185-187`) — never true for an
+ordinary cook, independent of color-pick state. So the instant a cook picks their color,
+`canPickColor` flips false, `canScore` was already false, `pendingAction` becomes false, and
+`loadHome()`'s refetch (`participant-home.ts:131-148`, called right after a successful pick) drops
+the challenge straight into `past` — losing the "You're plating **{color}**" swatch card
+(`participant-challenge-card.html:22-26`) in favor of a bare text row, while the challenge is still
+`OPEN` and scoring hasn't even started.
+
+The canvas confirms the intended shape: `isCookHome`'s `cookOpen` loop (`CookingChallenge.dc.html`)
+explicitly includes both the `needsColor` (picker) *and* `colorChosen` ("You're plating…") states
+inside "Your open challenges" — a color-picked-but-still-open cook card never leaves the open
+section. Likewise `isGuestHome`'s `guestOpen` keeps a `submitted` guest card (with the "Submitted —
+editable until reveal" chip) in the open section, matching the already-built but currently
+unreachable `canScore && submitted` branch in `participant-challenge-card.html:29-38`. Both
+`cookPast`/`guestPast` rows only ever show a green "Revealed" chip — confirming `past` is meant to
+be `REVEALED`-only.
+
+### E1. Backend — bucket `open`/`past` by `status` alone
+
+`backend/.../application/service/HomeService.java`:
+
+```java
+for (Challenge challenge : challengeRepository.findByParticipant(accountId)) {
+    ScoreSubmission mySubmission = ...;
+    ParticipantChallengeRestDto view = ChallengeModelMapper.toParticipantChallenge(...);
+    if (challenge.getStatus() == ChallengeStatus.OPEN) {
+        open.add(view);
+    } else {
+        past.add(view);
+    }
+}
+```
+
+Drop the now-unused `pendingAction` local. Update the class doc comment (lines 20-26), which
+currently documents the buggy semantics as intentional ("`open` holds challenges with a pending
+action... `past` holds every other challenge... already actioned but still OPEN, or REVEALED") —
+rewrite to: `open` = every `OPEN` challenge the requester participates in (whether or not there's a
+pending action); `past` = every `REVEALED` challenge.
+
+`backend/.../HomeServiceTest.java`:
+- `should_bucketUnsubmittedOpenChallengeAsOpen_andSubmittedOpenChallengeAsPast` (lines 57-79) locks
+  in the old behavior — rename (e.g.
+  `should_bucketAllOpenChallengesAsOpen_regardlessOfSubmission`) and change the assertions so both
+  `notYetSubmitted` and `alreadySubmitted` land in `home.getOpen()` (size 2) and `home.getPast()` is
+  empty.
+- `should_bucketRevealedChallengeAsPast_evenWithoutASubmission` (lines 81-96) and
+  `should_hideCookMapping_when_challengeNotRevealed` (lines 98-112) are unaffected — no change.
+- Add a new case for the color-pick regression: a cook with `canPickColor` already exercised
+  (color picked, challenge still `OPEN`) must still land in `home.open` — this is the scenario that
+  was actually broken and had no test coverage.
+
+### E2. Frontend — verify the already-built branches, fix stale doc comment
+
+No template change needed: `participant-challenge-card.html`'s `canScore && submitted` ("Edit
+scores", lines 29-38) and `ownColor()` ("You're plating…", lines 22-26) branches are already
+correct and already have test coverage (`participant-challenge-card.spec.ts:60`,` :95`) — they were
+simply unreachable until E1 ships. After E1, confirm both render in the `open` section as expected.
+
+`participant-challenge-card.ts:10-19`'s doc comment currently asserts `HomeService` "only ever puts
+OPEN challenges **with a pending action** into `open`" and that "every card here is provably OPEN
+[so no status chip needed]" — the OPEN-only part stays true post-fix, but the "with a pending
+action" qualifier is now wrong; update the comment to describe the corrected invariant.
+
+### E3. Frontend — past list is now results-safe by construction
+
+Once E1 ships, `home.past` is guaranteed `REVEALED`-only, so `participant-home.html:40`'s
+unconditional `openResults(challenge.id)` click handler needs no extra guard — matches the
+project's "don't add handling for scenarios that can't happen" rule. No code change required here;
+`participant-home.spec.ts:192-206`'s existing REVEALED-past-row test keeps covering it.
+
+Optional, low-priority polish (not required to fix the reported bug): the canvas's past-row chip
+reads "Revealed — view results" (`CookingChallenge.dc.html`'s `guestPast`/`cookPast` `md-chip
+md-chip--green`), not the generic `<app-status-tag>` currently used (`participant-home.html:42`,
+which renders plain "Revealed"). Could swap in a static labeled chip for closer fidelity, but this
+is cosmetic and separate from the visibility bug.
+
+### E4. Cook-facing card style parity (issue 2, and the visual half of issue 3)
+
+Picks up Part C's explicitly-flagged "out of scope" item: `participant-challenge-card` is shared
+between guest and cook, but Part C's C1/C2 fixes (filled card + photo split) were applied
+unconditionally, so cook cards currently render identically to guest cards. The canvas's
+`isCookHome` card (`cookOpen` loop) is `md-card md-card--outlined`, `background:#f0f0f0`, **no
+photo**, with color-picker swatch buttons `56×56` at `gap:16px` (current: `40×40` /
+`--md-sys-spacing-3` ≈ 12px) and a `colorChosen` state showing a small color dot + the same
+"You're plating **{color}**" copy already implemented.
+
+Plan:
+1. `participant-challenge-card.ts` — add `readonly isCook = computed(() => this.challenge().canPickColor || this.ownColor() !== null);`.
+   Backend-confirmed disjoint from guest state: `canPickColor` is only ever true when the requester
+   is one of the two assigned cooks (`ChallengeModelMapper` — `myCookLabel != null`), never for a
+   guest.
+2. `participant-challenge-card.html` — bind `[appearance]="isCook() ? 'outlined' : 'filled'"` and
+   `[class.participant-challenge-card--cook]="isCook()"` on the `mat-card`; wrap
+   `<app-challenge-photo>` in `@if (!isCook())`.
+3. `participant-challenge-card.scss` — add
+   `.participant-challenge-card--cook { background: var(--mat-sys-surface-variant); }` (a real M3
+   token standing in for the canvas's raw prototype hex `#f0f0f0`, same reasoning as the "Open"
+   status-chip color decision earlier in this doc — confirm visually which surface-role token reads
+   closest to `#f0f0f0` before finalizing). Bump `.participant-challenge-card__swatch` (the
+   color-picker variant only — leave the `.participant-challenge-card__own-color .participant-challenge-card__swatch`
+   24px override alone) to `56px` and its parent `.participant-challenge-card__swatches` gap to
+   `var(--md-sys-spacing-4)` (16px).
+4. `participant-challenge-card.spec.ts` — add cases asserting a `canPickColor`/`ownColor` card gets
+   `appearance="outlined"` and renders no `<app-challenge-photo>`, and a plain guest card keeps
+   `appearance="filled"` with a photo present.
+
+**Confirmed out of scope, not part of this fix:** the canvas gives cook-home and guest-home
+different page-level headings ("Your open challenges" vs. "Open scoring requests") and kickers
+(`cookName` vs `guestName`/"Hi, {name}" wording is the same, only the section title differs) — the
+app deliberately merged these into one shared screen per Part C/`participant-home.ts:21-25`'s own
+doc comment, and un-merging the heading text per role is a separate decision this fix doesn't make.
+
+### Verification — Part E, done 2026-08-12
+1. Applied E1 to `HomeService.java` (bucket by `ChallengeStatus` alone, dropped `pendingAction`,
+   rewrote the class doc comment) and `HomeServiceTest.java` (renamed
+   `should_bucketUnsubmittedOpenChallengeAsOpen_andSubmittedOpenChallengeAsPast` →
+   `should_bucketAllOpenChallengesAsOpen_regardlessOfSubmission`, now asserting both land in
+   `open`/`past` is empty; added `should_bucketOpenChallengeAsOpen_evenAfterCookAlreadyPickedColor`
+   reproducing the color-pick regression with `Challenge.pickColor(...)`).
+2. Applied E2 (doc comment fix only — the "Edit scores"/"You're plating…" branches needed no
+   template changes, they just became reachable) and E4 (`isCook` computed signal on
+   `participant-challenge-card.ts`; `[appearance]`/`[class.participant-challenge-card--cook]`
+   binding and `@if (!isCook())`-wrapped photo in the template; `--cook` gray-background rule via
+   the already-used-elsewhere `--mat-sys-surface-variant` token, and swatch size bumped
+   40px→56px/gap 12px→16px in the scss). E3 needed no code change, confirmed by inspection.
+3. Added 3 new cases to `participant-challenge-card.spec.ts` covering the outlined/no-photo cook
+   style (picker and already-picked states) and the unchanged filled/photo guest style.
+4. `cd backend && ./gradlew test` — all tests green, including the 2 rewritten/new `HomeServiceTest`
+   cases.
+5. `cd frontend && npx ng build` — clean (pre-existing `qrcode` CommonJS warning only, unrelated).
+   `npx ng test --watch=false` — 129/130 passing; the one failure
+   (`error-interceptor.spec.ts`, non-UNAUTHENTICATED 401 handling) is the same pre-existing,
+   unrelated failure documented in Parts C/D's verification sections. `npm run lint` clean.
+6. Live check: not run — same missing-credentials gap noted throughout this document (no seeded
+   cook/organizer account with in-progress challenge data in the dev DB). Verified instead by
+   tracing the exact regression through the domain model (`Challenge.canScore`/`pickColor`) and by
+   new test coverage on both ends of the stack.
+
+---
+
+## Part F. Live click-through audit against the mockup — **status: implemented 2026-08-12**
+
+Every prior pass in this document (A–E) was verified by *reading* the mockup markup against the
+Angular templates, because there was no seeded cook/guest/challenge data and no known organizer
+password — this doc says so explicitly in at least five places above ("Live check: not run…"). That
+gap is closed here: the user supplied the organizer password (`claude@claude.com`) and approved
+creating throwaway test data. Both `ng serve` (4200) and the backend (8080, Postgres via Docker) were
+already running.
+
+This pass clicked through every route and dialog live in Chrome, cross-checked sizes/spacing/copy
+against the mockup source (`CookingChallenge.dc.html` + its M3 tokens, pulled fresh via `DesignSync`),
+and — where the UI made a claim that could be verified independently — went one level deeper via
+direct Postgres queries (`docker exec backend-postgres-1 psql -U cookoff -d cookoff`) and
+console/network inspection. That extra step caught two real bugs pure code-reading would have missed
+(a CSS flexbox collapse, and an Angular Router input-binding gap that throws in production), and let
+one scary-looking finding (an empty Rivalries page) be *ruled out* as a seed-data artifact rather than
+a live defect — a distinction a code-only review can't make.
+
+Created throwaway test data along the way: a new "Test Plate" / "Color Test Duel" challenge (Guest1
+vs. Guest2, used to exercise the cook color-pick flow with no prior color assigned), and revealed the
+previously-open "Schnitzel" challenge (Daniel Daniel now leads Michael Holzer 27-18, 1-0). Left in
+place intentionally — this is exactly the cook/guest/challenge data every prior pass above complained
+about missing, useful for future manual QA.
+
+### F1. HIGH — `/link-expired` threw and rendered blank in its one real use case
+
+`error-interceptor.ts`'s only real call site did `router.navigateByUrl(wasOrganizer ? '/login' :
+'/link-expired')` with no `?kind=` query param — and nothing else in the codebase ever passed one
+either (the `kind=qr` copy branch was unreachable in production). `LinkExpired.kind` is a signal
+`input<'link'|'qr'>('link')`, but the app enables `provideRouter(routes, withComponentInputBinding())`
+(`app.config.ts`), which sets `kind` to `undefined` — not the declared default — when the route has no
+matching query param. `copy = computed(() => COPY[this.kind()])` then evaluated `COPY[undefined]`, and
+`{{ copy().kicker }}` threw `TypeError: Cannot read properties of undefined (reading 'kicker')`
+(confirmed live in the browser console). Result: only the `link_off` icon and "Back to start" button
+rendered — kicker/headline/body were all empty, for every guest whose session died mid-visit.
+`/link-expired?kind=qr` (param supplied explicitly) rendered pixel-perfect against the mockup, so only
+the missing-default case was broken — and `link-expired.spec.ts`'s existing "shows the access-link
+copy by default" test passed because it instantiates the component directly via `TestBed`, never
+exercising the router's input-binding path.
+
+**Fix:** `copy` now falls back explicitly — `computed(() => COPY[this.kind() ?? 'link'])` — and
+`error-interceptor.ts` navigates with an explicit `?kind=link` for clarity. Added a new
+`link-expired.spec.ts` test that navigates via `RouterTestingHarness` with
+`withComponentInputBinding()` enabled (the same real path `errorInterceptor` uses) instead of
+instantiating the component directly, to catch this class of bug in future.
+Files: `frontend/src/app/features/auth/link-expired/link-expired.ts`,
+`frontend/src/app/core/http/error-interceptor.ts` (+ both `.spec.ts`).
+
+### F2. MEDIUM — New Challenge dialog's photo drop-zone collapsed to ~4px tall
+
+`.new-challenge-dialog__photo` set `aspect-ratio: 4/3` but was a flex item inside
+`.new-challenge-dialog__content { display:flex; flex-direction:column }` with the default
+`flex-shrink:1` and no `min-height` — it collapsed to a 4px sliver (just the dashed border),
+completely hiding the `add_a_photo` icon and "Drop a 4:3 photo…" prompt. Confirmed via
+`getBoundingClientRect` (`height:0`) and confirmed the fix live: `flex-shrink:0` restores the correct
+~385px height with the icon and prompt visible.
+File: `frontend/src/app/features/challenges/new-challenge-dialog/new-challenge-dialog.scss`.
+
+### F3. MEDIUM — Challenge Results page had no way back
+
+`challenge-results.html` had zero `<a>`/`<button>` elements besides the status chip — confirmed via
+DOM query. The mockup's `isGuestResults` block has a "← Home" link at the top. A guest/cook tapping a
+past-challenge row landed here with no in-app way back except the browser's own back button.
+
+**Fix:** added the same back-link pattern already used in `blind-scoring.html` (Part D) and
+`challenge-detail.html` — `<a mat-button routerLink="/home"><mat-icon>arrow_back</mat-icon>Home</a>`.
+Verified live: click navigates to `/home`. Added `.spec.ts` coverage and `provideRouter([])` to the
+test module (now required since the template uses `routerLink`).
+(Confirmed still-open, not new: the header shows generic "CookOff"/"Results" instead of dish
+name/date — documented API-shape gap, `frontend-implementation-plan.md:396`, no frontend-only fix.)
+File: `frontend/src/app/features/challenges/challenge-results/challenge-results.{ts,html,spec.ts}`.
+
+### F4. MEDIUM — Public Registration page was missing the centered-card shell
+
+The mockup wraps `isLogin`, `isRegister`, and `isExpired` all in the same
+`min-height:100vh;display:flex;align-items:center;justify-content:center` + `md-card md-card--elevated`
+"landing card" treatment. Organizer-login and link-expired both had it; Public Registration used the
+generic in-app `<app-page-header kicker="CookOff" title="Register">` pattern instead, with bare,
+un-carded form fields near the top-left of the page and a small `align-self:flex-start` submit button
+— the page real guests land on straight from a scanned QR code read as unstyled next to the rest of
+the app.
+
+**Fix:** reused the centered-card shell pattern from `organizer-login.html`/`.scss` (host
+`display:flex;align-items:center;justify-content:center;min-height:100dvh`, form wrapped in
+`mat-card appearance="raised"`, 360px max-width) and made the submit button full-width. Verified live
+against `/register?token=…` — now matches the login page's card treatment exactly.
+Files: `frontend/src/app/features/register/public-registration/{public-registration.html,.scss}`.
+
+### F5. LOW/MEDIUM — Organizer tab-nav ink bar intermittently lagged behind the active tab
+
+`organizer-shell.html`'s `mat-tab-nav-bar` + `mat-tab-link [active]="rla.isActive"` is standard,
+correctly-wired Angular Material — `aria-selected`/the `active` class moved to the right tab
+immediately on navigation (confirmed via DOM query), but the visual ink-bar underline sometimes stayed
+under the *previous* tab (reproduced 2 of 3 sequential tab-link clicks in one session; correct on a
+fresh single click in another). Root cause not pinned down with certainty (the underline itself is a
+per-tab CSS-class-driven MDC element with no separately-computed pixel position, so this may partly
+have been transition-timing rather than a persistent desync) — applied a low-risk mitigation rather
+than a deep Material-internals dig: on every `NavigationEnd`, dispatch a `resize` event (deferred via
+`queueMicrotask`) to nudge Material's own ink-bar recalculation. Stress-tested live with 3+ rapid
+sequential tab switches (including several fired in the same JS tick, no explicit waits) after the fix
+— the underline landed under the correct tab every time.
+File: `frontend/src/app/layout/organizer-shell/organizer-shell.ts`.
+
+### F6. MEDIUM — Challenge Detail header: chip position + photo/text order
+
+Mockup: text column (kicker, dish name **with the status chip inline right next to it**, subtitle) on
+the left, photo on the right, ~even split. Live rendered the status chip via `<app-page-header>`'s
+`actions` slot, which places it at the far top-right of the page — not next to the dish name — and
+`<app-challenge-photo>` came *before* `.challenge-detail__meta` in the DOM with uneven flex ratios
+(`flex: 1 1 240px` photo vs. `flex: 2 1 280px` meta), so the photo rendered on the left and text on
+the right, reversed from the mockup.
+
+**Fix (user confirmed: match the mockup over keeping the shared-PageHeader shortcut):** stopped
+routing the status chip through `PageHeader`; it now renders inline next to the dish-name `<h1>`
+inside a hand-built header block (kicker, title-row with chip, event subtitle, cook names), with the
+photo swapped to come after the text column in the DOM and an ~even 1:1 flex split
+(`flex: 1 1 280px` both sides). `PageHeader` import removed from `challenge-detail.ts` (no longer
+used). Verified live on both an Open and a Revealed challenge — chip sits inline next to the dish
+name, photo renders on the right.
+Files: `frontend/src/app/features/challenges/challenge-detail/challenge-detail.{ts,html,scss}`.
+
+### Already-known or intentional — checked live, no action taken
+
+- **Organizer name missing from the top bar** — `organizer-shell.ts`'s own doc comment explains why
+  (JWT has no name claim, no `/me` endpoint yet). Real gap vs. the mockup's `{{organizerName}}`, but a
+  scoped decision, not an oversight.
+- **Cook Home color-pick swatches are circles, not rounded squares** — the shared `.plate-swatch`
+  utility (`styles/_plate-color.scss`, `border-radius: full`) is used consistently everywhere a plate
+  color renders. A deliberate shared design-system choice; changing it means auditing every
+  plate-color indicator in the app. Cook/guest merged-home-card styling itself (Part E's fix)
+  reconfirmed correct live, both `needsColor` and `colorChosen` states, including the
+  `colorConfirmOpen` dialog's copy matching the mockup verbatim.
+- **New Challenge / Edit-participants dialogs render Cook A and Cook B side-by-side**, not stacked as
+  in the mockup — space-saving, reads as intentional.
+- **New/Edit Account dialog has an extra Password field** the mockup never modeled (it has no auth
+  story at all) — functionally necessary.
+- **Send-links dialog pre-checks only unsubmitted guests**, not "everyone" like the mockup — already
+  called out in the component's own doc comment as a deliberate choice.
+- **Rivalries page was empty despite an existing REVEALED challenge — turned out NOT to be a bug.**
+  Revealing a *fresh* challenge live through the real UI correctly created a `cook_rivalries` row
+  (confirmed via direct Postgres query) and the Rivalries list/detail pages rendered it exactly per
+  the mockup's card structure. The one empty case traced to `test dish`, whose seed data almost
+  certainly set `status=REVEALED` directly rather than going through the real reveal flow that fires
+  the domain event — a seed-data quirk, not a live defect. No code change needed. Still true and worth
+  a future product call: OPEN challenges never contribute to a rivalry pair at all (no `openCount`
+  concept anywhere in the backend model), unlike the mockup which shows "X revealed · Y open".
+- Everything already itemized as resolved/intentional in Parts A–E (trophy vs. crown emoji, guest list
+  as a `<table>`, plate-color bars with text instead of bare color, etc.) — reconfirmed live wherever
+  the relevant screen was visited this pass (History cards, Challenge Detail, Blind Scoring, Accounts,
+  Rivalries, dialogs), no regressions found.
+
+### Not fully covered this pass
+
+- **Responsive/mobile reflow** — attempted via the browser tool's `resize_window` to 390×844; the tool
+  changed `window.outerWidth` but the page's actual `innerWidth` never followed (a tab-group/
+  automation quirk, not an app issue) — inconclusive. Recommend a manual follow-up (real window resize
+  or Chrome DevTools device toolbar) on: the challenge-history grid
+  (`repeat(auto-fill,minmax(260px,1fr))`), the rivalries grid, and the accounts-admin table (a
+  4-column table with no documented narrow-viewport treatment).
+
+### Verification — Part F, done 2026-08-12
+
+1. Applied F1–F6 as described above.
+2. `cd frontend && npx ng build` — clean (pre-existing `qrcode` CommonJS warning only, unrelated).
+3. `npx ng test --watch=false` — 131/132 passing (up from 129/130: added the router-navigation test
+   for F1 and the back-link test for F3). The one failure (`error-interceptor.spec.ts`,
+   non-UNAUTHENTICATED 401 handling) is the same pre-existing, unrelated failure documented in every
+   prior part's verification section.
+4. `npm run lint` clean.
+5. Live check: run, for the first time in this document's history. Logged in as organizer
+   (`claude@claude.com`), created and revealed test data, and walked every route and every dialog —
+   History, New Challenge, Challenge Detail (Open + Revealed) and all five of its dialogs, Accounts +
+   New/Edit Account, Rivalries + Rivalry Detail, cook Home (`needsColor`/`colorChosen`), guest Home
+   (open/past), Blind Scoring (submit flow), Challenge Results, Public Registration, Link Expired
+   (`link`/`qr`), 404. Each of F1–F6 individually re-verified live after its fix (see each section
+   above).
 
 ---
 

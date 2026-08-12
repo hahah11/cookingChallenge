@@ -46,7 +46,7 @@ describe('errorInterceptor', () => {
     });
 
     expect(logout).toHaveBeenCalled();
-    expect(navigateSpy).toHaveBeenCalledWith('/link-expired');
+    expect(navigateSpy).toHaveBeenCalledWith('/link-expired?kind=link');
   });
 
   it('leaves non-UNAUTHENTICATED 401s alone (e.g. wrong organizer password)', () => {

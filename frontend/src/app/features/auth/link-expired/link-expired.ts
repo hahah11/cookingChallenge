@@ -27,6 +27,11 @@ const COPY: Record<'link' | 'qr', ExpiredCopy> = {
  * Reached when a guest's access-link session dies mid-visit (401 `UNAUTHENTICATED`) or their
  * QR/access-link token itself was already dead — see `errorInterceptor`. Guests never have
  * organizer credentials, so `/login` is a dead end for them; this is their landing spot instead.
+ *
+ * `withComponentInputBinding()` (app.config.ts) sets `kind` to `undefined` — not its declared
+ * default — when the route has no matching `kind` query param, which is how `errorInterceptor`
+ * always reaches this route. `copy` falls back to 'link' explicitly rather than trusting the
+ * input's own default.
  */
 @Component({
   selector: 'app-link-expired',
@@ -37,5 +42,5 @@ const COPY: Record<'link' | 'qr', ExpiredCopy> = {
 export class LinkExpired {
   readonly kind = input<'link' | 'qr'>('link');
 
-  protected readonly copy = computed(() => COPY[this.kind()]);
+  protected readonly copy = computed(() => COPY[this.kind() ?? 'link']);
 }

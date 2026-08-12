@@ -101,4 +101,31 @@ describe('ParticipantChallengeCard', () => {
     expect(el.querySelector('.participant-challenge-card__swatches')).toBeNull();
     expect(el.querySelector('.participant-challenge-card__own-color').textContent).toContain('Red');
   });
+
+  it('renders the cook-facing card style (outlined, no photo) when the cook can still pick a color', async () => {
+    const fixture = await createComponent({
+      challenge: baseChallenge({ myCookLabel: ParticipantChallengeMyCookLabelEnum.A, canPickColor: true }),
+      pickableColors: [RED, YELLOW]
+    });
+    const el = fixture.nativeElement;
+    expect(el.querySelector('.participant-challenge-card--cook')).not.toBeNull();
+    expect(el.querySelector('app-challenge-photo')).toBeNull();
+  });
+
+  it('keeps the cook-facing card style once the color is already picked', async () => {
+    const fixture = await createComponent({
+      challenge: baseChallenge({ myCookLabel: ParticipantChallengeMyCookLabelEnum.A, canPickColor: false }),
+      ownColor: RED
+    });
+    const el = fixture.nativeElement;
+    expect(el.querySelector('.participant-challenge-card--cook')).not.toBeNull();
+    expect(el.querySelector('app-challenge-photo')).toBeNull();
+  });
+
+  it('renders the guest-facing card style (filled, with photo) for a non-cook card', async () => {
+    const fixture = await createComponent({ challenge: baseChallenge({ canScore: true, submitted: false }) });
+    const el = fixture.nativeElement;
+    expect(el.querySelector('.participant-challenge-card--cook')).toBeNull();
+    expect(el.querySelector('app-challenge-photo')).not.toBeNull();
+  });
 });

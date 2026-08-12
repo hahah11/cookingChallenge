@@ -60,17 +60,36 @@
 }
 
 .challenge-detail__photo {
-  flex: 1 1 240px;
-  max-width: 320px;
+  flex: 1 1 280px;
+  max-width: 380px;
   border-radius: var(--md-sys-shape-corner-medium);
   overflow: hidden;
 }
 
 .challenge-detail__meta {
-  flex: 2 1 280px;
+  flex: 1 1 280px;
   display: flex;
   flex-direction: column;
   gap: var(--md-sys-spacing-1);
+}
+
+.challenge-detail__kicker {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.challenge-detail__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--md-sys-spacing-3);
+}
+
+.challenge-detail__title {
+  margin: 0;
+  font: var(--mat-sys-headline-medium);
 }
 
 .challenge-detail__event {

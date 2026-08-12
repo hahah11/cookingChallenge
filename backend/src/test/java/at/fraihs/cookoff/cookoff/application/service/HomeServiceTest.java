@@ -10,6 +10,7 @@ import at.fraihs.cookoff.cookoff.domain.model.Category;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishLabel;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
+import at.fraihs.cookoff.cookoff.domain.model.PlateColorId;
 import at.fraihs.cookoff.cookoff.domain.model.Score;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmission;
 import at.fraihs.cookoff.cookoff.domain.model.ScoreSubmissionId;
@@ -55,7 +56,7 @@ class HomeServiceTest {
     }
 
     @Test
-    void should_bucketUnsubmittedOpenChallengeAsOpen_andSubmittedOpenChallengeAsPast() {
+    void should_bucketAllOpenChallengesAsOpen_regardlessOfSubmission() {
         Challenge notYetSubmitted = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
         Challenge alreadySubmitted = Challenge.create(LocalDate.now(), null, new DishName("Goulash"),
@@ -72,10 +73,28 @@ class HomeServiceTest {
 
         GuestHomeRestDto home = service.execute(accountId);
 
+        assertEquals(2, home.getOpen().size());
+        assertTrue(home.getOpen().stream().anyMatch(c -> c.getId().equals(notYetSubmitted.getId().toString())));
+        assertTrue(home.getOpen().stream().anyMatch(c -> c.getId().equals(alreadySubmitted.getId().toString())));
+        assertTrue(home.getPast().isEmpty());
+    }
+
+    @Test
+    void should_bucketOpenChallengeAsOpen_evenAfterCookAlreadyPickedColor() {
+        AccountId cookAccountId = accountId;
+        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+                cookAccountId, AccountId.generate(), List.of(), AccountId.generate());
+        challenge.pickColor(cookAccountId, PlateColorId.generate(), PlateColorId.generate());
+        when(accountLookup.getById(any())).thenReturn(
+                new AccountSummary(AccountId.generate(), new Email("cook@example.com"), "Cook", "Cook"));
+        when(challengeRepository.findByParticipant(accountId)).thenReturn(List.of(challenge));
+        when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), accountId))
+                .thenReturn(Optional.empty());
+
+        GuestHomeRestDto home = service.execute(accountId);
+
         assertEquals(1, home.getOpen().size());
-        assertEquals(notYetSubmitted.getId().toString(), home.getOpen().get(0).getId());
-        assertEquals(1, home.getPast().size());
-        assertEquals(alreadySubmitted.getId().toString(), home.getPast().get(0).getId());
+        assertTrue(home.getPast().isEmpty());
     }
 
     @Test
