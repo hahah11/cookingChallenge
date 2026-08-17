@@ -10,7 +10,7 @@
     @case ('loaded') {
       <mat-form-field appearance="outline">
         <mat-label>First name</mat-label>
-        <input matInput [formField]="accountForm.firstName" />
+        <input matInput placeholder="Sophie" [formField]="accountForm.firstName" />
         @if (accountForm.firstName().touched() && accountForm.firstName().invalid()) {
           <mat-error>{{ accountForm.firstName().errors()[0]?.message }}</mat-error>
         }
@@ -18,7 +18,7 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Last name</mat-label>
-        <input matInput [formField]="accountForm.lastName" />
+        <input matInput placeholder="Lang" [formField]="accountForm.lastName" />
         @if (accountForm.lastName().touched() && accountForm.lastName().invalid()) {
           <mat-error>{{ accountForm.lastName().errors()[0]?.message }}</mat-error>
         }
@@ -26,7 +26,7 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Email</mat-label>
-        <input matInput type="email" [formField]="accountForm.email" />
+        <input matInput type="email" placeholder="sophie@example.com" [formField]="accountForm.email" />
         @if (accountForm.email().touched() && accountForm.email().invalid()) {
           <mat-error>{{ accountForm.email().errors()[0]?.message }}</mat-error>
         }

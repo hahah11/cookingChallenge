@@ -883,6 +883,45 @@ Files touched: `features/accounts/accounts-admin/accounts-admin.html`,
 `features/accounts/accounts-admin/accounts-admin.ts`,
 `features/accounts/accounts-admin/accounts-admin.scss`.
 
+### G8. New/Edit Account dialog (`features/accounts/edit-account-dialog/`, `accounts-admin.ts`)
+
+Checked against the mockup source directly (`CookingChallenge.dc.html` lines 555–576, the
+`acctCreateOpen` block) since the dialog has no distinct mockup screenshot state beyond what
+`New account` from the History screen already reaches — same form serves create and edit, per the
+existing `acctDialogTitle`/`acctDialogSubmitLabel` dynamic-label logic (already matched, this
+doc's B4).
+
+| # | Mockup | Live (before) | Fix |
+|---|---|---|---|
+| 1 | Dialog is the design system's un-overridden default: `.md-dialog{width:min(360px,100%)}` — no inline `style="width:..."` on this dialog's `<form class="md-dialog">`, unlike New Challenge's (`width:min(420px,100%)`) or the QR dialog's centered variant | `480px` — explicit `{ width: '480px' }` on both `openEditDialog`/`openCreateDialog` calls in `accounts-admin.ts`, plus the component's own `min-width: min(420px, 90vw)` | Fixed: both call sites now pass `width: '360px'`; component's own `min-width` lowered to match (`min(360px, 90vw)`). Same "give it an explicit width, don't rely on Material's fallback" lesson as G6 — three short text fields plus a 3-item role checklist fit comfortably at 360px, no side-by-side layout need (unlike Edit-participants' documented 560px exception). |
+| 2 | Field wrapper (First/Last/Email/Password/Roles) uses `gap:12px` throughout (`CookingChallenge.dc.html:559`) | `.edit-account-dialog__content` used `gap: var(--md-sys-spacing-1)` (4px) between fields, with an extra `margin: var(--md-sys-spacing-2) 0 0` (8px) tacked onto the Roles fieldset specifically — the two together happened to land the *Roles* gap near 12px while every other field-to-field gap stayed at 4px | Fixed: content `gap` → `var(--md-sys-spacing-3)` (12px), removed the now-redundant margin from `.edit-account-dialog__roles` (`margin: 0`) so all gaps are uniformly 12px via the flex gap alone. |
+| 3 | First/Last/Email fields show example placeholder text (`"Sophie"`, `"Lang"`, `"sophie@example.com"`) | No placeholders on any field | Fixed: added matching `placeholder` attributes — same class of gap as G1/G3's placeholder fixes, just never applied here. |
+
+**Already correct / documented intentional, no action:** dynamic title/submit label
+(`"New account"`/`"Create account"` vs `"Edit account"`/`"Save changes"`) — already exactly right;
+the extra Password field in create mode — documented intentional deviation (mockup has no auth
+story); Roles checklist behavior — USER always checked+disabled (dimmed via Material's own
+disabled-state opacity, not a custom override) matches the mockup's `roleCheckItems` logic
+(`checked:true, disabled:true, opacity:.45` for USER, live-toggleable for ADMIN/ORGANIZER)
+exactly, confirmed by reading `toggleRole()` and the mockup's `toggleNARole` logic side by side.
+
+#### Verification — G8, done 2026-08-17
+
+1. `cd frontend && npx ng build` — clean (pre-existing `qrcode` CommonJS warning only).
+2. `npx ng test --watch=false` — 132/133 passing, same pre-existing `error-interceptor.spec.ts`
+   failure as every prior part.
+3. `npm run lint` — clean.
+4. Live check: logged in as organizer, opened both New account (create mode) and Edit on "Michael
+   Holzer" (edit mode) from `/accounts` — both measured `360px` wide. Create mode showed all four
+   fields plus Roles (with USER dimmed/disabled); edit mode correctly omitted Password and
+   pre-filled the existing name/email. Focused First name to confirm the "Sophie" placeholder
+   renders once the label floats, matching the established placeholder-fix pattern from prior
+   parts. Title/submit label read "Edit account"/"Save changes" in edit mode as expected.
+
+Files touched: `features/accounts/edit-account-dialog/edit-account-dialog.html`,
+`features/accounts/edit-account-dialog/edit-account-dialog.scss`,
+`features/accounts/accounts-admin/accounts-admin.ts`.
+
 ---
 
 ## Verification

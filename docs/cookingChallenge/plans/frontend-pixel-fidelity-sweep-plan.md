@@ -1,20 +1,21 @@
 # Frontend Pixel-Fidelity Sweep — Plan
 
 **Status:** Part 0 (recon) done 2026-08-12 — see its section for the navigation model and gotchas.
-Items 1–7 (Organizer Login, Challenge History, New Challenge dialog, Challenge Detail Open and
-Revealed, Challenge Detail dialogs, Accounts Admin) done 2026-08-17, logged as Parts G1–G7 in
-`frontend-design-fidelity-plan.md`. Items 8–26 not started. This is a checklist plan, meant to be
-worked one item at a time (by separate agent sessions if useful) rather than in one pass. Each
-numbered item under "Screen checklist" is self-contained enough to hand to a fresh agent with just
-a pointer to this file — they no longer need to redo Part 0's discovery work, just read it.
+Items 1–8 (Organizer Login, Challenge History, New Challenge dialog, Challenge Detail Open and
+Revealed, Challenge Detail dialogs, Accounts Admin, New/Edit Account dialog) done 2026-08-17,
+logged as Parts G1–G8 in `frontend-design-fidelity-plan.md`. Items 9–26 not started. This is a
+checklist plan, meant to be worked one item at a time (by separate agent sessions if useful)
+rather than in one pass. Each numbered item under "Screen checklist" is self-contained enough to
+hand to a fresh agent with just a pointer to this file — they no longer need to redo Part 0's
+discovery work, just read it.
 
-**Note for item 8 (New/Edit Account dialog):** item 6 found that dialogs opened with no explicit
-`width` in their `MatDialog.open()` call fall back to Angular Material's own 560px spec default
-(`--mdc-dialog-container-max-width`) rather than shrinking to the component's own CSS `min-width`
-— confirmed live on the Reveal/Unreveal `ConfirmDialog`. New/Edit Account's dialog already passes
-an explicit `width: '480px'` (`accounts-admin.ts`'s `openEditDialog`/`openCreateDialog`), so this
-particular gotcha likely doesn't apply here, but worth confirming against the mockup's actual
-dialog width rather than assuming.
+**Reminder for any dialog item still ahead:** the mockup's base `.md-dialog` class defaults to
+`width: min(360px, 100%)` — confirmed by reading `components.css` directly. Any mockup dialog
+without its own inline `style="width:..."` override (check the source, not just the render) should
+be assumed to want 360px unless the content genuinely needs more room. Combined with G6's finding
+that omitting `width` entirely on `MatDialog.open()` falls back to Material's own 560px default
+(not a content-driven shrink), the rule of thumb for the rest of this sweep is: always pass an
+explicit `width` matching what the mockup source actually specifies, never rely on the default.
 
 **Note for item 9–10 (Rivalries, cont'd):** item 7 found the mockup applies a role-specific chip
 treatment — `md-chip--selected` (filled/tinted) only for the "important" value in a set, plain

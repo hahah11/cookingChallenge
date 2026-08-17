@@ -72,7 +72,7 @@ export class AccountsAdmin {
 
   protected openEditDialog(accountId: string): void {
     const data: EditAccountDialogData = { accountId };
-    const ref = this.dialog.open(EditAccountDialog, { data, width: '480px' });
+    const ref = this.dialog.open(EditAccountDialog, { data, width: '360px' });
     ref.afterClosed().subscribe((updated) => {
       if (updated) {
         this.load();
@@ -82,7 +82,7 @@ export class AccountsAdmin {
 
   protected openCreateDialog(): void {
     const data: EditAccountDialogData = { accountId: null };
-    const ref = this.dialog.open(EditAccountDialog, { data, width: '480px' });
+    const ref = this.dialog.open(EditAccountDialog, { data, width: '360px' });
     ref.afterClosed().subscribe((created) => {
       if (created) {
         this.load();
