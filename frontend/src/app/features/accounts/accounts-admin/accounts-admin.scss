@@ -7,8 +7,14 @@
 .accounts-admin__table th,
 .accounts-admin__table td {
   text-align: left;
-  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
+  padding: var(--md-sys-spacing-2);
   border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.accounts-admin__table th {
+  font: var(--mat-sys-label-small);
+  letter-spacing: 0.5px;
+  border-bottom-width: 2px;
 }
 
 // Below 640px the table restyles into a stacked card list, one card per

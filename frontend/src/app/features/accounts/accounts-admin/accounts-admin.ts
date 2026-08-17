@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
-import { Account, AccountsApi } from '../../../core/api/generated';
+import { Account, AccountsApi, SystemRole } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
@@ -34,6 +34,8 @@ type LoadState = 'loading' | 'loaded' | 'error';
   styleUrl: './accounts-admin.scss'
 })
 export class AccountsAdmin {
+  protected readonly SystemRole = SystemRole;
+
   private readonly accountsApi = inject(AccountsApi);
   private readonly dialog = inject(MatDialog);
 

@@ -841,6 +841,48 @@ Files touched: `features/challenges/send-links-dialog/send-links-dialog.ts`,
 `features/challenges/qr-dialog/qr-dialog.ts`,
 `shared/components/qr-code/qr-code.ts`.
 
+### G7. Accounts Admin (`features/accounts/accounts-admin/`)
+
+Reached via an organizer session (`claude@claude.com`) on `/accounts`, measured against the
+mockup's Accounts screen (dev-nav "Accounts" → Anna Novak's seed roster, which usefully includes a
+multi-role account for Anna Novak: `['ADMIN','ORGANIZER']`).
+
+| # | Mockup | Live (before) | Fix |
+|---|---|---|---|
+| 1 | ADMIN role chip is filled/tinted (`md-chip--selected`, applied only when `role === 'ADMIN'`); every other role (`ORGANIZER`, `USER`) is a plain outlined chip | Every role rendered as a plain `<mat-chip disableRipple>` — no distinction for ADMIN | Fixed: added `[highlighted]="role === SystemRole.ADMIN"` to the chip binding, matching Material's own tonal chip look to the mockup's filled variant. No custom color override, same "let Material render its own `highlighted` treatment" precedent as G5's results-table chip fix. |
+| 2 | Per-row "Edit" is plain text (`md-button--text`, no icon) — confirmed via source (`CookingChallenge.dc.html:232`); the page-level "New account" button *does* carry an icon (`add` glyph, line 213), so the mockup deliberately icons the primary CTA but not the per-row action | Row "Edit" button had both a `mat-icon` (`edit` glyph) and the text label | Fixed: removed the icon, kept plain "Edit" text — matches the mockup's asymmetry between primary CTA and per-row action. |
+| 3 | "New account" button icon is the `add` glyph | Used `person_add` | Fixed: → `add`, matching the mockup source verbatim. |
+| 4 | Table `<th>`/`<td>` padding is uniform `8px` on all sides | `var(--md-sys-spacing-2) var(--md-sys-spacing-3)` = `8px 12px` (extra horizontal padding not in the mockup) | Fixed: → `var(--md-sys-spacing-2)` alone (8px all sides) on the shared `th`/`td` rule. |
+| 5 | Header row (`<tr>`) is explicitly `md-typescale-label-small` (11px/500, 0.5px letter-spacing) — confirmed via computed-style inspection of the mockup's live DOM, not just source, since the class isn't visible in the inline `<th>` markup itself; body rows are `md-typescale-body-medium` (14px/400, as already matched) | `<th>` inherited the page's 14px body-medium size (only bold/left-align differed from `<td>`, both from the native `<th>` UA default and the shared padding rule) | Fixed: added a `.accounts-admin__table th` rule — `font: var(--mat-sys-label-small)` (same token already used for `.send-links-dialog__role`) plus `letter-spacing: 0.5px` (not carried by the `font` shorthand, copied verbatim from the mockup's measured value). |
+| 6 | Header row border-bottom `2px` | `1px` (shared with body rows) | Fixed: added `border-bottom-width: 2px` to the new `th`-specific rule, leaving body rows at `1px`. |
+
+**Already correct / out of scope, no action:** multi-role chip rendering (`@for (role of
+account.roles...)` already iterates the full roles array — the mockup and live both render one
+chip per role; the live seed data just happens to have single-role accounts today, a data
+difference, not a template bug); chip-to-chip gap (Material's own `mat-chip-set` internal spacing,
+not something the app sets explicitly — left alone per the "don't touch Material internals" rule,
+mockup's 4px vs Material's ~8px is a minor, unfixable-without-overriding-internals gap); table
+overall width (728px mockup vs ~1120px live) — this is the same organizer-shell 960px-vs-1120px
+gutter issue already flagged systemic in this sweep plan's item 11 note, not Accounts-specific;
+`mat-paginator` — the mockup's static prototype has no pagination concept at all for its fixed
+seed list, but real pagination is a functional necessity once account counts grow, same class of
+gap as documented "no design source to copy from" cases elsewhere in this doc.
+
+#### Verification — G7, done 2026-08-17
+
+1. `cd frontend && npx ng build` — clean (pre-existing `qrcode` CommonJS warning only).
+2. `npx ng test --watch=false` — 132/133 passing, same pre-existing `error-interceptor.spec.ts`
+   failure as every prior part.
+3. `npm run lint` — clean.
+4. Live check: logged in as organizer, reloaded `/accounts`, re-measured post-fix —
+   `.accounts-admin__table th` computed to `11.008px`/`500`/`0.5px` letter-spacing/`2px` border,
+   `td` to `14px`/`8px` padding, ADMIN chip carries `mat-mdc-chip-highlighted`. Zoomed screenshots
+   of the header row and ADMIN/USER chips confirm a close visual match to the mockup.
+
+Files touched: `features/accounts/accounts-admin/accounts-admin.html`,
+`features/accounts/accounts-admin/accounts-admin.ts`,
+`features/accounts/accounts-admin/accounts-admin.scss`.
+
 ---
 
 ## Verification

@@ -1,19 +1,27 @@
 # Frontend Pixel-Fidelity Sweep — Plan
 
 **Status:** Part 0 (recon) done 2026-08-12 — see its section for the navigation model and gotchas.
-Items 1–6 (Organizer Login, Challenge History, New Challenge dialog, Challenge Detail Open and
-Revealed, Challenge Detail dialogs) done 2026-08-17, logged as Parts G1–G6 in
-`frontend-design-fidelity-plan.md`. Items 7–26 not started. This is a checklist plan, meant to be
+Items 1–7 (Organizer Login, Challenge History, New Challenge dialog, Challenge Detail Open and
+Revealed, Challenge Detail dialogs, Accounts Admin) done 2026-08-17, logged as Parts G1–G7 in
+`frontend-design-fidelity-plan.md`. Items 8–26 not started. This is a checklist plan, meant to be
 worked one item at a time (by separate agent sessions if useful) rather than in one pass. Each
 numbered item under "Screen checklist" is self-contained enough to hand to a fresh agent with just
 a pointer to this file — they no longer need to redo Part 0's discovery work, just read it.
 
-**Note for item 7–8 (Accounts Admin, New/Edit Account dialog):** item 6 found that dialogs opened
-with no explicit `width` in their `MatDialog.open()` call fall back to Angular Material's own
-560px spec default (`--mdc-dialog-container-max-width`) rather than shrinking to the component's
-own CSS `min-width` — confirmed live on the Reveal/Unreveal `ConfirmDialog`. If New/Edit Account's
-dialog looks too wide against the mockup, check whether it passes an explicit `width` before
-assuming the mismatch is arrangement-only.
+**Note for item 8 (New/Edit Account dialog):** item 6 found that dialogs opened with no explicit
+`width` in their `MatDialog.open()` call fall back to Angular Material's own 560px spec default
+(`--mdc-dialog-container-max-width`) rather than shrinking to the component's own CSS `min-width`
+— confirmed live on the Reveal/Unreveal `ConfirmDialog`. New/Edit Account's dialog already passes
+an explicit `width: '480px'` (`accounts-admin.ts`'s `openEditDialog`/`openCreateDialog`), so this
+particular gotcha likely doesn't apply here, but worth confirming against the mockup's actual
+dialog width rather than assuming.
+
+**Note for item 9–10 (Rivalries, cont'd):** item 7 found the mockup applies a role-specific chip
+treatment — `md-chip--selected` (filled/tinted) only for the "important" value in a set, plain
+outlined for the rest — as a recurring pattern (also seen on the Challenge History status chip
+per earlier items). Worth checking whether Rivalries' outcome labels or any other chip-like value
+in the remaining checklist items follow the same "one value gets emphasis" pattern before assuming
+uniform chip styling is correct.
 
 **Note for item 19 (Challenge Results, participant-facing):** item 5 brought
 `shared/components/results-table/` (the crown-row/tinted-column/Total-row-highlight table) fully in
