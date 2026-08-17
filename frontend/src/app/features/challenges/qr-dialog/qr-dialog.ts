@@ -24,7 +24,7 @@ type LoadState = 'loading' | 'loaded' | 'error';
   selector: 'app-qr-dialog',
   imports: [ErrorState, LoadingSkeleton, MatButtonModule, MatDialogModule, QrCode],
   template: `
-    <h2 mat-dialog-title>Scan to register</h2>
+    <h2 mat-dialog-title class="qr-dialog__title">Scan to register</h2>
     <mat-dialog-content class="qr-dialog__content">
       @switch (state()) {
         @case ('loading') {
@@ -34,16 +34,20 @@ type LoadState = 'loading' | 'loaded' | 'error';
           <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="load()" />
         }
         @case ('loaded') {
-          <app-qr-code [value]="registrationUrl()" />
+          <app-qr-code [value]="registrationUrl()" [size]="200" />
           <p class="qr-dialog__hint">Guests scan this to register for the app and join {{ data.challengeName }}.</p>
         }
       }
     </mat-dialog-content>
-    <mat-dialog-actions align="end">
+    <mat-dialog-actions align="center">
       <button mat-button type="button" mat-dialog-close>Close</button>
     </mat-dialog-actions>
   `,
   styles: `
+    .qr-dialog__title {
+      text-align: center;
+    }
+
     .qr-dialog__content {
       display: flex;
       flex-direction: column;
@@ -55,7 +59,7 @@ type LoadState = 'loading' | 'loaded' | 'error';
 
     .qr-dialog__hint {
       margin: 0;
-      font: var(--mat-sys-body-medium);
+      font: var(--mat-sys-body-small);
       color: var(--mat-sys-on-surface-variant);
     }
   `

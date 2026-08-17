@@ -1,12 +1,19 @@
 # Frontend Pixel-Fidelity Sweep — Plan
 
 **Status:** Part 0 (recon) done 2026-08-12 — see its section for the navigation model and gotchas.
-Items 1–5 (Organizer Login, Challenge History, New Challenge dialog, Challenge Detail Open and
-Revealed) done 2026-08-17, logged as Parts G1–G5 in `frontend-design-fidelity-plan.md`. Items 6–26
-not started. This is a checklist plan, meant to be worked one item at a time (by separate agent
-sessions if useful) rather than in one pass. Each numbered item under "Screen checklist" is
-self-contained enough to hand to a fresh agent with just a pointer to this file — they no longer
-need to redo Part 0's discovery work, just read it.
+Items 1–6 (Organizer Login, Challenge History, New Challenge dialog, Challenge Detail Open and
+Revealed, Challenge Detail dialogs) done 2026-08-17, logged as Parts G1–G6 in
+`frontend-design-fidelity-plan.md`. Items 7–26 not started. This is a checklist plan, meant to be
+worked one item at a time (by separate agent sessions if useful) rather than in one pass. Each
+numbered item under "Screen checklist" is self-contained enough to hand to a fresh agent with just
+a pointer to this file — they no longer need to redo Part 0's discovery work, just read it.
+
+**Note for item 7–8 (Accounts Admin, New/Edit Account dialog):** item 6 found that dialogs opened
+with no explicit `width` in their `MatDialog.open()` call fall back to Angular Material's own
+560px spec default (`--mdc-dialog-container-max-width`) rather than shrinking to the component's
+own CSS `min-width` — confirmed live on the Reveal/Unreveal `ConfirmDialog`. If New/Edit Account's
+dialog looks too wide against the mockup, check whether it passes an explicit `width` before
+assuming the mismatch is arrangement-only.
 
 **Note for item 19 (Challenge Results, participant-facing):** item 5 brought
 `shared/components/results-table/` (the crown-row/tinted-column/Total-row-highlight table) fully in

@@ -132,7 +132,7 @@ export class ChallengeDetail {
     if (!challenge) return;
 
     const data: SendLinksDialogData = { challengeId: challenge.challengeId };
-    const ref = this.dialog.open(SendLinksDialog, { data, width: '480px' });
+    const ref = this.dialog.open(SendLinksDialog, { data, width: '400px' });
     ref.afterClosed().subscribe((sent) => {
       if (sent) {
         this.linksSentFlash.set(true);
@@ -178,7 +178,7 @@ export class ChallengeDetail {
       confirmLabel: 'Yes, reveal'
     };
     this.dialog
-      .open(ConfirmDialog, { data })
+      .open(ConfirmDialog, { data, width: '360px' })
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
@@ -220,7 +220,7 @@ export class ChallengeDetail {
       confirmLabel: 'Yes, unreveal'
     };
     this.dialog
-      .open(ConfirmDialog, { data })
+      .open(ConfirmDialog, { data, width: '360px' })
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {

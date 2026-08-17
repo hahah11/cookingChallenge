@@ -4,7 +4,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { ChallengesApi, CookAssignment, GuestSubmissionStatus, InvitationsSent } from '../../../core/api/generated';
+import { ChallengesApi, CookAssignment, DishLabel, GuestSubmissionStatus, InvitationsSent } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
@@ -16,7 +16,7 @@ export interface SendLinksDialogData {
 interface Recipient {
   accountId: string;
   name: string;
-  role: 'Cook' | 'Guest';
+  role: 'Cook A' | 'Cook B' | 'Guest';
   submitted: boolean;
 }
 
@@ -48,7 +48,12 @@ export class SendLinksDialog {
   protected readonly submitting = signal(false);
 
   protected readonly recipients = computed<Recipient[]>(() => [
-    ...this.cooks().map((cook) => ({ accountId: cook.accountId, name: cook.name, role: 'Cook' as const, submitted: false })),
+    ...this.cooks().map((cook) => ({
+      accountId: cook.accountId,
+      name: cook.name,
+      role: cook.label === DishLabel.A ? ('Cook A' as const) : ('Cook B' as const),
+      submitted: false
+    })),
     ...this.guests().map((guest) => ({
       accountId: guest.accountId,
       name: guest.name,

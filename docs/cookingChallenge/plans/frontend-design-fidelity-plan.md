@@ -796,6 +796,51 @@ Files touched: `shared/components/results-table/results-table.html`,
 `features/challenges/challenge-detail/challenge-detail.ts`,
 `features/challenges/challenge-detail/challenge-detail.scss`.
 
+### G6. Challenge Detail dialogs (`send-links-dialog/`, `qr-dialog/`, `qr-code/`, `challenge-detail.ts`)
+
+Covers item 6's five dialogs: Send/resend links, Registration QR code, Edit cooks & guests, Reveal
+confirm, Unreveal confirm. Reached each live via an organizer session (`claude@claude.com`) on the
+"Test Plate" (Open) and "Schnitzel" (Revealed, for Unreveal) seed challenges, measured against the
+mockup's `Pulled Pork Burger` (Open) / `Gazpacho` (Revealed) equivalents.
+
+| # | Dialog | Mockup | Live (before) | Fix |
+|---|---|---|---|---|
+| 1 | Send links | Cook recipients labeled "Cook A" / "Cook B" | Both cooks labeled generic "Cook" — `send-links-dialog.ts`'s `recipients()` hardcoded `role: 'Cook'` instead of reading the already-available `cook.label` (`DishLabel.A`/`B`, same field `challenge-detail.ts` already uses to split Cook A/B for the Edit-participants dialog) | Fixed: `role` now resolves to `'Cook A'` / `'Cook B'` from `cook.label`. |
+| 2 | Send links | Dialog `360px` wide | `480px` — explicit `{ width: '480px' }` override in `challenge-detail.ts`'s `openSendLinksDialog()`, same class of bug as G3's New Challenge dialog fix | Investigated first without any override at all (matching G3's fix): Angular Material's dialog defaults to filling its `max-width` (560px spec default) when no `width` is passed, rather than shrinking to the content's own `min-width: min(400px, 90vw)` — so removing the override made it *wider* (539px), not narrower, unlike New Challenge dialog's case. Settled on an explicit `width: '400px'` (matching the component's own min-width value exactly) instead — closer to the mockup's 360px than the original 480px, while keeping enough room for longer real guest names than the mockup's seed data. |
+| 3 | Reveal confirm / Unreveal confirm | Dialog `360px` wide | `560px` — `ConfirmDialog` (shared by reveal/unreveal/color-pick) is opened with no `width` at all in either call site, so it fell back to Material's own 560px spec default (verified via `getComputedStyle` on `.cdk-overlay-pane`: `max-width: 560px` with no inline style — a real Material default, not app CSS) | Fixed: added `width: '360px'` to both `this.dialog.open(ConfirmDialog, ...)` calls in `challenge-detail.ts` (reveal and unreveal) — same pattern the QR dialog already used. Did **not** touch `participant-home.ts`'s color-pick confirm use of the same shared component — that's item 16, out of this item's scope. |
+| 4 | Registration QR code | QR image `200×200` | `240×240` — `<app-qr-code>`'s `size` input defaults to `240`, and `qr-dialog.ts` didn't override it | Fixed: `qr-dialog.ts` now passes `[size]="200"`. |
+| 5 | Registration QR code | Whole dialog centered — mockup source has `style="text-align:center"` on `.md-dialog` plus `justify-content:center` on `.md-dialog__actions`, specific to this dialog (confirmed via `CookingChallenge.dc.html` lines 578–586; other simple dialogs like Send links/Reveal confirm are left-aligned) | Title used Material's default left/start alignment; hint text was centered (component's own `.qr-dialog__content` already had `text-align:center`); actions used `align="end"` (Close button right-aligned) | Fixed: added `text-align:center` to a new `.qr-dialog__title` class on the `h2`, and changed `mat-dialog-actions`'s `align="end"` to `align="center"` (a supported `MatDialogActions` value — no Material internals touched). |
+| 6 | Registration QR code | Hint paragraph is `md-typescale-body-small` (12px) | `.qr-dialog__hint` used `--mat-sys-body-medium` (14px) | Fixed: → `--mat-sys-body-small`. |
+| 7 | Registration QR code | QR image has `border: 1px solid var(--md-sys-color-outline-variant)`, no corner rounding | `.qr-code` canvas (shared `qr-code.ts` component) had `border-radius: var(--md-sys-shape-corner-medium)` and no border | Fixed: swapped for `border: 1px solid var(--mat-sys-outline-variant)`, removed the radius. Component is only used from this one call site, so this is a safe direct edit rather than a per-instance override. |
+
+**Already correct / already documented, no action:** Edit cooks & guests dialog's Cook A/Cook B
+side-by-side layout and `560px` width (this doc's "Confirmed intentional" list — the width pairs
+with the side-by-side fields, left alone); Reveal confirm's body-copy wording difference from the
+mockup (documented Phase 5 deviation); Send-links' pre-checking only unsubmitted guests instead of
+everyone (documented in the component's own doc comment); all filled-button colors (black
+`cc-black-btn`-equivalent, via the existing global `mat-flat-button` override — confirmed live on
+"Yes, reveal"); Registration QR dialog's single "Close" button and QR-value source (already uses
+the real backend-generated registration URL, not the mockup's placeholder image).
+
+#### Verification — G6, done 2026-08-17
+
+1. `cd frontend && npx ng build` — clean (pre-existing `qrcode` CommonJS warning only).
+2. `npx ng test --watch=false` — 132/133 passing, both before and after the final edit; the one
+   failure is the same pre-existing, unrelated `error-interceptor.spec.ts` case documented in every
+   prior part's verification section.
+3. `npm run lint` — clean.
+4. Live check: logged in as organizer, exercised all five dialogs on "Test Plate" (Open) and
+   Unreveal confirm on "Schnitzel" (Revealed) at `/challenges/0R9FVRNEA5JQQ`. Re-measured each via
+   `getBoundingClientRect()`/`getComputedStyle()` after its fix — Send links `400px`/"Cook A"+"Cook
+   B" labels, Reveal confirm `360px`, Unreveal confirm `360px`, QR dialog `360px` with a centered
+   `200×200` bordered QR code and body-small hint text. Screenshotted the QR and Send-links dialogs
+   post-fix for a visual gut-check against the mockup — both a close match.
+
+Files touched: `features/challenges/send-links-dialog/send-links-dialog.ts`,
+`features/challenges/challenge-detail/challenge-detail.ts`,
+`features/challenges/qr-dialog/qr-dialog.ts`,
+`shared/components/qr-code/qr-code.ts`.
+
 ---
 
 ## Verification

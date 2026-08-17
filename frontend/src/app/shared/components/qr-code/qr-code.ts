@@ -19,7 +19,7 @@ import * as QRCode from 'qrcode';
       display: block;
       max-width: 100%;
       height: auto;
-      border-radius: var(--md-sys-shape-corner-medium);
+      border: 1px solid var(--mat-sys-outline-variant);
     }
   `
 })
