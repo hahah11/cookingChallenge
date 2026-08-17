@@ -65,7 +65,7 @@ export class ChallengeHistory {
   }
 
   protected openNewChallengeDialog(): void {
-    const ref = this.dialog.open(NewChallengeDialog, { width: '560px' });
+    const ref = this.dialog.open(NewChallengeDialog);
     ref.afterClosed().subscribe((created) => {
       if (created) {
         this.load();

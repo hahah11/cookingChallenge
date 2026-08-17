@@ -46,11 +46,7 @@
 
 .new-challenge-dialog__cooks {
   display: flex;
-  gap: var(--md-sys-spacing-3);
-}
-
-.new-challenge-dialog__cooks mat-form-field {
-  flex: 1;
+  flex-direction: column;
 }
 
 .new-challenge-dialog__guests {

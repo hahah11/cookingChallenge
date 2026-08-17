@@ -668,6 +668,44 @@ Everything else (grid `gap:16px`, 3-column layout at this viewport, card border-
 Files touched: `shared/components/challenge-card/challenge-card.scss`,
 `shared/components/status-tag/status-tag.ts`, `shared/components/status-tag/status-tag.spec.ts`.
 
+### G3. New Challenge dialog (`features/challenges/new-challenge-dialog/`)
+
+| # | Mockup | Live (before) | Fix |
+|---|---|---|---|
+| 1 | Cook A and Cook B fields stack vertically, one after another, same as every other field in the form | `.new-challenge-dialog__cooks { display:flex; gap:...; }` put them side by side in a row | Fixed: changed to `flex-direction: column`, removed the now-unneeded `flex:1` sizing on the child form-fields. |
+| 2 | Dialog form is `420px` wide total (`.md-dialog`, `24px` padding each side → `372px` fields) | `challenge-history.ts` opened the dialog with an explicit `this.dialog.open(NewChallengeDialog, { width: '560px' })`, overriding the component's own `.new-challenge-dialog__content { min-width: min(480px, 90vw); }` | Fixed: removed the `{ width: '560px' }` override so the dialog now sizes from its own component CSS — renders at `480px`, much closer to the mockup's `420px` (the remaining ~60px gap is Material's own dialog/form-field internals, not something we set explicitly, so left as-is rather than force an exact px match). |
+| 3 | Title and Dish name fields show example placeholder text (`"Grillabend"`, `"Pulled Pork Burger"`) | No placeholders on either field | Fixed: added matching `placeholder` attributes — same class of gap as G1's login-form placeholders (Part B1 #4), just never applied to this dialog. |
+
+Photo drop-zone was already correct (F2's earlier fix holds: `224px`-tall visible box, `4:3` aspect
+ratio via `aspect-ratio: 4/3`, `add_a_photo` icon + "Drop a 4:3 photo for this rivalry" text, dashed
+border, `12px` radius — all matched by direct measurement). Dialog title type scale already matched
+(`24px`/`headline-small` on both). Guests checkbox list and Cancel/Create button placement matched
+by inspection.
+
+**Automation note (not a design finding):** the extension's synthetic `left_click` (CDP
+`Input.dispatchMouseEvent`) did not trigger this button's Angular `(click)` handler at all across
+several attempts — no dialog, no console error, no overlay in the DOM. A JS-dispatched
+`button.click()` worked immediately. Cause not diagnosed (possibly a `matRipple`/CDK overlay
+interaction with synthetic events); noting it here since later checklist items that open dialogs
+via a button click may hit the same thing — prefer `button.click()` via the JS tool over
+`computer` clicks for dialog-opening buttons if a click doesn't seem to register.
+
+#### Verification — G3, done 2026-08-17
+
+1. `cd frontend && npx ng build` — clean (pre-existing `qrcode` CommonJS warning only).
+2. `npx ng test --watch=false` — 132/133 passing on a clean re-run; two earlier runs each showed a
+   different single extra failure (`qr-code.spec.ts` canvas test, then `blind-scoring.spec.ts`'s
+   axe a11y test) in files this change never touched — both already/newly confirmed flaky under
+   this suite's jsdom setup, not regressions.
+3. `npm run lint` — clean.
+4. Live check: logged in as organizer, opened New Challenge from `/challenges`, re-measured after
+   the fix — `.new-challenge-dialog__cooks` computed `flex-direction: column`, dialog width `480px`,
+   Title/Dish name placeholders present and matching mockup text.
+
+Files touched: `features/challenges/new-challenge-dialog/new-challenge-dialog.scss`,
+`features/challenges/new-challenge-dialog/new-challenge-dialog.html`,
+`features/challenges/challenge-history/challenge-history.ts`.
+
 ---
 
 ## Verification

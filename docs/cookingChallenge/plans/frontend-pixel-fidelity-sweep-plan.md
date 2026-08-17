@@ -1,11 +1,20 @@
 # Frontend Pixel-Fidelity Sweep — Plan
 
 **Status:** Part 0 (recon) done 2026-08-12 — see its section for the navigation model and gotchas.
-Items 1 (Organizer Login) and 2 (Challenge History) done 2026-08-17, logged as Parts G1/G2 in
-`frontend-design-fidelity-plan.md`. Items 3–26 not started. This is a checklist plan, meant to be
-worked one item at a time (by separate agent sessions if useful) rather than in one pass. Each
-numbered item under "Screen checklist" is self-contained enough to hand to a fresh agent with just
-a pointer to this file — they no longer need to redo Part 0's discovery work, just read it.
+Items 1 (Organizer Login), 2 (Challenge History), and 3 (New Challenge dialog) done 2026-08-17,
+logged as Parts G1/G2/G3 in `frontend-design-fidelity-plan.md`. Items 4–26 not started. This is a
+checklist plan, meant to be worked one item at a time (by separate agent sessions if useful) rather
+than in one pass. Each numbered item under "Screen checklist" is self-contained enough to hand to a
+fresh agent with just a pointer to this file — they no longer need to redo Part 0's discovery work,
+just read it.
+
+**Automation gotcha (from item 3):** for buttons that open a `MatDialog` (or possibly other
+CDK-overlay-driven UI), the browser extension's synthetic `computer` click sometimes doesn't
+trigger Angular's `(click)` handler at all — no error, nothing happens. If a click that should open
+a dialog produces no visible change, don't assume the design is broken; verify via
+`document.querySelector('mat-dialog-container')` and fall back to
+`[...document.querySelectorAll('button')].find(b => b.textContent.includes('...')).click()` through
+the JS tool, which worked reliably every time this came up.
 
 **Note for item 20–23 (Public Registration, Link Expired):** item 1 added a `size="small"` variant
 to the shared `<app-page-header>` component for the "landing card" screens (confirmed via the
