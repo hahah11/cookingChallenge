@@ -107,6 +107,7 @@
                 [rivalry]="result.rivalry"
                 [plateColorHex]="plateColorHex()"
               />
+              <mat-divider class="challenge-detail__unreveal-divider" />
               <div class="challenge-detail__unreveal">
                 <p>Made a mistake? You can reopen scoring and hide the results again.</p>
                 <button mat-stroked-button type="button" [disabled]="unrevealBusy()" (click)="confirmUnreveal()">

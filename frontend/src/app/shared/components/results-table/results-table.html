@@ -21,8 +21,9 @@
         <th scope="row">{{ row.label }}</th>
         @for (cook of cookAssignments(); track cook.accountId) {
           <td
-            class="results-table__value"
+            class="results-table__value plate-tint"
             [class.results-table__value--winner]="cook.accountId === row.winnerAccountId"
+            [style.--plate-color]="hexFor(cook)"
           >
             {{ row.totalByLabel[cook.label] ?? 0 }}
             @if (cook.accountId === row.winnerAccountId) {
@@ -41,6 +42,8 @@
         <td
           class="results-table__value results-table__value--total"
           [class.results-table__value--winner]="cook.accountId === overallWinnerAccountId()"
+          [style.background]="hexFor(cook)"
+          [style.color]="hexFor(cook) ? '#fff' : null"
         >
           {{ totalByCook()[cook.label] ?? 0 }}
         </td>
@@ -49,7 +52,7 @@
     <tr>
       <th scope="row">Head-to-head wins</th>
       @for (cook of cookAssignments(); track cook.accountId) {
-        <td class="results-table__crowns">
+        <td class="results-table__crowns plate-tint" [style.--plate-color]="hexFor(cook)">
           <span aria-hidden="true">{{ crownsFor(cook) }}</span>
           <span class="cc-visually-hidden">{{ winsFor(cook) }} head-to-head win{{ winsFor(cook) === 1 ? '' : 's' }}</span>
         </td>

@@ -1,5 +1,6 @@
 :host {
   display: block;
+  margin-bottom: var(--md-sys-spacing-5);
 }
 
 .results-table__scroll {
@@ -26,7 +27,8 @@
 }
 
 .results-table__cook {
-  font: var(--mat-sys-title-small);
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .results-table__trophy {
@@ -37,8 +39,12 @@
   color: var(--mat-sys-primary);
 }
 
+.results-table__value.plate-tint {
+  border-radius: 0;
+}
+
 .results-table__value--winner {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .results-table__check {
@@ -50,18 +56,18 @@
 }
 
 .results-table__value--total {
-  font: var(--mat-sys-title-medium);
+  font-weight: 600;
   border-bottom: none;
-  border-top: 2px solid var(--mat-sys-outline);
 }
 
 tfoot tr:first-child th[scope='row'] {
-  border-top: 2px solid var(--mat-sys-outline);
+  font-weight: 600;
 }
 
 .results-table__crowns {
-  font-size: 14px;
+  font-size: 20px;
   letter-spacing: 1px;
+  border-radius: 0;
 }
 
 .results-table__headline {

@@ -745,6 +745,57 @@ Files touched: `features/challenges/challenge-detail/challenge-detail.html`,
 `features/challenges/challenge-detail/challenge-detail.ts`,
 `features/challenges/challenge-detail/challenge-detail.scss`.
 
+### G5. Challenge Detail — Revealed state (`shared/components/results-table/`,
+`features/challenges/challenge-detail/`)
+
+Checked directly against `CookingChallenge.dc.html`'s `isDetail` block, revealed-results section
+(lines 156–195, same file G4 used), plus its script's `cookATintStyle`/`cookAHeaderStyle`/
+`aBoldStyle` computations (~line 982) to get exact color/weight semantics rather than guessing from
+render alone.
+
+| # | Mockup | Live (before) | Fix |
+|---|---|---|---|
+| 1 | Cook name in the results-table header: `font-size:18px; font-weight:700` (hand-authored literal, not a type-scale class) | `.results-table__cook` used `--mat-sys-title-small` (≈14px/500) | Fixed: literal `font-size:18px; font-weight:700`, matching the mockup's own non-token value. |
+| 2 | Category-winner cell: `font-weight:600` | `.results-table__value--winner { font-weight: 700 }` | Fixed: `700` → `600`. |
+| 3 | Head-to-head crown cells: `font-size:20px` | `.results-table__crowns { font-size: 14px }` | Fixed: `14px` → `20px`. |
+| 4 | Total row: font stays the table's own body-medium (no size bump), `font-weight:600`, no border | `.results-table__value--total` used `--mat-sys-title-medium` (16px/500) plus a `2px solid` top border we'd added (and a matching border on the `tfoot` row label) that the mockup doesn't have at all | Fixed: dropped the font-size override (now inherits body-medium), set `font-weight:600` directly, removed both added borders. |
+| 5 | No divider between the results table and the "Made a mistake?" unreveal row — but the mockup separates them with `<hr class="md-divider">`, `margin-bottom:16px`, after the table's own `margin-bottom:20px` | No divider element existed at all between `<app-results-table>` and `.challenge-detail__unreveal` | Fixed: added `<mat-divider>` (`margin-bottom: var(--md-sys-spacing-4)`), plus `margin-bottom: var(--md-sys-spacing-5)` on `results-table`'s own `:host` for the gap above it. |
+| 6 | "Made a mistake?" paragraph: `md-typescale-body-small` (12px), `max-width:42ch` | `.challenge-detail__unreveal p` used `--mat-sys-body-medium` (14px), no max-width | Fixed: → `--mat-sys-body-small` + `max-width: 42ch`. |
+| 7 | **Per-cook plate-color tinting runs down the ENTIRE column** — every category-row cell and both crown-row cells get a light tint (`hex+"22"`, ~13% alpha) via `cookATintStyle`/`cookBTintStyle`, and the Total row gets a *solid*, full-opacity color block (`cookAHeaderStyle`: `background:{hex};color:#fff`) | Only the header `<th>` was tinted (via the existing `plate-tint` class); every other cell was plain/white | **Scope question asked separately from the size/arrangement items above, since this is a much bigger color-application change, not a one-line token swap** (same "not literally in the agreed size/arrangement scope" territory as G1's kicker color and G2's chip icon, but larger). User chose to add it. Implemented: `plate-tint` class + `[style.--plate-color]` on every category-row `<td>` and both crown-row `<td>`s (same 13%-alpha mechanism the header already used); the Total row gets direct `[style.background]="hexFor(cook)"` / `[style.color]="hexFor(cook) ? '#fff' : null"` bindings instead (matches the mockup's *solid*-vs-*tinted* distinction — Total needs the stronger treatment, not the light wash). Also zeroed `border-radius` on the newly-tinted body/footer cells (component-scoped override, not touching the shared `.plate-tint` class) since the mockup only rounds the *header* cell's top corners — the shared class's `12px` all-corners default is a pre-existing, separate minor deviation on the header cell that G2's history-card fix didn't touch and this item didn't re-litigate. |
+
+**Not a design-fidelity issue, flagging separately:** the live "Schnitzel" seed challenge (Daniel
+Daniel 10/8/9 vs Michael Holzer 5/6/7 — Daniel wins all three categories and overall) shows **no**
+bold/checkmark on any of Daniel's three category cells, even after this fix — `row.winnerAccountId`
+comes from a `categoryWinners()` input the parent computes from backend data, not from the
+template comparing scores itself. This looks like a data-population gap in that specific seed
+challenge (categoryWinners likely never got backfilled for it) rather than a frontend bug — the
+overall-winner crown/trophy on "Daniel Daniel" *does* render correctly, and the Total-row solid
+highlight picks the right cook, so the winner-computation plumbing works when its input is present.
+Not fixed here; flag if it turns out the backend genuinely never populates this field.
+
+Header type scale (28px/400), title-row `gap:12px`, kicker (already fixed in G4, holds for Revealed
+too since it's the same shared header), and the reveal-overlay/animation were not touched — no
+mismatch found.
+
+#### Verification — G5, done 2026-08-17
+
+1. `cd frontend && npx ng build` — clean (pre-existing `qrcode` CommonJS warning only).
+2. `npx ng test --watch=false` — 132/133 passing; the 3-failure run seen mid-work
+   (`error-interceptor`, `qr-code` canvas, `blind-scoring` axe) reran clean at 132/133 immediately
+   after — confirmed pre-existing suite flakiness, not a `results-table`/`challenge-detail`
+   regression (its own spec files passed on every run).
+3. `npm run lint` — clean.
+4. Live check: logged in as organizer, opened "Schnitzel" (Revealed) at
+   `/challenges/0R9FVRNEA5JQQ`, re-screenshotted after all fixes — column tinting, solid Total-row
+   highlight, larger crown emoji, larger/bolder header names, and the new divider all present and
+   visually matching the mockup's Gazpacho/Revealed screen.
+
+Files touched: `shared/components/results-table/results-table.html`,
+`shared/components/results-table/results-table.scss`,
+`features/challenges/challenge-detail/challenge-detail.html`,
+`features/challenges/challenge-detail/challenge-detail.ts`,
+`features/challenges/challenge-detail/challenge-detail.scss`.
+
 ---
 
 ## Verification

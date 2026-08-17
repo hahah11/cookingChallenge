@@ -1,12 +1,18 @@
 # Frontend Pixel-Fidelity Sweep — Plan
 
 **Status:** Part 0 (recon) done 2026-08-12 — see its section for the navigation model and gotchas.
-Items 1 (Organizer Login), 2 (Challenge History), 3 (New Challenge dialog), and 4 (Challenge
-Detail — Open) done 2026-08-17, logged as Parts G1–G4 in `frontend-design-fidelity-plan.md`. Items
-5–26 not started. This is a checklist plan, meant to be worked one item at a time (by separate agent
+Items 1–5 (Organizer Login, Challenge History, New Challenge dialog, Challenge Detail Open and
+Revealed) done 2026-08-17, logged as Parts G1–G5 in `frontend-design-fidelity-plan.md`. Items 6–26
+not started. This is a checklist plan, meant to be worked one item at a time (by separate agent
 sessions if useful) rather than in one pass. Each numbered item under "Screen checklist" is
 self-contained enough to hand to a fresh agent with just a pointer to this file — they no longer
 need to redo Part 0's discovery work, just read it.
+
+**Note for item 19 (Challenge Results, participant-facing):** item 5 brought
+`shared/components/results-table/` (the crown-row/tinted-column/Total-row-highlight table) fully in
+line with the mockup — it's reused by the participant Challenge Results screen too, so item 19
+should already inherit these fixes. Still worth a quick re-render check there rather than assuming,
+since item 19's own surrounding page chrome (kicker, back link, photo) hasn't been checked yet.
 
 **Important correction for item 5 (Challenge Detail — Revealed state):** item 4 found and removed a
 cook-names line (`.challenge-detail__cooks`) from the shared header markup that a prior pass (Part

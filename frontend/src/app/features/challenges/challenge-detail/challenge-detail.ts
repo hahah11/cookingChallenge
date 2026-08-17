@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 
@@ -43,6 +44,7 @@ const LINKS_SENT_FLASH_MS = 3000;
     ErrorState,
     LoadingSkeleton,
     MatButtonModule,
+    MatDividerModule,
     MatIconModule,
     ResultsTable,
     RouterLink,
