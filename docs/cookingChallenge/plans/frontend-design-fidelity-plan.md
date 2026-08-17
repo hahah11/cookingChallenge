@@ -706,6 +706,45 @@ Files touched: `features/challenges/new-challenge-dialog/new-challenge-dialog.sc
 `features/challenges/new-challenge-dialog/new-challenge-dialog.html`,
 `features/challenges/challenge-history/challenge-history.ts`.
 
+### G4. Challenge Detail — Open state (`features/challenges/challenge-detail/`)
+
+Went back to the actual mockup source markup for this one (`CookingChallenge.dc.html`'s
+`isDetail` block, lines 116–204) rather than relying only on rendering, since a mismatch below
+directly contradicts what Part F6 (this doc, "F6. MEDIUM — Challenge Detail header...") recorded as
+already fixed and live-verified — wanted to be certain before overriding a prior finding.
+
+| # | Mockup | Live (before) | Fix |
+|---|---|---|---|
+| 1 | Header date (`{{ challenge.dateLabel }}`) is pre-formatted by the mock data / helper, e.g. "JUL 26, 2026" | `{{ challenge.date }}` interpolated the raw API value with no `date` pipe — rendered as unformatted ISO (`2026-03-01`) in the live app | Fixed: added `\| date: 'mediumDate'` (matches `challenge-card`'s existing pattern) and imported `DatePipe`. Real functional bug, not just a style nit — the History card's own date already used the pipe, this one just didn't. |
+| 2 | Event subtitle (`{{ challenge.title }}`) is `md-typescale-body-medium` | `.challenge-detail__event` used `--mat-sys-title-medium` (16px/500) instead of body-medium (14px/400) — inconsistent with `challenge-card__event`'s use of body-medium for the same conceptual text | Fixed: `--mat-sys-title-medium` → `--mat-sys-body-medium`. |
+| 3 | **No cook-names line in the header at all**, for either Open or Revealed — confirmed directly against source: the header block (`CookingChallenge.dc.html:120-129`) is kicker → title-row (dish name + chip) → event subtitle, full stop. Cook names only ever appear later, as the Revealed-state results table's own column headers (`cookAFirstName`/`cookBFirstName`) | `.challenge-detail__cooks` unconditionally rendered a `"CookA & CookB"` paragraph (`--mat-sys-title-large`, 22px) below the event subtitle, for both Open and Revealed | **Removed** — deleted the paragraph from `challenge-detail.html` and its now-unused `.challenge-detail__cooks` rule from the `.scss`. This directly contradicts what Part F6 recorded ("hand-built header block (kicker, title-row with chip, event subtitle, cook names)... verified live on both an Open and a Revealed challenge") — that verification appears to have been mistaken, or checked a stale/different mockup revision; the current mockup source has no such element. Since `.challenge-detail__header` is shared markup (not inside the Open/Revealed `@if`), this one fix corrects both states — item 5 (Revealed) doesn't need to redo it. |
+| 4 | Header row `margin-bottom: 32px` | `.challenge-detail__header` used `var(--md-sys-spacing-6)` (24px) | Fixed: → `var(--md-sys-spacing-8)` (32px). |
+
+Everything else matched by direct measurement: title `headline-medium` (28px/400), title-row
+`gap:12px`, guest-list heading `title-small`, photo `4:3` aspect ratio via the shared
+`<app-challenge-photo>` component, action button order/icons (Send links/Edit cooks & guests/
+Registration QR code/Reveal results), guest status pill styling, and the `<table>`-vs-flex-row
+guest roster (already logged as an intentional a11y deviation in this doc's historical record).
+The photo drop-zone's mockup "Drop a photo" dashed box is the same `image-slot` mockup-tooling
+element ruled out of scope in G2 — no action, same reasoning.
+
+#### Verification — G4, done 2026-08-17
+
+1. `cd frontend && npx ng build` — clean (pre-existing `qrcode` CommonJS warning only).
+2. `npx ng test --watch=false` — 132/133 passing on two separate clean runs; one earlier run showed
+   two extra failures (`qr-code.spec.ts` canvas test, `blind-scoring.spec.ts` axe test) in files
+   this change never touched — reran clean, confirming pre-existing flakiness in this suite's jsdom
+   setup rather than a regression from removing the cooks line.
+3. `npm run lint` — clean.
+4. Live check: logged in as organizer, opened "Test Plate" (Open) at
+   `/challenges/0R9GP8X8P5GWY`, re-measured after each fix — kicker now reads "Mar 1, 2026"
+   (formatted), event line `14px`/`400`, no cooks line in the header, screenshot matches the
+   mockup's Open-state layout closely.
+
+Files touched: `features/challenges/challenge-detail/challenge-detail.html`,
+`features/challenges/challenge-detail/challenge-detail.ts`,
+`features/challenges/challenge-detail/challenge-detail.scss`.
+
 ---
 
 ## Verification

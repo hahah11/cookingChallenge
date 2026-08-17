@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -38,6 +39,7 @@ const LINKS_SENT_FLASH_MS = 3000;
   selector: 'app-challenge-detail',
   imports: [
     ChallengePhoto,
+    DatePipe,
     ErrorState,
     LoadingSkeleton,
     MatButtonModule,

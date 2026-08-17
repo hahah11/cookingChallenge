@@ -56,7 +56,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--md-sys-spacing-4);
-  margin-bottom: var(--md-sys-spacing-6);
+  margin-bottom: var(--md-sys-spacing-8);
 }
 
 .challenge-detail__photo {
@@ -94,13 +94,8 @@
 
 .challenge-detail__event {
   margin: 0;
-  font: var(--mat-sys-title-medium);
+  font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
-}
-
-.challenge-detail__cooks {
-  margin: 0;
-  font: var(--mat-sys-title-large);
 }
 
 .challenge-detail__actions {

@@ -1,12 +1,21 @@
 # Frontend Pixel-Fidelity Sweep — Plan
 
 **Status:** Part 0 (recon) done 2026-08-12 — see its section for the navigation model and gotchas.
-Items 1 (Organizer Login), 2 (Challenge History), and 3 (New Challenge dialog) done 2026-08-17,
-logged as Parts G1/G2/G3 in `frontend-design-fidelity-plan.md`. Items 4–26 not started. This is a
-checklist plan, meant to be worked one item at a time (by separate agent sessions if useful) rather
-than in one pass. Each numbered item under "Screen checklist" is self-contained enough to hand to a
-fresh agent with just a pointer to this file — they no longer need to redo Part 0's discovery work,
-just read it.
+Items 1 (Organizer Login), 2 (Challenge History), 3 (New Challenge dialog), and 4 (Challenge
+Detail — Open) done 2026-08-17, logged as Parts G1–G4 in `frontend-design-fidelity-plan.md`. Items
+5–26 not started. This is a checklist plan, meant to be worked one item at a time (by separate agent
+sessions if useful) rather than in one pass. Each numbered item under "Screen checklist" is
+self-contained enough to hand to a fresh agent with just a pointer to this file — they no longer
+need to redo Part 0's discovery work, just read it.
+
+**Important correction for item 5 (Challenge Detail — Revealed state):** item 4 found and removed a
+cook-names line (`.challenge-detail__cooks`) from the shared header markup that a prior pass (Part
+F6 in the fidelity-plan doc) had added based on a mistaken reading of the mockup — checked directly
+against `CookingChallenge.dc.html`'s `isDetail` block (lines 116-204) and confirmed the header never
+shows cook names, in either Open or Revealed state; they only appear in the Revealed results
+table's own column headers. Since the header is shared, item 5 doesn't need to touch this again —
+but do re-verify the results table/head-to-head crown row itself against the same source block
+(lines 156-195), since that's the part item 4 didn't need to check closely.
 
 **Automation gotcha (from item 3):** for buttons that open a `MatDialog` (or possibly other
 CDK-overlay-driven UI), the browser extension's synthetic `computer` click sometimes doesn't
