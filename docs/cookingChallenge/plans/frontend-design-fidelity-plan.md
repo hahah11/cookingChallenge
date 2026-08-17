@@ -609,6 +609,39 @@ Files: `frontend/src/app/features/challenges/challenge-detail/challenge-detail.{
 
 ---
 
+## Part G — render-and-measure sweep (`frontend-pixel-fidelity-sweep-plan.md`), 2026-08-17
+
+Findings from the new render-both/measure-both methodology (screenshots +
+`getBoundingClientRect()`/`getComputedStyle()` diffs at 1280×900), as opposed to Parts A–F's
+read-and-guess source comparison. Logged per that plan's checklist numbering.
+
+### G1. Organizer Login (`features/auth/organizer-login/`, `shared/components/page-header/`)
+
+| # | Mockup | Live (before) | Fix |
+|---|---|---|---|
+| 1 | Title "Organizer log in" uses `md-typescale-headline-small` (24px/32px) | Shared `<app-page-header>` hardcoded `--mat-sys-headline-medium` (28px/36px) for every screen | Added a `size` input (`'medium' \| 'small'`, default `'medium'`) to `PageHeader`; organizer-login now passes `size="small"`. Confirmed against the mockup's Link Expired screen too — it also uses `headline-small` for its title, so this is a real "landing card" pattern, not a login-only outlier (Public Registration is the third screen in that documented pattern per Part F's centered-card note; it and Link Expired will pick up `size="small"` when their own checklist items — 20–23 — are done). |
+| 2 | Card content padding 24px (mockup's own `.md-card__content` rule) | `mat-card-content`'s MDC default padding, 16px | **Confirmed out of scope** — no override exists in our `.scss` for this; the 16px comes purely from Material's own `mat-card-content` internals. Left as-is per the sweep plan's scope rule (don't override Material internal component CSS). |
+| 3 | `.cc-kicker` color is hardcoded to `--md-ref-palette-primary-50` (`oklch(50% 0.1612 29)`), not the system `--md-sys-color-primary` role (tone-40) | `page-header__kicker` used `var(--mat-sys-primary)` (tone-40, `oklch(40% 0.19 29)`) — the correct M3 *system role*, but not the mockup's one-off hardcoded tone-50 kicker color | Flagged as outside this plan's agreed scope (layout/arrangement/size only, decided 2026-08-12); asked the user, who chose to widen scope for this one and match the mockup exactly. Changed `page-header__kicker`'s `color` from `var(--mat-sys-primary)` to `var(--md-ref-palette-primary-50)` (that exact token already exists in `_theme.scss`, matching the mockup's own reference-palette value bit-for-bit) — affects the kicker on every screen using `<app-page-header>`, not just Login. |
+| 4 | Five "Preview a guest's/cook's personalized link", "Preview QR code registration", "Preview an expired link/QR code" nav-aid links below the divider | Not present | No action — already logged as a confirmed intentional deviation earlier in this doc (mockup-only dev nav aid, see the "Confirmed intentional" section above). |
+
+Everything else (field order, placeholders, note position, divider, button styling, kicker/title
+copy and order) already matched from Part B1's earlier pass and was re-confirmed by direct
+measurement this time.
+
+#### Verification — G1, done 2026-08-17
+
+1. `cd frontend && npx ng build` — clean (pre-existing `qrcode` CommonJS warning only, unrelated).
+2. `npx ng test --watch=false` — 132/133 passing; the one failure is the same pre-existing,
+   unrelated `error-interceptor.spec.ts` case documented in every prior part.
+3. `npm run lint` — clean.
+4. Live check: re-rendered `/login` after the fix, re-measured `.page-header__title` (24px/32px,
+   matches mockup exactly), re-screenshotted against the mockup at 1280×900.
+
+Files touched: `shared/components/page-header/page-header.ts`,
+`features/auth/organizer-login/organizer-login.html`.
+
+---
+
 ## Verification
 
 1. `cd frontend && npx ng build` — stays under budget.

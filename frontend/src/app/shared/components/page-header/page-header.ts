@@ -9,7 +9,9 @@ import { Component, input } from '@angular/core';
         <p class="page-header__kicker">{{ kicker() }}</p>
       }
       <div class="page-header__row">
-        <h1 class="page-header__title">{{ title() }}</h1>
+        <h1 class="page-header__title" [class.page-header__title--small]="size() === 'small'">
+          {{ title() }}
+        </h1>
         <div class="page-header__actions">
           <ng-content select="[actions]" />
         </div>
@@ -27,7 +29,7 @@ import { Component, input } from '@angular/core';
     .page-header__kicker {
       margin: 0;
       font: var(--mat-sys-label-medium);
-      color: var(--mat-sys-primary);
+      color: var(--md-ref-palette-primary-50);
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
@@ -45,6 +47,10 @@ import { Component, input } from '@angular/core';
       font: var(--mat-sys-headline-medium);
     }
 
+    .page-header__title--small {
+      font: var(--mat-sys-headline-small);
+    }
+
     .page-header__actions {
       display: flex;
       flex-wrap: wrap;
@@ -59,4 +65,5 @@ import { Component, input } from '@angular/core';
 export class PageHeader {
   readonly kicker = input<string>();
   readonly title = input.required<string>();
+  readonly size = input<'medium' | 'small'>('medium');
 }

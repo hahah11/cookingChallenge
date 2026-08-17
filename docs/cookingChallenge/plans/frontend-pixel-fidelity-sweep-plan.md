@@ -1,10 +1,16 @@
 # Frontend Pixel-Fidelity Sweep — Plan
 
 **Status:** Part 0 (recon) done 2026-08-12 — see its section for the navigation model and gotchas.
-Screen checklist (items 1–26) not started. This is a checklist plan, meant to be worked one item
-at a time (by separate agent sessions if useful) rather than in one pass. Each numbered item under
-"Screen checklist" is self-contained enough to hand to a fresh agent with just a pointer to this
-file — they no longer need to redo Part 0's discovery work, just read it.
+Item 1 (Organizer Login) done 2026-08-17, logged as Part G1 in `frontend-design-fidelity-plan.md`.
+Items 2–26 not started. This is a checklist plan, meant to be worked one item at a time (by
+separate agent sessions if useful) rather than in one pass. Each numbered item under "Screen
+checklist" is self-contained enough to hand to a fresh agent with just a pointer to this file —
+they no longer need to redo Part 0's discovery work, just read it.
+
+**Note for item 20–23 (Public Registration, Link Expired):** item 1 added a `size="small"` variant
+to the shared `<app-page-header>` component for the "landing card" screens (confirmed via the
+mockup that Login and Link Expired both use `headline-small` titles, unlike regular page headers).
+Pass `size="small"` on those screens' `<app-page-header>` too rather than re-discovering this.
 
 **Relationship to other docs:**
 - [`frontend-design-fidelity-plan.md`](frontend-design-fidelity-plan.md) is the running *record*
