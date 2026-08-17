@@ -39,14 +39,18 @@
 
 .challenge-card__cooks {
   margin: var(--md-sys-spacing-1) 0 0;
-  font: var(--mat-sys-body-medium);
+  font: var(--mat-sys-body-small);
 }
 
 .challenge-card__cook {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  padding: 1px var(--md-sys-spacing-1);
+  padding: 1px 6px;
+}
+
+.challenge-card__cook.plate-tint {
+  border-radius: 4px;
 }
 
 .challenge-card__cook--winner {

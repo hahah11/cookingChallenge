@@ -1,16 +1,29 @@
 # Frontend Pixel-Fidelity Sweep — Plan
 
 **Status:** Part 0 (recon) done 2026-08-12 — see its section for the navigation model and gotchas.
-Item 1 (Organizer Login) done 2026-08-17, logged as Part G1 in `frontend-design-fidelity-plan.md`.
-Items 2–26 not started. This is a checklist plan, meant to be worked one item at a time (by
-separate agent sessions if useful) rather than in one pass. Each numbered item under "Screen
-checklist" is self-contained enough to hand to a fresh agent with just a pointer to this file —
-they no longer need to redo Part 0's discovery work, just read it.
+Items 1 (Organizer Login) and 2 (Challenge History) done 2026-08-17, logged as Parts G1/G2 in
+`frontend-design-fidelity-plan.md`. Items 3–26 not started. This is a checklist plan, meant to be
+worked one item at a time (by separate agent sessions if useful) rather than in one pass. Each
+numbered item under "Screen checklist" is self-contained enough to hand to a fresh agent with just
+a pointer to this file — they no longer need to redo Part 0's discovery work, just read it.
 
 **Note for item 20–23 (Public Registration, Link Expired):** item 1 added a `size="small"` variant
 to the shared `<app-page-header>` component for the "landing card" screens (confirmed via the
 mockup that Login and Link Expired both use `headline-small` titles, unlike regular page headers).
 Pass `size="small"` on those screens' `<app-page-header>` too rather than re-discovering this.
+
+**Note for item 11 (Organizer shell chrome):** item 2 found the mockup's page-content column is
+928px wide at 1280px viewport (its `.cc-page` wrapper: 960px max-width + its own 16px padding),
+while our organizer screens render at 960px (the gutter comes from `organizer-shell__content`'s
+24px padding inside a 1120px shell instead, with the per-page component itself unpadded). This
+looks systemic to the shell, not History-specific — confirm against 2+ other organizer screens
+before deciding where to fix it.
+
+**Note for item 9–10, 12–13 (Rivalries, Participant Home):** item 2 found the shared global
+`.plate-tint` class (`src/styles/_plate-color.scss`) uses `border-radius: 12px`, but the mockup's
+History cook-name badges use `4px` — fixed only within `challenge-card.scss` (component-scoped
+override) rather than touching the shared class, since those other screens' own plate-tint usage
+hasn't been checked against their own mockup screens yet. Check whether 4px should generalize.
 
 **Relationship to other docs:**
 - [`frontend-design-fidelity-plan.md`](frontend-design-fidelity-plan.md) is the running *record*

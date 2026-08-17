@@ -640,6 +640,29 @@ measurement this time.
 Files touched: `shared/components/page-header/page-header.ts`,
 `features/auth/organizer-login/organizer-login.html`.
 
+### G2. Challenge History (`features/challenges/challenge-history/`, `shared/components/challenge-card/`)
+
+| # | Mockup | Live (before) | Fix |
+|---|---|---|---|
+| 1 | Empty-photo cards show a dashed-border box with an icon + "Drop a rivalry photo" text | Plain grey box, no icon/text | **Confirmed not a real design element, no action.** This is the design canvas's own `<image-slot>` widget (a custom element with its own shadow root, from the unbundled mockup set's `image-slot.js`, Part 0 recon) — a design-tool affordance for the *prototype author* to drop in a reference photo, not part of the CookOff product design. Same category as the dev-nav bar and the login page's preview links: mockup tooling, not a screen to replicate. Logging this as a new "confirmed intentional" entry since it wasn't caught by the earlier read-and-guess passes (this class of issue is invisible to source-only comparison — the mockup's raw HTML doesn't reveal that an element is tooling-only). |
+| 2 | Per-cook name badge (`.plate-tint` pill): `padding: 1px 6px`, `border-radius: 4px`, `font-size: 12px` (`md-typescale-body-small`, inherited from the parent `<p>`) | `.challenge-card__cook`: `padding: 1px var(--md-sys-spacing-1)` (1px 4px), inheriting `--mat-sys-body-medium` (14px) from `.challenge-card__cooks`; radius inherited 12px from the shared global `.plate-tint` class | Fixed in `challenge-card.scss`: `.challenge-card__cooks` font → `--mat-sys-body-medium` → `--mat-sys-body-small`; `.challenge-card__cook` padding → literal `1px 6px` (mockup's 6px isn't on our `--md-sys-spacing-*` scale, which jumps 4px→8px, so used the literal value rather than inventing a token); added `.challenge-card__cook.plate-tint { border-radius: 4px; }` scoped to this component only — the shared global `.plate-tint` class (used by rivalry-list/-detail and participant-challenge-card too, all with `12px` radius) was deliberately left untouched since those screens haven't been individually re-checked against the mockup yet (checklist items 9, 10, 12, 13). |
+| 3 | Status chip's leading icon glyph is `check` (bare checkmark, `material-symbols-outlined`) on both Open and Revealed | `<app-status-tag>` hardcodes `check_circle` (circled check, `mat-icon`) for both states | **Flagged for user, not changed yet** — same "our own explicit choice but not literally layout/size" ambiguity as G1's kicker color. Icon *presence* on both states already matched (re-confirmed: the mockup's "Open"/red chip also carries the icon, contrary to the original B2 finding's phrasing of "missing leading icon" as if only Revealed had one) — only the specific glyph differs. |
+| 4 | Chip label font-weight: `500` | Chip label font-weight: `400` | **Confirmed out of scope** — no override exists in our code; `400` is Material's own `mdc-evolution-chip` label-text-weight default. Left as-is. |
+| 5 | Page content column width at 1280px viewport: `928px` (mockup's `.cc-page` wrapper: `max-width:960px` + its own `16px` horizontal padding) | `960px` (our `challenge-history` component: `max-width:960px`, `margin-inline:auto`, no padding of its own — the "gutter" instead comes from the parent `organizer-shell__content`'s own `24px` padding inside a wider `1120px` shell) | **Not fixed here — likely belongs to item 11 (Organizer shell chrome)**, not History specifically. `.cc-page` looks like the mockup's universal per-screen content wrapper (not something History-only), so this is probably a shell-level "who owns the gutter" difference affecting every organizer screen uniformly, not a History-specific bug. Flagging for whoever picks up item 11 to confirm against 2+ other screens and fix once, rather than patching each screen's own component. |
+
+Everything else (grid `gap:16px`, 3-column layout at this viewport, card border-radius `12px`, chip height `32px`/`border-radius:8px`, photo aspect ratio 4:3, winner badge font-weight `500`, "New challenge" button `+` icon) matched by direct measurement.
+
+#### Verification — G2, done 2026-08-17
+
+1. `cd frontend && npx ng build` — clean (pre-existing `qrcode` CommonJS warning only).
+2. `npx ng test --watch=false` — 132/133 passing, same pre-existing `error-interceptor.spec.ts` failure.
+3. `npm run lint` — clean.
+4. Live check: logged in as organizer (`claude@claude.com`), re-rendered `/challenges` after the
+   fix, re-measured `.plate-tint` (`padding:1px 6px`, `radius:4px`, `font:12px` — all match),
+   re-screenshotted against the mockup's History screen at 1280×900.
+
+Files touched: `shared/components/challenge-card/challenge-card.scss`.
+
 ---
 
 ## Verification
