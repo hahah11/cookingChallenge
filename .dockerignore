@@ -1,0 +1,13 @@
+.git
+.github
+.idea
+.claude
+docs
+**/.DS_Store
+**/node_modules
+backend/build
+backend/.gradle
+frontend/dist
+frontend/.angular
+frontend/src/app/core/api/generated
+*.iml

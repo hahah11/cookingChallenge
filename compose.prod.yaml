@@ -1,0 +1,52 @@
+# Production stack for the "server" notebook: three containers, one published port.
+#
+#   docker compose -f compose.prod.yaml pull
+#   docker compose -f compose.prod.yaml up -d
+#
+# Only the frontend is reachable from the LAN; backend and db talk over the internal
+# compose network and publish nothing. Copy .env.example to .env next to this file first.
+name: cookoff
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cookoff}
+      POSTGRES_USER: ${POSTGRES_USER:-cookoff}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-cookoff} -d ${POSTGRES_DB:-cookoff}']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  backend:
+    image: ${IMAGE_PREFIX:-ghcr.io/hahah11/cookingchallenge}-backend:${IMAGE_TAG:-latest}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Spring's relaxed binding maps these onto application.yaml's
+      # spring.datasource.* and app.frontend.base-url — no code or profile changes needed.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-cookoff}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-cookoff}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      # Baked into guest access links and their QR codes, so it must be the URL a phone on
+      # the LAN can actually open — the server's IP or hostname, not localhost.
+      APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:?APP_FRONTEND_BASE_URL must be set in .env}
+    restart: unless-stopped
+
+  frontend:
+    image: ${IMAGE_PREFIX:-ghcr.io/hahah11/cookingchallenge}-frontend:${IMAGE_TAG:-latest}
+    depends_on:
+      - backend
+    ports:
+      - '${HTTP_PORT:-80}:80'
+    restart: unless-stopped
+
+volumes:
+  db-data:
