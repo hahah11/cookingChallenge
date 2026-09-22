@@ -2,7 +2,22 @@
 
 ## Status
 
-**Not started.** Plan 2 of 3 from the 2026-09-22 feature request. Best done after [`mail-brand-palette-plan.md`](mail-brand-palette-plan.md), whose `_layout.html` the edited templates sit on.
+**Implemented (2026-09-22).** Plan 2 of 3 from the 2026-09-22 feature request, built on the
+`_layout.html` from [`mail-brand-palette-plan.md`](mail-brand-palette-plan.md).
+
+- `Challenge.isCook(AccountId)` added. `isParticipant` and `PickColorService` now call it instead of
+  repeating the stream themselves.
+- Both notification records carry `canRate` / `picksPlateColor`. Both send loops set them from
+  `canScore` / `isCook`, and `EmailNotificationAdapter` puts them in the template model.
+- All four templates (`.html` and `.txt`) show each sentence under its own `th:if`. The shared lead-in
+  ("You're taking part in …" / "… has been revealed.") is the same for everyone.
+- Deviations: `CapturingNotificationPort` and `LoggingNotificationAdapter` are unchanged. No test needs
+  the captured flags, and the logging adapter never destructures the record.
+- Tests: `ChallengeTest` (`isCook`, including cook-and-guest); `EmailNotificationAdapterTest` (all four
+  flag combinations, for both mails); `ChallengeRevealedNotifierTest` and
+  `SendChallengeInvitationsServiceTest` (flags per recipient); `MailTemplateRenderingTest` (cook-only,
+  guest-only, and both, rater sentence first, across all four templates). Full `./gradlew test` passes
+  (356 tests). The Mailpit check under Verification has not been done yet.
 
 ## Context
 

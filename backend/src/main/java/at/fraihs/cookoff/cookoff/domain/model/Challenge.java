@@ -175,10 +175,14 @@ public class Challenge {
         return guestAccountIds.contains(accountId);
     }
 
+    /** Either of the two cooks. Not exclusive with {@link #isGuest}: a cook may also be a guest here. */
+    public boolean isCook(AccountId accountId) {
+        return cookAssignments.stream().anyMatch(assignment -> assignment.accountId().equals(accountId));
+    }
+
     /** Either of the two cooks, or a pre-added guest — the full set of people who may view this challenge. */
     public boolean isParticipant(AccountId accountId) {
-        return isGuest(accountId)
-                || cookAssignments.stream().anyMatch(assignment -> assignment.accountId().equals(accountId));
+        return isGuest(accountId) || isCook(accountId);
     }
 
     /** A pre-added guest or the challenge's creator — the narrower set of people who may score it (not the cooks). */

@@ -232,6 +232,32 @@ class ChallengeTest {
     }
 
     @Test
+    void should_beCook_when_accountHoldsEitherAssignment() {
+        Challenge challenge = newChallenge();
+
+        assertTrue(challenge.isCook(cookA));
+        assertTrue(challenge.isCook(cookB));
+    }
+
+    @Test
+    void should_notBeCook_when_accountIsOnlyAGuest() {
+        Challenge challenge = newChallenge();
+        AccountId guest = AccountId.generate();
+        challenge.editParticipants(null, null, List.of(guest), List.of());
+
+        assertFalse(challenge.isCook(guest));
+    }
+
+    @Test
+    void should_beCookAndStillScore_when_cookIsAlsoAGuest() {
+        Challenge challenge = newChallenge();
+        challenge.editParticipants(null, null, List.of(cookA), List.of());
+
+        assertTrue(challenge.isCook(cookA));
+        assertTrue(challenge.canScore(cookA));
+    }
+
+    @Test
     void should_notBeParticipant_when_accountIsUnrelated() {
         Challenge challenge = newChallenge();
 

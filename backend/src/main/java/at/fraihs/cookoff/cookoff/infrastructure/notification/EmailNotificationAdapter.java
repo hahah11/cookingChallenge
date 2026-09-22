@@ -36,7 +36,9 @@ public class EmailNotificationAdapter implements NotificationPort {
                 Map.of(
                         "firstName", notification.firstName(),
                         "challengeTitle", notification.challengeTitle(),
-                        "link", notification.link())));
+                        "link", notification.link(),
+                        "canRate", notification.canRate(),
+                        "picksPlateColor", notification.picksPlateColor())));
     }
 
     @Override
@@ -48,6 +50,8 @@ public class EmailNotificationAdapter implements NotificationPort {
                 Map.of(
                         "firstName", notification.firstName(),
                         "challengeTitle", notification.challengeTitle(),
-                        "link", notification.link())));
+                        "link", notification.link(),
+                        "canRate", notification.canRate(),
+                        "picksPlateColor", notification.picksPlateColor())));
     }
 }

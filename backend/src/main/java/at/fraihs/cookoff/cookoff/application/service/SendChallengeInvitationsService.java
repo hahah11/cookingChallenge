@@ -69,7 +69,8 @@ public class SendChallengeInvitationsService {
             String token = accessLinkService.issue(accountId, challengeId.value(), LINK_VALIDITY);
             notificationPort.sendAccessLink(new InvitationNotification(
                     account.email(), account.firstName(), challenge.getTitle(),
-                    frontendBaseUrl + "/home?token=" + token));
+                    frontendBaseUrl + "/home?token=" + token,
+                    challenge.canScore(accountId), challenge.isCook(accountId)));
         }
 
         log.info("Sent {} invitation(s) for challenge {}", targets.size(), challengeId);

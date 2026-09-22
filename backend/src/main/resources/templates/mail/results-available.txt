@@ -1,8 +1,10 @@
 Hi [(${firstName})], the results are in!
 
-"[(${challengeTitle})]" has been revealed. You can now see who cooked which
-plate, the scores per category, and the winner.
-
+"[(${challengeTitle})]" has been revealed.
+[# th:if="${canRate}"]You can now see who cooked which plate, the scores per category, and the winner.
+[/][# th:if="${picksPlateColor}"]The dishes are unblinded. See how yours scored in each category, and
+who took it.
+[/]
 See the results:
 [(${link})]
 

@@ -7,6 +7,11 @@ import at.fraihs.cookoff.auth.domain.model.Email;
  * everything the invitation mail needs to address the recipient and name the cook-off they are
  * being invited to. {@code link} is the full {@code .../home?token=...} URL — guests have no
  * password, so it is their only way in.
+ *
+ * <p>{@code canRate} and {@code picksPlateColor} pick the wording: guests rate, cooks choose a
+ * plate color. They are independent flags, not one role — a cook can also be a guest on the same
+ * cook-off, and then both apply.
  */
-public record InvitationNotification(Email recipient, String firstName, String challengeTitle, String link) {
+public record InvitationNotification(Email recipient, String firstName, String challengeTitle, String link,
+                                     boolean canRate, boolean picksPlateColor) {
 }

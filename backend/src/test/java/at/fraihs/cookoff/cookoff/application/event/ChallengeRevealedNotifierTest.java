@@ -16,7 +16,10 @@ import at.fraihs.cookoff.cookoff.domain.model.DishName;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -116,6 +119,49 @@ class ChallengeRevealedNotifierTest {
                 ArgumentCaptor.forClass(ResultsAvailableNotification.class);
         verify(notificationPort, times(3)).sendResultsAvailable(captor.capture());
         assertTrue(captor.getAllValues().stream().allMatch(n -> "Schnitzel-Off".equals(n.challengeTitle())));
+    }
+
+    @Test
+    void should_markCooksAsColorPickersAndGuestsAsRaters_when_challengeRevealed() {
+        Challenge challenge = challenge();
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(accountLookup.getById(any(AccountId.class))).thenAnswer(i -> accountFor(i.getArgument(0)));
+        when(accessLinkService.issue(any(AccountId.class), anyLong(), any(Duration.class))).thenReturn("tok");
+
+        notifier.on(eventFor(challenge));
+
+        Map<Email, ResultsAvailableNotification> byRecipient = capturedResults();
+        assertFlags(byRecipient.get(accountFor(guestId).email()), true, false);
+        assertFlags(byRecipient.get(accountFor(cookAId).email()), false, true);
+        assertFlags(byRecipient.get(accountFor(cookBId).email()), false, true);
+    }
+
+    @Test
+    void should_setBothFlags_when_aCookIsAlsoAGuest() {
+        Challenge challenge = Challenge.create(LocalDate.now(), "Schnitzel-Off", new DishName("Schnitzel"),
+                cookAId, cookBId, List.of(guestId, cookAId), organizerId);
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(accountLookup.getById(any(AccountId.class))).thenAnswer(i -> accountFor(i.getArgument(0)));
+        when(accessLinkService.issue(any(AccountId.class), anyLong(), any(Duration.class))).thenReturn("tok");
+
+        notifier.on(eventFor(challenge));
+
+        Map<Email, ResultsAvailableNotification> byRecipient = capturedResults();
+        assertEquals(3, byRecipient.size());
+        assertFlags(byRecipient.get(accountFor(cookAId).email()), true, true);
+    }
+
+    private Map<Email, ResultsAvailableNotification> capturedResults() {
+        ArgumentCaptor<ResultsAvailableNotification> captor =
+                ArgumentCaptor.forClass(ResultsAvailableNotification.class);
+        verify(notificationPort, times(3)).sendResultsAvailable(captor.capture());
+        return captor.getAllValues().stream()
+                .collect(Collectors.toMap(ResultsAvailableNotification::recipient, Function.identity()));
+    }
+
+    private static void assertFlags(ResultsAvailableNotification notification, boolean canRate, boolean picksPlateColor) {
+        assertEquals(canRate, notification.canRate(), "canRate");
+        assertEquals(picksPlateColor, notification.picksPlateColor(), "picksPlateColor");
     }
 
     @Test

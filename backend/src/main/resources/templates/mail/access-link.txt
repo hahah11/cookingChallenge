@@ -1,8 +1,10 @@
 Hi [(${firstName})], you're invited!
 
-You're taking part in "[(${challengeTitle})]". Scoring is open - taste each
-plate and rate it on all three categories.
-
+You're taking part in "[(${challengeTitle})]".
+[# th:if="${canRate}"]Scoring is open - taste each plate and rate it on all three categories.
+[/][# th:if="${picksPlateColor}"]You're cooking in this one. Open the cook-off to choose your plate color -
+the guests will score the dishes blind.
+[/]
 Open the cook-off:
 [(${link})]
 

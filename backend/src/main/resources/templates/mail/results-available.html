@@ -10,7 +10,10 @@
 <th:block th:ref="heading">Hi <span th:text="${firstName}">there</span>, the results are in!</th:block>
 <th:block th:ref="body-copy">
   <strong th:text="${challengeTitle}">The cook-off</strong> has been revealed.
-  You can now see who cooked which plate, the scores per category, and the winner.
+  <!--/* Two independent flags, not either/or: a cook who is also a guest gets both. */-->
+  <th:block th:if="${canRate}">You can now see who cooked which plate, the scores per category, and the winner.</th:block>
+  <th:block th:if="${picksPlateColor}">The dishes are unblinded. See how yours scored in each category,
+    and who took it.</th:block>
 </th:block>
 <th:block th:ref="footer">
   This link is personal to you and logs you in — please don't forward it.

@@ -39,9 +39,7 @@ public class PickColorService {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new ChallengeNotFoundException(challengeIdString));
 
-        boolean isCook = challenge.getCookAssignments().stream()
-                .anyMatch(assignment -> assignment.accountId().equals(cookAccountId));
-        if (!isCook) {
+        if (!challenge.isCook(cookAccountId)) {
             log.warn("Color pick rejected, account {} is not a cook of challenge {}", cookAccountId, challengeId);
             throw new NotAParticipantException(cookAccountId.toString(), challengeIdString);
         }

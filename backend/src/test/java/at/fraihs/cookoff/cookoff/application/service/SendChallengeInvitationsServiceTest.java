@@ -20,15 +20,20 @@ import at.fraihs.cookoff.shared.web.openapi.model.SendInvitationsRequestRestDto;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -97,6 +102,27 @@ class SendChallengeInvitationsServiceTest {
                 new SendInvitationsRequestRestDto().guestAccountIds(List.of(guestId.toString())));
 
         assertEquals(1, sent.getCount());
+    }
+
+    @Test
+    void should_markCooksAsColorPickersAndGuestsAsRaters_when_requestTargetsBoth() {
+        Challenge challenge = challenge();
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(accountLookup.getById(any(AccountId.class))).thenAnswer(i -> accountFor(i.getArgument(0)));
+        when(accessLinkService.issue(any(AccountId.class), anyLong(), any(Duration.class))).thenReturn("token");
+
+        service.execute(challenge.getId().toString(), organizerId, new SendInvitationsRequestRestDto()
+                .guestAccountIds(List.of(guestId.toString()))
+                .cookAccountIds(List.of(cookAId.toString(), cookBId.toString())));
+
+        ArgumentCaptor<InvitationNotification> captor = ArgumentCaptor.forClass(InvitationNotification.class);
+        verify(notificationPort, times(3)).sendAccessLink(captor.capture());
+        Map<Email, InvitationNotification> byRecipient = captor.getAllValues().stream()
+                .collect(Collectors.toMap(InvitationNotification::recipient, Function.identity()));
+        InvitationNotification guest = byRecipient.get(accountFor(guestId).email());
+        InvitationNotification cook = byRecipient.get(accountFor(cookAId).email());
+        assertTrue(guest.canRate() && !guest.picksPlateColor());
+        assertTrue(!cook.canRate() && cook.picksPlateColor());
     }
 
     @Test

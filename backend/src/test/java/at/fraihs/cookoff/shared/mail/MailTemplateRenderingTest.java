@@ -5,6 +5,7 @@ import at.fraihs.cookoff.shared.config.MailConfig;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -22,12 +23,23 @@ class MailTemplateRenderingTest {
 
     private final TemplateEngine engine = new MailConfig().mailTemplateEngine();
 
+    private static final String RATE_INVITE = "rate it on all three categories";
+    private static final String COOK_INVITE = "choose your plate color";
+    private static final String RATE_RESULTS = "who cooked which plate";
+    private static final String COOK_RESULTS = "See how yours scored";
+
     private Context context() {
+        return context(true, false);
+    }
+
+    private Context context(boolean canRate, boolean picksPlateColor) {
         Context context = new Context();
         context.setVariables(Map.of(
                 "firstName", "Ada",
                 "challengeTitle", "Schnitzel-Off",
-                "link", "https://cookoff.test/home?token=abc"));
+                "link", "https://cookoff.test/home?token=abc",
+                "canRate", canRate,
+                "picksPlateColor", picksPlateColor));
         return context;
     }
 
@@ -97,5 +109,53 @@ class MailTemplateRenderingTest {
 
         assertFalse(body.contains("th:replace") || body.contains("th:ref") || body.contains("Heading") || body.contains("Footer"), body);
         assertTrue(body.contains("Open the cook-off") && body.contains("personal to you"), body);
+    }
+
+    /**
+     * Guest vs cook wording, per template and body. Rows: template, canRate, picksPlateColor,
+     * the rater sentence, the cook sentence. The only test that proves the {@code th:if}
+     * conditions name the same variables {@code EmailNotificationAdapter} puts in the model.
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "mail/access-link.html,       " + RATE_INVITE + "," + COOK_INVITE,
+            "mail/access-link.txt,        " + RATE_INVITE + "," + COOK_INVITE,
+            "mail/results-available.html, " + RATE_RESULTS + "," + COOK_RESULTS,
+            "mail/results-available.txt,  " + RATE_RESULTS + "," + COOK_RESULTS})
+    void should_tellCooksToPickAColorInsteadOfRating_when_recipientIsOnlyACook(
+            String template, String raterSentence, String cookSentence) {
+        String body = engine.process(template, context(false, true));
+
+        assertTrue(body.contains(cookSentence), body);
+        assertFalse(body.contains(raterSentence), body);
+        assertFalse(body.toLowerCase().contains("rate it"), body);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "mail/access-link.html,       " + RATE_INVITE + "," + COOK_INVITE,
+            "mail/access-link.txt,        " + RATE_INVITE + "," + COOK_INVITE,
+            "mail/results-available.html, " + RATE_RESULTS + "," + COOK_RESULTS,
+            "mail/results-available.txt,  " + RATE_RESULTS + "," + COOK_RESULTS})
+    void should_keepRaterWording_when_recipientIsOnlyAGuest(
+            String template, String raterSentence, String cookSentence) {
+        String body = engine.process(template, context(true, false));
+
+        assertTrue(body.contains(raterSentence), body);
+        assertFalse(body.contains(cookSentence), body);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "mail/access-link.html,       " + RATE_INVITE + "," + COOK_INVITE,
+            "mail/access-link.txt,        " + RATE_INVITE + "," + COOK_INVITE,
+            "mail/results-available.html, " + RATE_RESULTS + "," + COOK_RESULTS,
+            "mail/results-available.txt,  " + RATE_RESULTS + "," + COOK_RESULTS})
+    void should_includeBothSentencesRaterFirst_when_cookIsAlsoAGuest(
+            String template, String raterSentence, String cookSentence) {
+        String body = engine.process(template, context(true, true));
+
+        assertTrue(body.indexOf(raterSentence) >= 0
+                && body.indexOf(raterSentence) < body.indexOf(cookSentence), body);
     }
 }

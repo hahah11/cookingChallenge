@@ -51,7 +51,8 @@ class MailWiringIntegrationTest {
                 .thenReturn(new MimeMessage(Session.getInstance(new Properties())));
 
         notificationPort.sendAccessLink(new InvitationNotification(
-                new Email("ada@example.com"), "Ada", "Schnitzel-Off", "https://cookoff.test/home?token=abc"));
+                new Email("ada@example.com"), "Ada", "Schnitzel-Off", "https://cookoff.test/home?token=abc",
+                true, false));
 
         // No transaction here, so the listener's fallbackExecution path runs it inline — but
         // still on the mail executor, hence the timeout rather than a bare verify.

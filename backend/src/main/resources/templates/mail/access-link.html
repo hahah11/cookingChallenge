@@ -10,7 +10,10 @@
 <th:block th:ref="heading">Hi <span th:text="${firstName}">there</span>, you're invited!</th:block>
 <th:block th:ref="body-copy">
   You're taking part in <strong th:text="${challengeTitle}">the cook-off</strong>.
-  Scoring is open — taste each plate and rate it on all three categories.
+  <!--/* Two independent flags, not either/or: a cook who is also a guest gets both. */-->
+  <th:block th:if="${canRate}">Scoring is open — taste each plate and rate it on all three categories.</th:block>
+  <th:block th:if="${picksPlateColor}">You're cooking in this one.
+    Open the cook-off to choose your plate color — the guests will score the dishes blind.</th:block>
 </th:block>
 <th:block th:ref="footer">
   This link is personal to you and logs you in — please don't forward it.
