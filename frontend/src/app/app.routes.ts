@@ -32,6 +32,11 @@ export const routes: Routes = [
       import('./features/register/public-registration/public-registration').then((m) => m.PublicRegistration)
   },
   {
+    path: 'reset-password',
+    title: 'Reset password',
+    loadComponent: () => import('./features/auth/reset-password/reset-password').then((m) => m.ResetPassword)
+  },
+  {
     path: 'link-expired',
     title: 'Link expired',
     loadComponent: () => import('./features/auth/link-expired/link-expired').then((m) => m.LinkExpired)

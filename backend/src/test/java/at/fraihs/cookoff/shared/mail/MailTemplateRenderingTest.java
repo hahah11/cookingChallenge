@@ -158,4 +158,17 @@ class MailTemplateRenderingTest {
         assertTrue(body.indexOf(raterSentence) >= 0
                 && body.indexOf(raterSentence) < body.indexOf(cookSentence), body);
     }
+
+    @Test
+    void should_renderPasswordResetInBothBodiesOnTheSharedLayout_when_rendering() {
+        String html = engine.process("mail/password-reset.html", context());
+        String text = engine.process("mail/password-reset.txt", context());
+
+        assertTrue(html.contains("data-mail-card") && html.contains("#940000"), html);
+        assertTrue(html.contains("Ada") && html.contains("https://cookoff.test/home?token=abc")
+                && html.contains("Set a new password") && html.contains("2 hours"), html);
+        assertFalse(text.contains("<html"), text);
+        assertTrue(text.contains("Ada") && text.contains("https://cookoff.test/home?token=abc")
+                && text.contains("2 hours"), text);
+    }
 }

@@ -4,11 +4,13 @@ import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
 import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkException;
 import at.fraihs.cookoff.auth.application.service.AccessLinkLoginService;
 import at.fraihs.cookoff.auth.application.service.LoginService;
+import at.fraihs.cookoff.auth.application.service.PasswordResetRedeemService;
 import at.fraihs.cookoff.shared.config.JacksonConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
 import at.fraihs.cookoff.shared.web.openapi.model.AccessLinkLoginRequestRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.AuthTokenRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.LoginRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.PasswordResetRedeemRequestRestDto;
 
 import java.time.OffsetDateTime;
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -47,6 +51,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private AccessLinkLoginService accessLinkLoginService;
+
+    @MockitoBean
+    private PasswordResetRedeemService passwordResetRedeemService;
 
     @Test
     void should_return200_when_credentialsValid() throws Exception {
@@ -100,5 +107,37 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(new AccessLinkLoginRequestRestDto("bad-token"))))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("INVALID_OR_EXPIRED_LINK"));
+    }
+
+    @Test
+    void should_return204_when_passwordResetRedeemed() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/password-reset")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRedeemRequestRestDto("tok", "long-enough"))))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void should_return401_when_passwordResetTokenInvalid() throws Exception {
+        doThrow(new InvalidOrExpiredLinkException()).when(passwordResetRedeemService).execute(any());
+
+        mockMvc.perform(post("/api/v1/auth/password-reset")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRedeemRequestRestDto("tok", "long-enough"))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("INVALID_OR_EXPIRED_LINK"));
+    }
+
+    @Test
+    void should_return400WithoutRedeeming_when_newPasswordShorterThanEight() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/password-reset")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRedeemRequestRestDto("tok", "short"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"));
+        verifyNoInteractions(passwordResetRedeemService);
     }
 }

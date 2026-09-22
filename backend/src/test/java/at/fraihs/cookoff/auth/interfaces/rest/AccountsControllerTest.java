@@ -4,7 +4,9 @@ import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsExceptio
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
 import at.fraihs.cookoff.auth.application.service.CreateAccountService;
 import at.fraihs.cookoff.auth.application.service.GetAccountDetailService;
+import at.fraihs.cookoff.auth.application.exception.PasswordResetNotEligibleException;
 import at.fraihs.cookoff.auth.application.service.ListAccountsService;
+import at.fraihs.cookoff.auth.application.service.PasswordResetService;
 import at.fraihs.cookoff.auth.application.service.UpdateAccountService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.shared.config.JacksonConfig;
@@ -28,6 +30,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -62,6 +66,9 @@ class AccountsControllerTest {
 
     @MockitoBean
     private UpdateAccountService updateAccountService;
+
+    @MockitoBean
+    private PasswordResetService passwordResetService;
 
     @Test
     void should_return201_when_accountCreated() throws Exception {
@@ -139,5 +146,34 @@ class AccountsControllerTest {
                         .content(objectMapper.writeValueAsString(new UpdateAccountRequestRestDto().firstName("New").lastName("Name"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.name").value("New Name"));
+    }
+
+    @Test
+    void should_return202WithNoBody_when_passwordResetTriggered() throws Exception {
+        AccountId accountId = AccountId.generate();
+
+        mockMvc.perform(post("/api/v1/accounts/" + accountId + "/password-reset"))
+                .andExpect(status().isAccepted())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(""));
+        verify(passwordResetService).execute(accountId);
+    }
+
+    @Test
+    void should_return404_when_passwordResetTargetsUnknownAccount() throws Exception {
+        AccountId accountId = AccountId.generate();
+        doThrow(new AccountNotFoundException(accountId.toString())).when(passwordResetService).execute(accountId);
+
+        mockMvc.perform(post("/api/v1/accounts/" + accountId + "/password-reset"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void should_return409_when_passwordResetTargetsAGuest() throws Exception {
+        AccountId accountId = AccountId.generate();
+        doThrow(new PasswordResetNotEligibleException(accountId.toString())).when(passwordResetService).execute(accountId);
+
+        mockMvc.perform(post("/api/v1/accounts/" + accountId + "/password-reset"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("PASSWORD_RESET_NOT_ELIGIBLE"));
     }
 }

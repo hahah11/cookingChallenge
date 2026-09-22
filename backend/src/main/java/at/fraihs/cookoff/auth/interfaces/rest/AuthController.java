@@ -2,12 +2,14 @@ package at.fraihs.cookoff.auth.interfaces.rest;
 
 import at.fraihs.cookoff.auth.application.service.AccessLinkLoginService;
 import at.fraihs.cookoff.auth.application.service.LoginService;
+import at.fraihs.cookoff.auth.application.service.PasswordResetRedeemService;
 import at.fraihs.cookoff.shared.web.openapi.api.AuthApi;
 import at.fraihs.cookoff.shared.web.openapi.model.AccessLinkLoginRequestRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.ApiMetaRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.AuthTokenResponseRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.AuthTokenRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.LoginRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.PasswordResetRedeemRequestRestDto;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -21,6 +23,7 @@ public class AuthController implements AuthApi {
 
     private final LoginService loginService;
     private final AccessLinkLoginService accessLinkLoginService;
+    private final PasswordResetRedeemService passwordResetRedeemService;
 
     @Override
     public ResponseEntity<AuthTokenResponseRestDto> login(LoginRequestRestDto loginRequest) {
@@ -32,6 +35,12 @@ public class AuthController implements AuthApi {
     public ResponseEntity<AuthTokenResponseRestDto> accessLinkLogin(AccessLinkLoginRequestRestDto accessLinkLoginRequest) {
         AuthTokenRestDto token = accessLinkLoginService.execute(accessLinkLoginRequest);
         return ResponseEntity.ok(new AuthTokenResponseRestDto(token, meta()));
+    }
+
+    @Override
+    public ResponseEntity<Void> redeemPasswordReset(PasswordResetRedeemRequestRestDto passwordResetRedeemRequest) {
+        passwordResetRedeemService.execute(passwordResetRedeemRequest);
+        return ResponseEntity.noContent().build();
     }
 
     private ApiMetaRestDto meta() {

@@ -2,7 +2,32 @@
 
 ## Status
 
-**Not started.** Plan 1 of 3 from the 2026-09-22 feature request. Best done last: its `password-reset.html` mail is built on the `_layout.html` from [`mail-brand-palette-plan.md`](mail-brand-palette-plan.md).
+**Implemented (2026-09-22), not yet verified live.** Plan 1 of 3 from the 2026-09-22 feature
+request, built on the `_layout.html` from [`mail-brand-palette-plan.md`](mail-brand-palette-plan.md).
+Backend `./gradlew test` passes (384 tests). Frontend `ng test` has only the known
+`error-interceptor.spec.ts` failure from before this work, and `ng lint` is clean. The manual walkthrough under Verification has not been run: there was no
+Docker/Postgres on the machine at the time.
+
+Deviations from the text below:
+- **Generated client is not committed.** `src/app/core/api/generated/` is gitignored and rebuilt
+  by the `prestart`/`prebuild`/`pretest` hooks, so the "commit the generated diff" step does not apply.
+- **Port `claim` returns `Optional<PasswordResetToken>`**, not an `int`. The JPA repository still
+  does the conditional UPDATE; the adapter then re-reads the claimed row, so the service never
+  handles a raw row count.
+- **`/link-expired` gained a `kind=reset` variant.** The `link` copy tells the reader to ask the
+  organizer to resend a cook-off link, which is wrong for a reset link. The reset page routes to
+  `/link-expired?kind=reset`.
+- **`errorInterceptor` interplay.** Any 401 makes the interceptor log out and redirect to
+  `/link-expired?kind=link`. On a dead reset token the page then navigates to `kind=reset`, which
+  supersedes that navigation. Unit tests do not cover this path; confirm it in the live check.
+- **Security and end-to-end coverage live in a new `PasswordResetFlowIntegrationTest`** instead of
+  `SecurityIntegrationTest`. It mocks `PasswordResetNotificationPort` to recover the link, then
+  drives trigger → redeem → login over HTTP. It covers ADMIN 202, ORGANIZER 403, anonymous 401,
+  guest 409, single use, supersede, and redeem reachable with no `Authorization` header.
+- **Organizers never see the button.** `/accounts` is already behind `adminGuard`, so the
+  per-row guard only has to hide the button for guest (USER-only) rows.
+- **Error codes.** `PASSWORD_RESET_NOT_ELIGIBLE` was added to the frontend `ApiErrorCode` union; a
+  refused reset shows the server message in a snackbar.
 
 ## Context
 

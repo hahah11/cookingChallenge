@@ -23,7 +23,7 @@
             <th scope="col">Name</th>
             <th scope="col">Email</th>
             <th scope="col">Roles</th>
-            <th scope="col"><span class="cc-visually-hidden">Edit</span></th>
+            <th scope="col"><span class="cc-visually-hidden">Actions</span></th>
           </tr>
         </thead>
         <tbody>
@@ -40,6 +40,9 @@
               </td>
               <td data-label="">
                 <button mat-button type="button" (click)="openEditDialog(account.id)">Edit</button>
+                @if (canResetPassword(account)) {
+                  <button mat-button type="button" (click)="confirmPasswordReset(account)">Reset password</button>
+                }
               </td>
             </tr>
           }

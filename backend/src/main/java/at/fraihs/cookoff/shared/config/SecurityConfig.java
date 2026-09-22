@@ -64,9 +64,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/access-link-login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/password-reset").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/config").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/public/registrations").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/accounts").hasRole("ADMIN")
+                        // ADMIN only: an organizer must not be able to take over an admin account.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/accounts/*/password-reset").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/accounts").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/accounts/*").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/accounts/*").hasAnyRole("ORGANIZER", "ADMIN")

@@ -81,6 +81,32 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /api/v1/auth/password-reset:
+    post:
+      tags: [Auth]
+      operationId: redeemPasswordReset
+      summary: Set a new password using a password-reset token
+      description: >
+        Redeems the token from a reset mail issued by `triggerPasswordReset`. Tokens are
+        single-use and expire after 2 hours; an unknown, expired or already-used token is
+        rejected with the same `INVALID_OR_EXPIRED_LINK` error, deliberately
+        indistinguishable. Confirming the new password twice is a UI concern and is not part
+        of this contract.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRedeemRequest'
+      responses:
+        '204':
+          description: Password changed. The caller logs in with it via `login`.
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /api/v1/config:
     get:
       tags: [Config]
@@ -197,6 +223,36 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+
+  /api/v1/accounts/{accountId}/password-reset:
+    post:
+      tags: [Accounts]
+      operationId: triggerPasswordReset
+      summary: Email an account a link to set a new password (admin only)
+      description: >
+        Only accounts that hold a password (organizers and admins) can be reset; guest
+        accounts log in through access links and are rejected with 409
+        `PASSWORD_RESET_NOT_ELIGIBLE`. Issuing a new reset invalidates any earlier,
+        unused reset link for the same account. Delivery is asynchronous and best-effort,
+        hence 202 with no body.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/AccountIdPathParam'
+      responses:
+        '202':
+          description: Reset link issued; the mail is on its way.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The account has no password to reset (a guest account).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/v1/challenges:
     get:
@@ -966,6 +1022,16 @@ components:
       properties:
         token:
           type: string
+
+    PasswordResetRedeemRequest:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
 
     AuthToken:
       type: object

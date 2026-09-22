@@ -7,6 +7,8 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 import { Account, AccountsApi, SystemRole } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
+import { Notification } from '../../../core/notifications/notification';
+import { ConfirmDialog, ConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
@@ -38,6 +40,7 @@ export class AccountsAdmin {
 
   private readonly accountsApi = inject(AccountsApi);
   private readonly dialog = inject(MatDialog);
+  private readonly notification = inject(Notification);
 
   protected readonly state = signal<LoadState>('loading');
   protected readonly accounts = signal<Account[]>([]);
@@ -77,6 +80,35 @@ export class AccountsAdmin {
       if (updated) {
         this.load();
       }
+    });
+  }
+
+  /** Only accounts that hold a password; guests (USER only) log in through access links. */
+  protected canResetPassword(account: Account): boolean {
+    return account.roles.includes(SystemRole.ADMIN) || account.roles.includes(SystemRole.ORGANIZER);
+  }
+
+  protected confirmPasswordReset(account: Account): void {
+    const data: ConfirmDialogData = {
+      title: 'Reset password?',
+      message: `${account.name} gets an email with a link to set a new password. The link works once, for 2 hours, and replaces any earlier reset link.`,
+      confirmLabel: 'Send reset link'
+    };
+    this.dialog
+      .open(ConfirmDialog, { data, width: '360px' })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.resetPassword(account);
+        }
+      });
+  }
+
+  /** Nothing on the page changes, so the snackbar carries all the feedback. */
+  private resetPassword(account: Account): void {
+    this.accountsApi.triggerPasswordReset(account.id).subscribe({
+      next: () => this.notification.success(`Reset link sent to ${account.email}.`),
+      error: (error: ApiError) => this.notification.error(error.message)
     });
   }
 

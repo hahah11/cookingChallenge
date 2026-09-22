@@ -3,6 +3,7 @@ package at.fraihs.cookoff.auth.interfaces.rest;
 import at.fraihs.cookoff.auth.application.service.CreateAccountService;
 import at.fraihs.cookoff.auth.application.service.GetAccountDetailService;
 import at.fraihs.cookoff.auth.application.service.ListAccountsService;
+import at.fraihs.cookoff.auth.application.service.PasswordResetService;
 import at.fraihs.cookoff.auth.application.service.UpdateAccountService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.shared.web.dto.PagedResult;
@@ -30,6 +31,7 @@ public class AccountsController implements AccountsApi {
     private final ListAccountsService listAccountsService;
     private final GetAccountDetailService getAccountDetailService;
     private final UpdateAccountService updateAccountService;
+    private final PasswordResetService passwordResetService;
 
     @Override
     public ResponseEntity<AccountResponseRestDto> createAccount(CreateAccountRequestRestDto createAccountRequest) {
@@ -53,6 +55,12 @@ public class AccountsController implements AccountsApi {
     public ResponseEntity<AccountResponseRestDto> updateAccount(String accountId, UpdateAccountRequestRestDto updateAccountRequest) {
         AccountRestDto account = updateAccountService.execute(AccountId.fromString(accountId), updateAccountRequest);
         return ResponseEntity.ok(new AccountResponseRestDto(account, meta()));
+    }
+
+    @Override
+    public ResponseEntity<Void> triggerPasswordReset(String accountId) {
+        passwordResetService.execute(AccountId.fromString(accountId));
+        return ResponseEntity.accepted().build();
     }
 
     private ApiMetaRestDto meta() {

@@ -18,6 +18,7 @@ export type ApiErrorCode =
   | 'ACCOUNT_ALREADY_EXISTS'
   | 'CHALLENGE_NOT_OPEN'
   | 'INVALID_STATE'
+  | 'PASSWORD_RESET_NOT_ELIGIBLE'
   | (string & {});
 
 export interface ApiError extends Omit<ErrorBody, 'code'> {

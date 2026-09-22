@@ -33,6 +33,15 @@ describe('LinkExpired', () => {
     expect(fixture.nativeElement.textContent).toContain('This QR code is no longer valid');
   });
 
+  it('shows the reset-link copy when kind is reset', () => {
+    const { fixture } = setup();
+    fixture.componentRef.setInput('kind', 'reset');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Reset link expired');
+    expect(fixture.nativeElement.textContent).toContain('Ask an admin to send you a new link.');
+  });
+
   it('links back to /login', () => {
     const { fixture } = setup();
 

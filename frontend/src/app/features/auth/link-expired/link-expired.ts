@@ -10,7 +10,7 @@ interface ExpiredCopy {
   body: string;
 }
 
-const COPY: Record<'link' | 'qr', ExpiredCopy> = {
+const COPY: Record<'link' | 'qr' | 'reset', ExpiredCopy> = {
   link: {
     kicker: 'Link expired',
     headline: 'This link is no longer valid',
@@ -20,6 +20,11 @@ const COPY: Record<'link' | 'qr', ExpiredCopy> = {
     kicker: 'QR code expired',
     headline: 'This QR code is no longer valid',
     body: 'The registration QR code for this cook-off has expired. Ask the organizer to show a fresh code or send you a personalized link by email.'
+  },
+  reset: {
+    kicker: 'Reset link expired',
+    headline: 'This reset link is no longer valid',
+    body: 'Password reset links work once and expire after 2 hours, and a newer reset replaces older ones. Ask an admin to send you a new link.'
   }
 };
 
@@ -40,7 +45,7 @@ const COPY: Record<'link' | 'qr', ExpiredCopy> = {
   styleUrl: './link-expired.scss'
 })
 export class LinkExpired {
-  readonly kind = input<'link' | 'qr'>('link');
+  readonly kind = input<'link' | 'qr' | 'reset'>('link');
 
   protected readonly copy = computed(() => COPY[this.kind() ?? 'link']);
 }

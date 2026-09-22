@@ -4,6 +4,7 @@ import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsExceptio
 import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
 import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
 import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkException;
+import at.fraihs.cookoff.auth.application.exception.PasswordResetNotEligibleException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeImageNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotOpenException;
@@ -37,6 +38,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccountAlreadyExistsException.class)
     public ResponseEntity<ApiErrorResponse> handleAccountAlreadyExists(AccountAlreadyExistsException ex) {
         return error(HttpStatus.CONFLICT, "ACCOUNT_ALREADY_EXISTS", ex.getMessage());
+    }
+
+    @ExceptionHandler(PasswordResetNotEligibleException.class)
+    public ResponseEntity<ApiErrorResponse> handlePasswordResetNotEligible(PasswordResetNotEligibleException ex) {
+        return error(HttpStatus.CONFLICT, "PASSWORD_RESET_NOT_ELIGIBLE", ex.getMessage());
     }
 
     @ExceptionHandler(DuplicateSubmissionException.class)
