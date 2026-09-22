@@ -1,0 +1,10 @@
+Hi [(${firstName})], you're invited!
+
+You're taking part in "[(${challengeTitle})]". Scoring is open - taste each
+plate and rate it on all three categories.
+
+Open the cook-off:
+[(${link})]
+
+This link is personal to you and logs you in - please don't forward it.
+It works for 30 days.

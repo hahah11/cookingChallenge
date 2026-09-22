@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${challengeTitle}">Cook-off</title>
+</head>
+<!--/* Table layout and inline styles on purpose: mail clients strip style blocks and have
+        no flexbox. Keep this boring. This comment is parser-level, so it is not sent. */-->
+<body style="margin:0;padding:0;background:#f5f2f7;font-family:Roboto,Helvetica,Arial,sans-serif;color:#1d1b20;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f2f7;padding:24px 12px;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+             style="max-width:560px;background:#fffbff;border-radius:16px;padding:32px;">
+        <tr>
+          <td style="font-size:22px;font-weight:500;padding-bottom:8px;">
+            Hi <span th:text="${firstName}">there</span>, you're invited!
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:16px;line-height:24px;padding-bottom:24px;color:#49454f;">
+            You're taking part in <strong th:text="${challengeTitle}">the cook-off</strong>.
+            Scoring is open — taste each plate and rate it on all three categories.
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding-bottom:24px;">
+            <a th:href="${link}" href="#"
+               style="display:inline-block;background:#65558f;color:#ffffff;text-decoration:none;
+                      font-size:16px;font-weight:500;padding:14px 28px;border-radius:100px;">
+              Open the cook-off
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:13px;line-height:20px;color:#49454f;">
+            This link is personal to you and logs you in — please don't forward it.
+            It works for 30 days.
+            <br><br>
+            If the button doesn't work, copy this into your browser:<br>
+            <span th:text="${link}" style="word-break:break-all;color:#65558f;">https://...</span>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

@@ -284,7 +284,11 @@ slices:
       Reveal Cookoff:
         - name: "✅ Ask organizer to confirm before revealing results"
         - name: "✅ Set Cookoff status to revealed"
-        - name: "[Descoped 2026-08-10, see Backlog slice] Notify guests and cooks that results are available"
+        - name: "✅ Notify guests and cooks that results are available"
+          body: |-
+            Shipped 2026-09-22. ChallengeRevealedNotifier listens on the ChallengeRevealed
+            domain event and mails every guest and both cooks a freshly issued access link,
+            via NotificationPort.sendResultsAvailable.
       Edit Guests:
         - name: "✅ Add guests"
         - name: "✅ Remove guests"
@@ -383,14 +387,6 @@ slices:
   - name: Backlog (not yet scheduled)
     stories:
       Reveal Cookoff:
-        - name: Notify guests and cooks that results are available
-          body: |-
-            Added 2026-08-10. Originally scoped in the Walking Skeleton slice but never
-            implemented — NotificationPort only supports sendAccessLink today, so guests/cooks
-            currently learn about a reveal only by checking their home page again. Needs a
-            new NotificationPort method (e.g. sendResultsAvailable) wired into a listener on
-            the ChallengeRevealed domain event, the same pattern ChallengeRevealedRivalryUpdater
-            already uses.
         - name: "[Edge case] Warn organizer if not all guests have submitted votes yet"
           body: |-
             Added 2026-08-10. Originally scoped in V1 but never implemented — the reveal

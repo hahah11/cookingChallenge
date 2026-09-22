@@ -6,6 +6,7 @@ import at.fraihs.cookoff.auth.application.exception.AccountNotFoundException;
 import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
+import at.fraihs.cookoff.cookoff.application.dto.InvitationNotification;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
@@ -30,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -83,7 +83,7 @@ class SendChallengeInvitationsServiceTest {
 
         assertEquals(1, sent.getCount());
         verify(accessLinkService, times(1)).issue(eq(guestId), anyLong(), any(Duration.class));
-        verify(notificationPort, times(1)).sendAccessLink(any(Email.class), anyString());
+        verify(notificationPort, times(1)).sendAccessLink(any(InvitationNotification.class));
     }
 
     @Test
@@ -126,6 +126,6 @@ class SendChallengeInvitationsServiceTest {
         when(accountLookup.isAdmin(otherOrganizerId)).thenReturn(false);
 
         assertThrows(ForbiddenException.class, () -> service.execute(challenge.getId().toString(), otherOrganizerId, null));
-        verify(notificationPort, org.mockito.Mockito.never()).sendAccessLink(any(Email.class), anyString());
+        verify(notificationPort, org.mockito.Mockito.never()).sendAccessLink(any(InvitationNotification.class));
     }
 }

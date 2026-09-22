@@ -24,8 +24,10 @@ extra["jmoleculesArchunitVersion"] = "0.28.0"
 extra["archunitVersion"] = "1.4.1"
 
 dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-liquibase")
+	implementation("org.springframework.boot:spring-boot-starter-mail")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -33,6 +35,10 @@ dependencies {
 	implementation("org.springframework.modulith:spring-modulith-starter-core")
 	implementation("com.github.f4b6a3:tsid-creator:5.2.6")
 	implementation("org.mapstruct:mapstruct:1.6.3")
+	// Plain Thymeleaf, not spring-boot-starter-thymeleaf: the starter drags in
+	// thymeleaf-spring6 (there is no -spring7 release) and registers an MVC ThymeleafViewResolver,
+	// neither of which a REST-only app that only renders mail bodies has any use for.
+	implementation("org.thymeleaf:thymeleaf")
 	implementation("org.jmolecules:jmolecules-ddd")
 	implementation("org.jmolecules:jmolecules-events")
 	implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.31")

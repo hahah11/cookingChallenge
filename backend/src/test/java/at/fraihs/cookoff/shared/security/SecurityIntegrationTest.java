@@ -57,6 +57,13 @@ class SecurityIntegrationTest {
     private AccessLinkService accessLinkService;
 
     @Test
+    void should_return200_when_unauthenticatedRequestHitsHealthEndpoint() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"));
+    }
+
+    @Test
     void should_return200_when_unauthenticatedRequestHitsConfigEndpoint() throws Exception {
         mockMvc.perform(get("/api/v1/config"))
                 .andExpect(status().isOk());

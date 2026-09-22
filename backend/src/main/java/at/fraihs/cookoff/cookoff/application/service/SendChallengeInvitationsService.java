@@ -4,6 +4,7 @@ import at.fraihs.cookoff.auth.AccountLookup;
 import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.application.service.AccessLinkService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.cookoff.application.dto.InvitationNotification;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ForbiddenException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
@@ -66,7 +67,9 @@ public class SendChallengeInvitationsService {
         for (AccountId accountId : targets) {
             AccountSummary account = accountLookup.getById(accountId);
             String token = accessLinkService.issue(accountId, challengeId.value(), LINK_VALIDITY);
-            notificationPort.sendAccessLink(account.email(), frontendBaseUrl + "/home?token=" + token);
+            notificationPort.sendAccessLink(new InvitationNotification(
+                    account.email(), account.firstName(), challenge.getTitle(),
+                    frontendBaseUrl + "/home?token=" + token));
         }
 
         log.info("Sent {} invitation(s) for challenge {}", targets.size(), challengeId);

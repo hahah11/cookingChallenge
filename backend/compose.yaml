@@ -7,3 +7,13 @@ services:
       POSTGRES_USER: cookoff
     ports:
       - '5432:5432'
+
+  # Local SMTP sink, so invitation and results mails can be inspected without sending anything
+  # anywhere. Run the backend with APP_MAIL_ENABLED=true and read the messages at
+  # http://localhost:8025. Boot ships no docker-compose service-connection for mail, so
+  # application.yaml points spring.mail.host/port here explicitly.
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - '1025:1025'  # SMTP
+      - '8025:8025'  # web UI

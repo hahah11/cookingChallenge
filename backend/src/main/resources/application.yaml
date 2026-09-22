@@ -12,6 +12,20 @@ spring:
       username: cookoff
       password: cookoff
       driver-class-name: org.postgresql.Driver
+  mail:
+    # Local dev talks to the Mailpit container in backend/compose.yaml, which
+    # spring-boot-docker-compose starts automatically. Boot ships no docker-compose
+    # service-connection for mail, so host/port are set explicitly here; production
+    # overrides them with SPRING_MAIL_* env vars (see compose.prod.yaml).
+    host: localhost
+    port: 1025
+    properties:
+      # Jakarta Mail defaults every one of these to "wait forever". Combined with the retry
+      # loop in MailTransport, a black-holed SMTP port would pin mailTaskExecutor threads
+      # permanently, so all three are mandatory rather than tuning.
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
 
 app:
   frontend:
@@ -24,3 +38,35 @@ app:
     # expiry is min(accessLink.expiresAt(), now + this), since the access link itself can be
     # valid for up to 30 days and an unrevocable bearer token shouldn't live that long.
     guest-expiration-cap: P1D
+  mail:
+    # false keeps LoggingNotificationAdapter (links go to the log only) — the default so a
+    # fresh checkout and the whole test suite need no mail server. Set APP_MAIL_ENABLED=true
+    # in production, together with SPRING_MAIL_HOST.
+    enabled: false
+    from: "CookOff <no-reply@cookoff.local>"
+    # Attempts after the first one, per message, on a transient SMTP failure.
+    max-retries: 2
+    # Delay before the first retry; doubles for each subsequent attempt.
+    retry-delay: 5s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Health only — the container healthcheck and compose's `service_healthy` gate are
+        # the sole consumers. /actuator is never proxied by docker/nginx.conf, so it stays
+        # reachable only from inside the compose network.
+        include: health
+  endpoint:
+    health:
+      # No component breakdown to anonymous callers; the aggregate UP/DOWN (which already
+      # covers the Postgres connection via the db indicator) is all the healthcheck needs.
+      show-details: never
+  health:
+    mail:
+      # Boot's mail indicator opens an SMTP connection on every health probe. The container
+      # HEALTHCHECK and compose's `service_healthy` gate (which the frontend depends on) read
+      # the aggregate status, so leaving this on would take the whole site down whenever the
+      # mail server is merely unreachable — a non-critical dependency for everything except
+      # sending invitations. Delivery failures are logged by MailDispatcher instead.
+      enabled: false

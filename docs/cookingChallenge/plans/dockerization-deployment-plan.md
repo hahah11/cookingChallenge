@@ -25,7 +25,7 @@ API base URL baked into the bundle at build time.
 | `docker/backend.Dockerfile` | Gradle `bootJar` → JRE runtime, non-root user |
 | `docker/frontend.Dockerfile` | `npm ci` + `ng build` → nginx static serve |
 | `docker/nginx.conf` | SPA fallback, `/api` proxy, gzip, immutable asset caching |
-| `compose.prod.yaml` | The three services, wiring, healthcheck, volume |
+| `compose.prod.yaml` | The three services, wiring, health gating, volume |
 | `.env.example` | Template for the server's `.env` (`.env` is gitignored) |
 | `.github/workflows/publish-images.yml` | Build + push to GHCR on every push to `main`, prune untagged |
 | `.dockerignore` | Keeps `node_modules`, `build/`, `dist/`, `.git` out of the build context |
@@ -59,6 +59,25 @@ hostname) — it is embedded in access links and their QR codes, so `localhost` 
 Liquibase owns the schema and runs on startup, so the database needs no seeding step.
 `JwtConfig` generates an in-memory RSA keypair per start, so there is no signing secret to
 manage — but every restart invalidates issued tokens, guests included.
+
+## Health gating
+
+`spring-boot-starter-actuator` exposes `/actuator/health` and nothing else
+(`management.endpoints.web.exposure.include: health`, `show-details: never`). The aggregate
+status covers the Postgres connection, so a 200 means "ready to serve" and a 503 means "do not
+route to me yet" — `curl -f` alone is therefore the whole healthcheck.
+
+`SecurityConfig` permits `GET /actuator/health` anonymously, which it must, since the filter
+chain ends in `anyRequest().denyAll()`. The rule is a path matcher rather than
+`EndpointRequest.to(HealthEndpoint.class)` to avoid coupling to actuator's autoconfiguration
+package, which moved in Boot 4. Anonymous access is safe here: management shares the
+application port, that port is never published to the LAN, and `docker/nginx.conf` proxies only
+`/api/` — so `/actuator` is reachable only from inside the compose network.
+`SecurityIntegrationTest` covers the anonymous 200.
+
+This is what lets `compose.prod.yaml` gate the frontend on `condition: service_healthy` instead
+of mere start order — which matters because nginx resolves the `backend` upstream at config
+load and exits if it cannot.
 
 ## Registry
 
@@ -94,10 +113,6 @@ docker compose -f compose.prod.yaml exec -T db \
 
 ## Open follow-ups
 
-- **No backend healthcheck.** The project has no `spring-boot-starter-actuator`, so compose
-  can only order backend startup after the database, not wait for the backend to be ready.
-  Adding actuator with `management.endpoints.web.exposure.include=health` would allow a real
-  `service_healthy` condition and an nginx upstream that fails fast.
 - **HTTP only.** Fine on a trusted LAN; JWTs cross the network in clear. If the app is ever
   reachable beyond the LAN, terminate TLS at nginx (Caddy or certbot) before exposing it.
 - **Single instance assumed.** Per-instance JWT keys and in-memory state rule out scaling the

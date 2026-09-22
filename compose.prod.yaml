@@ -38,12 +38,32 @@ services:
       # Baked into guest access links and their QR codes, so it must be the URL a phone on
       # the LAN can actually open — the server's IP or hostname, not localhost.
       APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:?APP_FRONTEND_BASE_URL must be set in .env}
+      # Invitation and results mails. With APP_MAIL_ENABLED unset the backend keeps the
+      # logging stub and sends nothing, so the stack still comes up without a mail account.
+      APP_MAIL_ENABLED: ${APP_MAIL_ENABLED:-false}
+      APP_MAIL_FROM: ${APP_MAIL_FROM:-CookOff <no-reply@cookoff.local>}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH:-true}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS:-true}
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:8080/actuator/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      # Generous: a cold first boot runs the whole Liquibase changelog.
+      start_period: 120s
     restart: unless-stopped
 
   frontend:
     image: ${IMAGE_PREFIX:-ghcr.io/hahah11/cookingchallenge}-frontend:${IMAGE_TAG:-latest}
     depends_on:
-      - backend
+      # nginx resolves `backend` at config load and exits if it cannot, so start it only
+      # once the backend is actually answering.
+      backend:
+        condition: service_healthy
     ports:
       - '${HTTP_PORT:-80}:80'
     restart: unless-stopped

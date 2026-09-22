@@ -1,0 +1,10 @@
+Hi [(${firstName})], the results are in!
+
+"[(${challengeTitle})]" has been revealed. You can now see who cooked which
+plate, the scores per category, and the winner.
+
+See the results:
+[(${link})]
+
+This link is personal to you and logs you in - please don't forward it.
+It works for 30 days.

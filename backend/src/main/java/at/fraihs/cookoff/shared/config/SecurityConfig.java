@@ -55,6 +55,13 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        // Container healthcheck + compose's service_healthy gate (see
+                        // compose.prod.yaml). Matched by path rather than EndpointRequest to
+                        // avoid coupling to the actuator autoconfiguration package, and safe
+                        // to leave anonymous: management shares the app port, which is never
+                        // published to the LAN and never proxied by docker/nginx.conf, and
+                        // show-details is "never".
+                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/access-link-login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/config").permitAll()
