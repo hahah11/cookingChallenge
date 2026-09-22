@@ -2,7 +2,17 @@
 
 ## Status
 
-**Not started.** Plan 3 of 3 from the 2026-09-22 feature request. Suggested order **3 → 2 → 1**: this one extracts the shared mail layout that [`cook-mail-phrasing-plan.md`](cook-mail-phrasing-plan.md) and [`admin-password-reset-plan.md`](admin-password-reset-plan.md) build on.
+**Implemented (2026-09-22).** Plan 3 of 3 from the 2026-09-22 feature request; it extracts the shared mail layout that [`cook-mail-phrasing-plan.md`](cook-mail-phrasing-plan.md) and [`admin-password-reset-plan.md`](admin-password-reset-plan.md) build on.
+
+- `templates/mail/_layout.html` holds the chrome and palette as `page(title, heading, body, ctaLabel, footer)`.
+  Callers pass markup through `th:ref` blocks (`~{::heading}`, `~{::body-copy}`, `~{::footer}`); the CTA
+  label is a plain string, and `${link}` comes straight from the context. The footer is a parameter
+  rather than fixed text because the password-reset mail needs different wording (2 hours, no login).
+- Beyond the plan: a 1px `#c1bcbc` card border and a divider above the footer use `outline-variant`,
+  because a `#ffffff` card on a `#f9f8f8` ground is otherwise nearly invisible.
+- `MailTemplateRenderingTest` gained layout-resolution, palette and no-leaked-placeholder cases. Dropping
+  the `.html` from the fragment reference was checked by hand to fail 5 of them.
+- Full `./gradlew test` passes (330 tests). The Mailpit check under Verification has not been done yet.
 
 ## Context
 

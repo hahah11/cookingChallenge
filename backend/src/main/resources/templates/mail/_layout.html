@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--/* Shared chrome for every HTML mail. Callers replace their own <html> with page(...) and pass
+       their markup in via th:ref, so the palette lives in this one file only.
+
+       Colors are the web app's light-scheme roles (frontend/src/styles/_theme.scss), converted
+       from OKLCH to hex by hand — mail clients (Outlook above all) cannot parse oklch():
+         #940000 primary (primary-40)          #ffffff on-primary, card (neutral-100)
+         #f9f8f8 background (neutral-98)       #040303 on-surface (neutral-10)
+         #332c2b on-surface-variant (nv-30)    #c1bcbc outline-variant (nv-80)
+       Light scheme only: a mail renders on whatever ground the client paints.
+
+       Table layout and inline styles on purpose: mail clients strip style blocks and have no
+       flexbox. Keep this boring. The .txt bodies deliberately do not share a layout — they carry
+       no styling, and a two-line footer is not worth a fragment indirection.
+
+       Parser-level comments like this one are not sent. */-->
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:fragment="page(title, heading, body, ctaLabel, footer)">
+<head>
+  <meta charset="UTF-8">
+  <title th:replace="${title}">Cook-off</title>
+</head>
+<body style="margin:0;padding:0;background:#f9f8f8;font-family:Roboto,Helvetica,Arial,sans-serif;color:#040303;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f9f8f8;padding:24px 12px;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" data-mail-card
+             style="max-width:560px;background:#ffffff;border:1px solid #c1bcbc;border-radius:16px;padding:32px;">
+        <tr>
+          <td style="font-size:22px;font-weight:500;padding-bottom:8px;color:#040303;">
+            <th:block th:replace="${heading}">Heading</th:block>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:16px;line-height:24px;padding-bottom:24px;color:#332c2b;">
+            <th:block th:replace="${body}">Body</th:block>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding-bottom:24px;">
+            <a th:href="${link}" href="#" th:text="${ctaLabel}"
+               style="display:inline-block;background:#940000;color:#ffffff;text-decoration:none;
+                      font-size:16px;font-weight:500;padding:14px 28px;border-radius:100px;">
+              Open
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:13px;line-height:20px;color:#332c2b;border-top:1px solid #c1bcbc;padding-top:24px;">
+            <th:block th:replace="${footer}">Footer</th:block>
+            <br><br>
+            If the button doesn't work, copy this into your browser:<br>
+            <span th:text="${link}" style="word-break:break-all;color:#940000;">https://...</span>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

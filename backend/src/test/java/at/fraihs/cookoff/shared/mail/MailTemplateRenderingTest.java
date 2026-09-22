@@ -4,6 +4,8 @@ import at.fraihs.cookoff.shared.config.MailConfig;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -63,5 +65,37 @@ class MailTemplateRenderingTest {
     void should_renderBothBodies_when_templateIsResultsAvailable() {
         assertTrue(engine.process("mail/results-available.html", context()).contains("Schnitzel-Off"));
         assertTrue(engine.process("mail/results-available.txt", context()).contains("Schnitzel-Off"));
+    }
+
+    /**
+     * The card markup exists only in {@code _layout.html}, so finding it proves the fragment
+     * reference resolved. A reference without the {@code .html} extension fails at send time,
+     * where {@code MailDispatcher} logs and swallows it — this is the test that notices.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"mail/access-link.html", "mail/results-available.html"})
+    void should_wrapBodyInSharedLayout_when_renderingHtmlTemplate(String template) {
+        String body = engine.process(template, context());
+
+        assertTrue(body.contains("data-mail-card"), body);
+        assertTrue(body.contains("https://cookoff.test/home?token=abc"), body);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"mail/access-link.html", "mail/results-available.html"})
+    void should_useAppBrandPalette_when_renderingHtmlTemplate(String template) {
+        String body = engine.process(template, context());
+
+        assertTrue(body.contains("#940000"), body);
+        assertFalse(body.contains("#65558f"), body);
+        assertFalse(body.contains("oklch("), body);
+    }
+
+    @Test
+    void should_notLeakLayoutPlaceholders_when_renderingHtmlTemplate() {
+        String body = engine.process("mail/access-link.html", context());
+
+        assertFalse(body.contains("th:replace") || body.contains("th:ref") || body.contains("Heading") || body.contains("Footer"), body);
+        assertTrue(body.contains("Open the cook-off") && body.contains("personal to you"), body);
     }
 }
