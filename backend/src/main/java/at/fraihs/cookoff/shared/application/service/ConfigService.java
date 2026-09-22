@@ -7,6 +7,7 @@ import at.fraihs.cookoff.shared.web.openapi.model.ConfigRestDto;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
  * Backs GET /api/v1/config - bootstrap data fetched once at app start. Roles and the
  * active plate-color palette are never hardcoded or derived client-side; this is their
  * single source of truth.
+ *
+ * <p>It also carries the running build version, which is how a deployed image identifies
+ * itself to the UI. This endpoint is deliberately anonymous, so the version can be checked
+ * before logging in - useful precisely when something looks wrong.
  */
 @Service
 @RequiredArgsConstructor
@@ -22,6 +27,10 @@ public class ConfigService {
     private final PlateColors plateColors;
     private final ConfigModelMapper configModelMapper;
 
+    /** Baked into the container image by docker/backend.Dockerfile; "dev" for a local run. */
+    @Value("${app.version:dev}")
+    private String version;
+
     @Transactional(readOnly = true)
     public ConfigRestDto execute() {
         return new ConfigRestDto(
@@ -29,6 +38,7 @@ public class ConfigService {
                 plateColors.listActive().stream()
                         .map(configModelMapper::toGenerated)
                         .toList(),
-                Map.of());
+                Map.of())
+                .version(version);
     }
 }

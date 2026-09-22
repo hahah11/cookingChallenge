@@ -3,6 +3,11 @@
 # must be produced here rather than copied in).
 #   docker build -f docker/frontend.Dockerfile .
 
+# Accepted but unused: the bundle bakes in no version. The UI reads the backend's from
+# GET /api/v1/config at runtime, so there is only ever one source of truth. Declared here
+# purely so the workflow can pass --build-arg to both images without a BuildKit warning.
+ARG APP_VERSION=dev
+
 FROM node:26-alpine AS build
 WORKDIR /workspace/frontend
 

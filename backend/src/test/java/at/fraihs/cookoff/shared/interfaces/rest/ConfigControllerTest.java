@@ -34,7 +34,8 @@ class ConfigControllerTest {
         ConfigRestDto config = new ConfigRestDto(
                 List.of(SystemRoleRestDto.ADMIN, SystemRoleRestDto.ORGANIZER, SystemRoleRestDto.USER),
                 List.of(new PlateColorRestDto("color-1", "Red", "#c0392b", 0)),
-                Map.of());
+                Map.of())
+                .version("0.1.42");
         when(configService.execute()).thenReturn(config);
 
         mockMvc.perform(get("/api/v1/config"))
@@ -42,6 +43,7 @@ class ConfigControllerTest {
                 .andExpect(jsonPath("$.data.availableRoles.length()").value(3))
                 .andExpect(jsonPath("$.data.plateColors[0].id").value("color-1"))
                 .andExpect(jsonPath("$.data.plateColors[0].name").value("Red"))
+                .andExpect(jsonPath("$.data.version").value("0.1.42"))
                 .andExpect(jsonPath("$.meta.requestId").exists())
                 .andExpect(jsonPath("$.meta.timestamp").exists());
     }

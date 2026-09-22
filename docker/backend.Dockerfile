@@ -20,6 +20,12 @@ RUN ./gradlew --no-daemon --console=plain bootJar -x test
 FROM eclipse-temurin:25-jre AS runtime
 WORKDIR /app
 
+# Set by the publish workflow to <BASE_VERSION>.<run number>; `dev` for a local build. ARG is
+# stage-scoped, hence the re-declaration. Spring's relaxed binding reads APP_VERSION as
+# `app.version`, which ConfigService reports on GET /api/v1/config.
+ARG APP_VERSION=dev
+ENV APP_VERSION=${APP_VERSION}
+
 # curl is for the HEALTHCHECK below; the temurin JRE image ships no HTTP client.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \

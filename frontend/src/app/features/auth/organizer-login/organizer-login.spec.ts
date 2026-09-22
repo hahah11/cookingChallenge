@@ -1,16 +1,18 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { throwError, of } from 'rxjs';
 import { vi } from 'vitest';
 
 import { Auth } from '../../../core/auth/auth';
+import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
 import { Notification } from '../../../core/notifications/notification';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { OrganizerLogin } from './organizer-login';
 
 describe('OrganizerLogin', () => {
-  function setup(auth: Partial<Auth>) {
+  function setup(auth: Partial<Auth>, version = '') {
     const notification = { error: vi.fn(), success: vi.fn(), info: vi.fn() };
 
     TestBed.configureTestingModule({
@@ -18,7 +20,8 @@ describe('OrganizerLogin', () => {
       providers: [
         provideRouter([]),
         { provide: Auth, useValue: auth },
-        { provide: Notification, useValue: notification }
+        { provide: Notification, useValue: notification },
+        { provide: AppConfig, useValue: { version: signal(version) } }
       ]
     });
 
@@ -93,4 +96,16 @@ describe('OrganizerLogin', () => {
     },
     15000
   );
+
+  it('shows the running build version', () => {
+    const { fixture } = setup({ login: vi.fn() }, '0.1.42');
+
+    expect(fixture.nativeElement.querySelector('.organizer-login__version').textContent).toContain('0.1.42');
+  });
+
+  it('omits the version line when the backend did not report one', () => {
+    const { fixture } = setup({ login: vi.fn() });
+
+    expect(fixture.nativeElement.querySelector('.organizer-login__version')).toBeNull();
+  });
 });

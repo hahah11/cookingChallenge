@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,6 +29,9 @@ class ConfigServiceTest {
     @BeforeEach
     void setUp() {
         service = new ConfigService(plateColors, new ConfigModelMapperImpl());
+        // @Value is not applied outside a Spring context; the real value comes from the
+        // APP_VERSION env var the container image sets.
+        ReflectionTestUtils.setField(service, "version", "0.1.42");
     }
 
     @Test
@@ -51,6 +55,13 @@ class ConfigServiceTest {
         assertEquals("color-2", result.getPlateColors().get(1).getId());
 
         assertTrue(result.getFeatureFlags().isEmpty());
+    }
+
+    @Test
+    void should_reportTheRunningBuildVersion_when_configRequested() {
+        when(plateColors.listActive()).thenReturn(List.of());
+
+        assertEquals("0.1.42", service.execute().getVersion());
     }
 
     @Test

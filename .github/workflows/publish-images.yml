@@ -7,6 +7,12 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  # Image version = BASE_VERSION.<workflow run number>, e.g. 0.1.42 — minted automatically on
+  # every push to main, immutable once published. Bump BASE_VERSION by hand to start a new line
+  # after something notable; run_number keeps counting straight through such a bump, so numbers
+  # never repeat. Caveat: run_number is per workflow FILE and restarts at 1 if this file is
+  # renamed, which would make versions appear to go backwards.
+  BASE_VERSION: '0.1'
 
 jobs:
   build:
@@ -42,6 +48,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/cookingchallenge-${{ matrix.component }}
           tags: |
+            type=raw,value=${{ env.BASE_VERSION }}.${{ github.run_number }}
             type=raw,value=latest
             type=sha,format=long
 
@@ -53,6 +60,10 @@ jobs:
           file: ${{ matrix.dockerfile }}
           platforms: linux/amd64
           push: true
+          # The backend reports this on GET /api/v1/config, which is how the running version
+          # becomes visible in the UI. The frontend image declares the ARG but ignores it.
+          build-args: |
+            APP_VERSION=${{ env.BASE_VERSION }}.${{ github.run_number }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.component }}

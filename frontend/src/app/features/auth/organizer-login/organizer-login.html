@@ -54,5 +54,9 @@
     </p>
 
     <mat-divider />
+
+    @if (version()) {
+      <p class="organizer-login__version">Version {{ version() }}</p>
+    }
   </mat-card-content>
 </mat-card>

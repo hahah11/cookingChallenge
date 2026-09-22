@@ -26,6 +26,10 @@ services:
 
   backend:
     image: ${IMAGE_PREFIX:-ghcr.io/hahah11/cookingchallenge}-backend:${IMAGE_TAG:-latest}
+    # `up` alone pulls only when no local image carries the tag, so a moved `latest` would
+    # otherwise stay stale forever. This checks the registry every start and downloads only
+    # when the digest actually changed — an unchanged image costs one HTTP request.
+    pull_policy: always
     depends_on:
       db:
         condition: service_healthy
@@ -59,6 +63,7 @@ services:
 
   frontend:
     image: ${IMAGE_PREFIX:-ghcr.io/hahah11/cookingchallenge}-frontend:${IMAGE_TAG:-latest}
+    pull_policy: always
     depends_on:
       # nginx resolves `backend` at config load and exits if it cannot, so start it only
       # once the backend is actually answering.

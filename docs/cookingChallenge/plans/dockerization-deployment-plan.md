@@ -30,8 +30,9 @@ API base URL baked into the bundle at build time.
 | `.github/workflows/publish-images.yml` | Build + push to GHCR on every push to `main`, prune untagged |
 | `.dockerignore` | Keeps `node_modules`, `build/`, `dist/`, `.git` out of the build context |
 
-`backend/compose.yaml` is unchanged — it stays the local-dev Postgres that
-`spring-boot-docker-compose` starts automatically.
+`backend/compose.yaml` stays the local-dev stack that `spring-boot-docker-compose` starts
+automatically — Postgres, plus a Mailpit SMTP sink added with the email feature (see
+`email-notifications-plan.md`).
 
 ## Two constraints that shaped the Dockerfiles
 
@@ -45,13 +46,16 @@ API base URL baked into the bundle at build time.
 
 ## Configuration
 
-No backend source change is required. Spring's relaxed environment binding maps the compose
-environment onto the existing `application.yaml`:
+Spring's relaxed environment binding maps the compose environment onto the existing
+`application.yaml` — no profiles, and no per-environment config files:
 
 | Env var | Overrides |
 |---------|-----------|
 | `SPRING_DATASOURCE_URL` / `_USERNAME` / `_PASSWORD` | `spring.datasource.*` |
 | `APP_FRONTEND_BASE_URL` | `app.frontend.base-url` |
+| `APP_VERSION` | `app.version` — set by the image itself, not `.env` (see Image versioning) |
+| `APP_MAIL_ENABLED` / `APP_MAIL_FROM` | `app.mail.*` (see `email-notifications-plan.md`) |
+| `SPRING_MAIL_HOST` / `_PORT` / `_USERNAME` / `_PASSWORD` | `spring.mail.*` |
 
 `APP_FRONTEND_BASE_URL` must be the address a guest's phone can reach (the server's LAN IP or
 hostname) — it is embedded in access links and their QR codes, so `localhost` breaks them.
@@ -81,11 +85,40 @@ load and exits if it cannot.
 
 ## Registry
 
-GHCR, private, free. `GITHUB_TOKEN` authenticates the push from Actions; the server pulls with
-a PAT scoped to `read:packages`. GitHub's Free plan caps private package storage at roughly
-500 MB, so the workflow's `prune` job deletes untagged versions and keeps the last five.
-Images are tagged `latest` and `sha-<commit>`; pinning `IMAGE_TAG` to a SHA in `.env` gives a
-one-line rollback.
+GHCR, free. `GITHUB_TOKEN` authenticates the push from Actions. The packages are **public**
+(verified 2026-09-22: an anonymous registry token lists their tags), so storage is unmetered and
+the server needs no credentials to pull — the `docker login` in Server setup below is only
+required if they are ever made private.
+
+The `prune` job deletes *untagged* manifests, keeping the last five. That is housekeeping, not a
+quota measure: the ~500 MB cap GitHub applies to private package storage does not apply here.
+Version tags are never pruned.
+
+## Image versioning
+
+Every push to `main` publishes three tags per image:
+
+| Tag | Moves? | Use |
+|-----|--------|-----|
+| `0.1.<run>` | Never | The version of record. Shown on the login page and in `GET /api/v1/config`. |
+| `latest` | Every push | What `compose.prod.yaml` runs by default. |
+| `sha-<commit>` | Never | Traceability back to an exact commit. |
+
+`0.1` is `BASE_VERSION` in `.github/workflows/publish-images.yml`; the patch component is the
+workflow run number. Bump `BASE_VERSION` by hand to start a new line — run numbers keep counting
+through a bump, so a version is never reused. Note run numbers are per workflow *file* and would
+restart at 1 if that file were renamed.
+
+The number is not semantic: `0.1.42 → 0.1.43` says nothing about what changed. It is a build
+identity, chosen so that releasing costs nothing beyond pushing.
+
+The workflow passes it as `--build-arg APP_VERSION`, which `docker/backend.Dockerfile` turns into
+an `APP_VERSION` env var. Spring's relaxed binding reads that as `app.version`, and `ConfigService`
+puts it on `GET /api/v1/config`, where the Angular login page displays it. A backend built outside
+the workflow reports `dev`. The frontend image bakes in no version of its own — it shows the
+backend's, so there is only one source of truth.
+
+**Rollback:** set `IMAGE_TAG=0.1.<previous>` in `.env` and `up -d`. Confirm on the login page.
 
 ## Server setup (once)
 
@@ -100,9 +133,18 @@ docker compose -f compose.prod.yaml up -d
 
 ```bash
 git pull                                              # only if compose.prod.yaml changed
-docker compose -f compose.prod.yaml pull
 docker compose -f compose.prod.yaml up -d
 ```
+
+`up -d` is the whole deploy. Both app services set `pull_policy: always`, so compose checks the
+registry on every start and downloads only when the digest actually changed — an unchanged image
+costs one HTTP request.
+
+This matters because `up` on its own pulls *only* when no local image carries the requested tag.
+Without `pull_policy`, a moved `latest` stayed stale forever and the stack came up healthy on the
+old build with no indication anything had been skipped — which is exactly what happened deploying
+the email feature on 2026-09-22. The separate `docker compose pull` step this runbook used to
+carry is no longer needed.
 
 ## Backup
 

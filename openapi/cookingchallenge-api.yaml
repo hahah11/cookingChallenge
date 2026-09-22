@@ -931,6 +931,13 @@ components:
           additionalProperties:
             type: boolean
           description: Reserved for future use; empty today.
+        version:
+          type: string
+          description: >
+            Build version of the running backend, e.g. "0.1.42" - the published container image
+            tag, or "dev" for a build that did not come from the publish workflow. Diagnostic
+            only; optional so clients built before it existed keep validating.
+          example: 0.1.42
 
     ConfigResponse:
       type: object

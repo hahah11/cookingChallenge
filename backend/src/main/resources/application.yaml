@@ -28,6 +28,10 @@ spring:
       mail.smtp.writetimeout: 5000
 
 app:
+  # Overridden by the APP_VERSION env var the container image sets (env beats application.yaml
+  # in Spring's property order), so a locally-run backend reports "dev" and a published image
+  # reports its own tag. Surfaced on GET /api/v1/config.
+  version: dev
   frontend:
     base-url: http://localhost:4200
   jwt:

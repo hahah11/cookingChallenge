@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 
 import { Auth } from '../../../core/auth/auth';
+import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
 import { Notification } from '../../../core/notifications/notification';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
@@ -41,6 +42,9 @@ export class OrganizerLogin {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
   private readonly notification = inject(Notification);
+
+  /** Which build is running. Shown here so it can be read without logging in first. */
+  protected readonly version = inject(AppConfig).version;
 
   protected readonly model = signal<LoginFormModel>({ email: '', password: '' });
   protected readonly loginForm = form(this.model, (path) => {

@@ -17,6 +17,8 @@ export class AppConfig {
   readonly availableRoles = computed(() => this.config()?.availableRoles ?? []);
   readonly plateColors = computed(() => this.config()?.plateColors ?? []);
   readonly featureFlags = computed(() => this.config()?.featureFlags ?? {});
+  /** Build version of the backend, e.g. `0.1.42`, or `dev` for a non-published build. */
+  readonly version = computed(() => this.config()?.version ?? '');
 
   load(): Observable<Config> {
     return this.configApi.getConfig().pipe(
