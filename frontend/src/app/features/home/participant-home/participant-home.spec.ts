@@ -108,7 +108,7 @@ describe('ParticipantHome', () => {
     expect(fixture.nativeElement.textContent).toContain('Hi, Felix');
   });
 
-  it('shows an expired-link message and never loads home when the token is dead', () => {
+  it('sends the guest to the link-expired page and never loads home when the token is dead', () => {
     const apiError: ApiError = {
       code: 'INVALID_OR_EXPIRED_LINK',
       message: 'Link expired.',
@@ -120,12 +120,13 @@ describe('ParticipantHome', () => {
     const accessLinkLogin = vi.fn().mockReturnValue(throwError(() => apiError));
     const getMyHome = vi.fn();
     const { fixture } = setup({ auth: { accessLinkLogin }, homeApi: { getMyHome } });
+    const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate');
 
     fixture.componentRef.setInput('token', 'dead-token');
     fixture.detectChanges();
 
     expect(getMyHome).not.toHaveBeenCalled();
-    expect(fixture.nativeElement.textContent).toContain('This link has expired');
+    expect(navigateSpy).toHaveBeenCalledWith(['/link-expired'], { queryParams: { kind: 'link' }, replaceUrl: true });
   });
 
   it('loads home directly when there is no token, already-authenticated case', () => {

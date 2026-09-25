@@ -154,13 +154,11 @@
   "register": {
     "title": "Register",
     "submit": "Register",
-    "expired": "This code has expired. Ask your host for a new QR code.",
     "welcome": "Welcome, {{name}}!",
     "joined": "You're registered! You'll get an email once the organizer opens scoring for this cook-off.",
     "closed": "You're registered, but this event has already closed."
   },
   "home": {
-    "expired": "This link has expired. Ask your host to resend it.",
     "kicker": "Your personalized link",
     "greeting": "Hi, {{name}}",
     "emptyOpen": "Nothing open right now — check back after the next cook-off.",

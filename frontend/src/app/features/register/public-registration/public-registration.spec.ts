@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
@@ -14,7 +15,7 @@ describe('PublicRegistration', () => {
   function setup(registerPublicly: ReturnType<typeof vi.fn>) {
     TestBed.configureTestingModule({
       imports: [PublicRegistration],
-      providers: [...provideTestI18n(), { provide: PublicApi, useValue: { registerPublicly } }]
+      providers: [...provideTestI18n(), provideRouter([]), { provide: PublicApi, useValue: { registerPublicly } }]
     });
 
     const fixture = TestBed.createComponent(PublicRegistration);
@@ -69,7 +70,7 @@ describe('PublicRegistration', () => {
     );
   });
 
-  it('shows an expired-code state on INVALID_OR_EXPIRED_LINK', () => {
+  it('sends the guest to the qr link-expired page on INVALID_OR_EXPIRED_LINK', () => {
     const apiError: ApiError = {
       code: 'INVALID_OR_EXPIRED_LINK',
       message: 'Token invalid.',
@@ -80,11 +81,11 @@ describe('PublicRegistration', () => {
     };
     const registerPublicly = vi.fn().mockReturnValue(throwError(() => apiError));
     const { fixture } = setup(registerPublicly);
+    const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate');
 
     fillAndSubmit(fixture);
 
-    expect(fixture.nativeElement.textContent).toContain('This code has expired');
-    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(navigateSpy).toHaveBeenCalledWith(['/link-expired'], { queryParams: { kind: 'qr' }, replaceUrl: true });
   });
 
   it('shows a duplicate-email message on ACCOUNT_ALREADY_EXISTS, keeping the form', () => {

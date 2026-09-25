@@ -50,6 +50,17 @@ describe('errorInterceptor', () => {
     expect(navigateSpy).toHaveBeenCalledWith('/link-expired?kind=link');
   });
 
+  it('treats an envelope-less 401 (expired token rejected by the bearer filter) as a dead session', () => {
+    const logout = vi.fn();
+    const { router } = setup({ isOrganizer: signal(true), logout });
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl');
+
+    run(null, 401).subscribe({ error: () => undefined });
+
+    expect(logout).toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledWith('/login');
+  });
+
   it('leaves non-UNAUTHENTICATED 401s alone (e.g. wrong organizer password)', () => {
     const logout = vi.fn();
     const { router } = setup({ isOrganizer: signal(false), logout });

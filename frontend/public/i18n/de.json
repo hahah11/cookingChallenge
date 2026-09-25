@@ -154,13 +154,11 @@
   "register": {
     "title": "Registrieren",
     "submit": "Registrieren",
-    "expired": "Dieser Code ist abgelaufen. Bitte deinen Gastgeber um einen neuen QR-Code.",
     "welcome": "Willkommen, {{name}}!",
     "joined": "Du bist registriert! Du bekommst eine E-Mail, sobald der Organisator die Bewertung für diesen Kochwettbewerb öffnet.",
     "closed": "Du bist registriert, aber diese Veranstaltung ist bereits beendet."
   },
   "home": {
-    "expired": "Dieser Link ist abgelaufen. Bitte deinen Gastgeber, ihn erneut zu schicken.",
     "kicker": "Dein persönlicher Link",
     "greeting": "Hallo, {{name}}",
     "emptyOpen": "Gerade ist nichts offen – schau nach dem nächsten Kochwettbewerb wieder vorbei.",

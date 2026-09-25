@@ -2,9 +2,6 @@
   @case ('loading') {
     <app-loading-skeleton variant="card" [lines]="2" />
   }
-  @case ('link-expired') {
-    <app-error-state [message]="'home.expired' | transloco" />
-  }
   @case ('error') {
     <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="loadHome()" />
   }

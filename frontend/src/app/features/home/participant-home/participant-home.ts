@@ -18,7 +18,7 @@ import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { StatusTag } from '../../../shared/components/status-tag/status-tag';
 import { ParticipantChallengeCard } from '../participant-challenge-card/participant-challenge-card';
 
-type LoadState = 'loading' | 'loaded' | 'link-expired' | 'error';
+type LoadState = 'loading' | 'loaded' | 'error';
 
 /**
  * `/home?token=` — the access-link exchange itself, then `GET /me/home`. One screen for both
@@ -70,7 +70,7 @@ export class ParticipantHome {
       },
       error: (error: ApiError) => {
         if (error.code === 'INVALID_OR_EXPIRED_LINK') {
-          this.state.set('link-expired');
+          void this.router.navigate(['/link-expired'], { queryParams: { kind: 'link' }, replaceUrl: true });
         } else {
           this.errorMessage.set(error.message);
           this.state.set('error');

@@ -5,12 +5,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { PublicApi, PublicRegistrationResult } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
 import { detectApiLocale } from '../../../core/i18n/api-locale';
-import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 
 interface RegisterFormModel {
@@ -27,7 +27,6 @@ interface RegisterFormModel {
 @Component({
   selector: 'app-public-registration',
   imports: [
-    ErrorState,
     FormField,
     MatButtonModule,
     MatCardModule,
@@ -43,6 +42,7 @@ interface RegisterFormModel {
 export class PublicRegistration {
   private readonly transloco = inject(TranslocoService);
   private readonly publicApi = inject(PublicApi);
+  private readonly router = inject(Router);
 
   readonly token = input<string>();
 
@@ -56,7 +56,6 @@ export class PublicRegistration {
 
   protected readonly submitting = signal(false);
   protected readonly formErrorMessage = signal<string | null>(null);
-  protected readonly linkExpired = signal(false);
   protected readonly result = signal<PublicRegistrationResult | null>(null);
 
   protected onSubmit(): void {
@@ -67,7 +66,7 @@ export class PublicRegistration {
 
     const token = this.token();
     if (!token) {
-      this.linkExpired.set(true);
+      this.showLinkExpired();
       return;
     }
 
@@ -83,11 +82,15 @@ export class PublicRegistration {
       error: (error: ApiError) => {
         this.submitting.set(false);
         if (error.code === 'INVALID_OR_EXPIRED_LINK') {
-          this.linkExpired.set(true);
+          this.showLinkExpired();
         } else {
           this.formErrorMessage.set(error.message);
         }
       }
     });
+  }
+
+  private showLinkExpired(): void {
+    void this.router.navigate(['/link-expired'], { queryParams: { kind: 'qr' }, replaceUrl: true });
   }
 }

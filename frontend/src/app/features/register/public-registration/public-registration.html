@@ -1,6 +1,4 @@
-@if (linkExpired()) {
-  <app-error-state [message]="'register.expired' | transloco" />
-} @else if (result(); as result) {
+@if (result(); as result) {
   <mat-card appearance="raised" class="public-registration__success" role="status">
     <mat-card-content>
       <p class="public-registration__success-emoji" aria-hidden="true">🎉</p>
