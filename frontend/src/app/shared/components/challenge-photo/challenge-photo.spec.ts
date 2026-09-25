@@ -47,6 +47,18 @@ describe('ChallengePhoto', () => {
     expect(fixture.nativeElement.querySelector('.challenge-photo--placeholder')).not.toBeNull();
   });
 
+  it('re-fetches the image when refreshKey changes although hasImage stays true', () => {
+    const fixture = TestBed.createComponent(ChallengePhoto);
+    fixture.componentRef.setInput('challengeId', 'chal-4');
+    fixture.componentRef.setInput('hasImage', true);
+    fixture.detectChanges();
+
+    fixture.componentRef.setInput('refreshKey', 1);
+    fixture.detectChanges();
+
+    expect(getChallengeImage).toHaveBeenCalledTimes(2);
+  });
+
   it('revokes the object URL on destroy', () => {
     const fixture = TestBed.createComponent(ChallengePhoto);
     fixture.componentRef.setInput('challengeId', 'chal-3');

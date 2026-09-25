@@ -1266,13 +1266,16 @@ components:
 
     CookAssignment:
       type: object
-      required: [accountId, name, label, colorId]
+      required: [accountId, name, firstName, label, colorId]
       properties:
         accountId:
           $ref: '#/components/schemas/Tsid'
         name:
           type: string
           description: The cook's display name, resolved from their account.
+        firstName:
+          type: string
+          description: The cook's first name, resolved from their account.
         label:
           $ref: '#/components/schemas/DishLabel'
         colorId:
@@ -1630,6 +1633,7 @@ components:
         - labels
         - categories
         - participantCookAssignments
+        - cookFirstNames
         - hasImage
         - submitted
         - mySubmission
@@ -1661,6 +1665,17 @@ components:
           items:
             $ref: '#/components/schemas/ParticipantCookAssignment'
           description: Always present (2 entries) - each entry's own accountId is null until REVEALED; colorId is visible from the moment it's picked.
+        cookFirstNames:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: string
+          description: >
+            The two cooks' first names, always sorted alphabetically (case-insensitive) and
+            visible before reveal. Deliberately carries no dish label or plate color, so
+            guests learn who is competing without learning which dish is whose - blind
+            scoring stays blind.
         hasImage:
           type: boolean
           description: Whether GET /api/v1/challenges/{id}/image resolves to a photo.

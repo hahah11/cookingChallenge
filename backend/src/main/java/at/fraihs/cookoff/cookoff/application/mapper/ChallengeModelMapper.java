@@ -76,11 +76,15 @@ public final class ChallengeModelMapper {
 
     public static List<CookAssignmentRestDto> cookAssignments(Challenge challenge, AccountLookup accountLookup) {
         return challenge.getCookAssignments().stream()
-                .map(assignment -> new CookAssignmentRestDto(
-                        assignment.accountId().toString(),
-                        accountLookup.getById(assignment.accountId()).name(),
-                        DishLabelRestDto.valueOf(assignment.label().name()),
-                        assignment.colorId() == null ? null : assignment.colorId().toString()))
+                .map(assignment -> {
+                    AccountSummary cook = accountLookup.getById(assignment.accountId());
+                    return new CookAssignmentRestDto(
+                            assignment.accountId().toString(),
+                            cook.name(),
+                            cook.firstName(),
+                            DishLabelRestDto.valueOf(assignment.label().name()),
+                            assignment.colorId() == null ? null : assignment.colorId().toString());
+                })
                 .toList();
     }
 
@@ -111,7 +115,8 @@ public final class ChallengeModelMapper {
      * Guest/cook-facing view via a link token. {@code accountId} in each cook assignment is
      * hidden until REVEALED (blind scoring); {@code colorId} is always visible once picked,
      * since blind scoring is done by plate color, not by cook identity - see
-     * openapi-first-api-plan.md's ParticipantChallenge restructuring note.
+     * openapi-first-api-plan.md's ParticipantChallenge restructuring note. {@code cookFirstNames}
+     * is visible before reveal but sorted alphabetically, so it never leaks which dish is whose.
      */
     public static ParticipantChallengeRestDto toParticipantChallenge(
             Challenge challenge, ScoreSubmission mySubmission, AccountId requesterAccountId,
@@ -125,6 +130,10 @@ public final class ChallengeModelMapper {
                                 revealed ? accountLookup.getById(assignment.accountId()).name() : null,
                                 assignment.colorId() == null ? null : assignment.colorId().toString()))
                         .toList();
+        List<String> cookFirstNames = challenge.getCookAssignments().stream()
+                .map(assignment -> accountLookup.getById(assignment.accountId()).firstName())
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
 
         DishLabel myLabel = challenge.getCookAssignments().stream()
                 .filter(assignment -> assignment.accountId().equals(requesterAccountId))
@@ -145,6 +154,7 @@ public final class ChallengeModelMapper {
                 Arrays.asList(DishLabelRestDto.values()),
                 Arrays.asList(CategoryRestDto.values()),
                 assignments,
+                cookFirstNames,
                 challenge.getImageRef() != null,
                 mySubmission != null,
                 toGeneratedMySubmission(mySubmission),

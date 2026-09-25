@@ -147,8 +147,8 @@ class ChallengesControllerTest {
 
     private ChallengeRestDto sampleChallenge() {
         return new ChallengeRestDto("chal-1", LocalDate.now(), "Schnitzel", ChallengeStatusRestDto.OPEN,
-                List.of(new CookAssignmentRestDto("acc-a", "Cook A", DishLabelRestDto.A, null),
-                        new CookAssignmentRestDto("acc-b", "Cook B", DishLabelRestDto.B, null)),
+                List.of(new CookAssignmentRestDto("acc-a", "Cook A", "Cook", DishLabelRestDto.A, null),
+                        new CookAssignmentRestDto("acc-b", "Cook B", "Cook", DishLabelRestDto.B, null)),
                 List.of(), "acc-org", 0, 0, false, null);
     }
 
@@ -165,7 +165,7 @@ class ChallengesControllerTest {
     private ParticipantChallengeRestDto sampleParticipantChallenge() {
         return new ParticipantChallengeRestDto("chal-1", LocalDate.now(), "Schnitzel", ChallengeStatusRestDto.OPEN,
                 List.of(DishLabelRestDto.A, DishLabelRestDto.B), List.of(CategoryRestDto.MUNDGEFUEHL), List.of(),
-                false, false, null, null, true, false);
+                List.of("Anna", "Ben"), false, false, null, null, true, false);
     }
 
     @Test
@@ -222,8 +222,8 @@ class ChallengesControllerTest {
         AccountId organizer = AccountId.generate();
         when(getChallengeStatusService.execute("chal-1", organizer)).thenReturn(new ChallengeDetailRestDto(
                 "chal-1", 2, 1, List.of(), "Schnitzel", LocalDate.now(), ChallengeStatusRestDto.OPEN, false,
-                List.of(new CookAssignmentRestDto("acc-a", "Cook A", DishLabelRestDto.A, null),
-                        new CookAssignmentRestDto("acc-b", "Cook B", DishLabelRestDto.B, null))));
+                List.of(new CookAssignmentRestDto("acc-a", "Cook A", "Cook", DishLabelRestDto.A, null),
+                        new CookAssignmentRestDto("acc-b", "Cook B", "Cook", DishLabelRestDto.B, null))));
         authenticateAs(organizer);
 
         mockMvc.perform(get("/api/v1/challenges/chal-1/status"))

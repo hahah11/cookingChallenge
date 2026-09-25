@@ -23,6 +23,7 @@ function baseChallenge(overrides: Partial<ParticipantChallenge> = {}): Participa
     status: ChallengeStatus.OPEN,
     labels: [DishLabel.A, DishLabel.B],
     categories: [],
+    cookFirstNames: ['Alice', 'Bob'],
     participantCookAssignments: [
       { label: DishLabel.A, accountId: null, name: null, colorId: null },
       { label: DishLabel.B, accountId: null, name: null, colorId: null }
@@ -141,6 +142,12 @@ describe('ParticipantChallengeCard', () => {
     const el = fixture.nativeElement;
     expect(el.querySelector('.participant-challenge-card--cook')).not.toBeNull();
     expect(el.querySelector('app-challenge-photo')).toBeNull();
+  });
+
+  it('shows both cook first names as "A vs B" below the dish name', async () => {
+    const fixture = await createComponent({ challenge: baseChallenge({ cookFirstNames: ['Alice', 'Bob'] }) });
+    const cooks = fixture.nativeElement.querySelector('.participant-challenge-card__cooks');
+    expect(cooks.textContent.trim()).toBe('Alice vs Bob');
   });
 
   it('keeps the cook-facing card style once the color is already picked', async () => {

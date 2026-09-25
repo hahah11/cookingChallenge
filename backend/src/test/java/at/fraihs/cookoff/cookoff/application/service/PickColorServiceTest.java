@@ -1,6 +1,9 @@
 package at.fraihs.cookoff.cookoff.application.service;
 
+import at.fraihs.cookoff.auth.AccountLookup;
+import at.fraihs.cookoff.auth.AccountSummary;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
@@ -24,11 +27,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PickColorServiceTest {
+
+    @Mock
+    private AccountLookup accountLookup;
 
     @Mock
     private ChallengeRepository challengeRepository;
@@ -58,6 +65,8 @@ class PickColorServiceTest {
         Challenge challenge = openChallenge();
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(plateColorRepository.findAllActiveOrderedBySortOrder()).thenReturn(List.of(red, yellow));
+        when(accountLookup.getById(any())).thenReturn(
+                new AccountSummary(AccountId.generate(), new Email("cook@example.com"), "Cook Smith", "Cook"));
 
         service.execute(challenge.getId().toString(), cookAId, new PickColorRequestRestDto(red.getId().toString()));
 

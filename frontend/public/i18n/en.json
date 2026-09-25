@@ -171,6 +171,7 @@
     }
   },
   "participantCard": {
+    "cooksVs": "{{first}} vs {{second}}",
     "pickGroup": "Pick your plate color",
     "pick": "Pick {{color}}",
     "ownColorBefore": "You're plating",
@@ -244,6 +245,7 @@
     "empty": "No challenges yet — start your first cook-off."
   },
   "challengeDetail": {
+    "cooksVs": "{{first}} vs {{second}}",
     "back": "Back to challenges",
     "revealed": "Revealed!",
     "guestList": "Guest list",
@@ -262,6 +264,8 @@
     "unrevealHint": "Made a mistake? You can hide the results again (scoring stays closed).",
     "unreveal": "Unreveal challenge",
     "deleteHint": "Deleting removes this challenge from all lists and from the rivalry record.",
+    "changePhoto": "Change photo",
+    "addPhoto": "Add photo",
     "delete": "Delete challenge",
     "closeDialog": {
       "title": "Close scoring?",

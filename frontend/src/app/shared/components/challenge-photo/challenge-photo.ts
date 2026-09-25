@@ -1,4 +1,4 @@
-import { Component, OnDestroy, effect, inject, input, signal } from '@angular/core';
+import { Component, OnDestroy, effect, inject, input, signal, untracked } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 
 import { ChallengesApi } from '../../../core/api/generated';
@@ -53,6 +53,8 @@ export class ChallengePhoto implements OnDestroy {
   readonly challengeId = input.required<string>();
   readonly hasImage = input.required<boolean>();
   readonly alt = input('');
+  /** Bump to re-fetch the photo when the bytes changed but `hasImage` did not (photo replaced). */
+  readonly refreshKey = input(0);
 
   protected readonly photoUrl = signal<string | null>(null);
 
@@ -60,6 +62,7 @@ export class ChallengePhoto implements OnDestroy {
     effect((onCleanup) => {
       const challengeId = this.challengeId();
       const hasImage = this.hasImage();
+      this.refreshKey();
 
       if (!hasImage) {
         this.setPhotoUrl(null);
@@ -78,7 +81,8 @@ export class ChallengePhoto implements OnDestroy {
   }
 
   private setPhotoUrl(url: string | null): void {
-    const current = this.photoUrl();
+    // untracked: a synchronous emission inside the effect must not make the effect depend on its own output
+    const current = untracked(() => this.photoUrl());
     if (current) {
       URL.revokeObjectURL(current);
     }

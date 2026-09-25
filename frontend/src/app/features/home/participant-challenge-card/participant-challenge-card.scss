@@ -43,6 +43,11 @@
   font: var(--mat-sys-title-large);
 }
 
+.participant-challenge-card__cooks {
+  margin: 0;
+  font: var(--mat-sys-body-large);
+}
+
 .participant-challenge-card__action {
   margin-top: var(--md-sys-spacing-2);
   width: 100%;

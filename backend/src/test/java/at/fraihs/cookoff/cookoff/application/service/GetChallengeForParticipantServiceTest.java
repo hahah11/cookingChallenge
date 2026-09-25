@@ -52,9 +52,15 @@ class GetChallengeForParticipantServiceTest {
                 cookA, cookB, List.of(guest), organizer);
     }
 
+    private AccountSummary account(AccountId id, String firstName) {
+        return new AccountSummary(id, new Email(firstName.toLowerCase() + "@example.com"), firstName + " Smith", firstName);
+    }
+
     @Test
     void should_hideCookMapping_when_notYetRevealed() {
         Challenge challenge = challenge();
+        when(accountLookup.getById(cookA)).thenReturn(account(cookA, "Zoe"));
+        when(accountLookup.getById(cookB)).thenReturn(account(cookB, "Anna"));
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), guest))
                 .thenReturn(Optional.empty());
@@ -62,6 +68,20 @@ class GetChallengeForParticipantServiceTest {
         ParticipantChallengeRestDto view = service.execute(challenge.getId().toString(), guest);
 
         assertTrue(view.getParticipantCookAssignments().stream().allMatch(a -> a.getAccountId().get() == null));
+    }
+
+    @Test
+    void should_listCookFirstNamesAlphabetically_when_notYetRevealed() {
+        Challenge challenge = challenge();
+        when(accountLookup.getById(cookA)).thenReturn(account(cookA, "Zoe"));
+        when(accountLookup.getById(cookB)).thenReturn(account(cookB, "anna"));
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+        when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(challenge.getId(), guest))
+                .thenReturn(Optional.empty());
+
+        ParticipantChallengeRestDto view = service.execute(challenge.getId().toString(), guest);
+
+        assertEquals(List.of("anna", "Zoe"), view.getCookFirstNames());
     }
 
     @Test

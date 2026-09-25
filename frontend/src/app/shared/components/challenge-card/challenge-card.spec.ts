@@ -12,8 +12,8 @@ const challenge: Challenge = {
   dishName: 'Ramen',
   status: ChallengeStatus.REVEALED,
   cookAssignments: [
-    { accountId: 'cook-a', name: 'Alice', label: DishLabel.A, colorId: 'red' },
-    { accountId: 'cook-b', name: 'Bob', label: DishLabel.B, colorId: 'yellow' }
+    { accountId: 'cook-a', name: 'Alice Smith', firstName: 'Alice', label: DishLabel.A, colorId: 'red' },
+    { accountId: 'cook-b', name: 'Bob Smith', firstName: 'Bob', label: DishLabel.B, colorId: 'yellow' }
   ],
   guestAccountIds: ['guest-1'],
   createdByAccountId: 'organizer-1',
@@ -55,6 +55,12 @@ describe('ChallengeCard', () => {
     expect(el.querySelector('.challenge-card__title').textContent.trim()).toBe('Ramen');
     expect(el.querySelector('.challenge-card__cooks').textContent).toContain('Alice');
     expect(el.querySelector('.challenge-card__cooks').textContent).toContain('Bob');
+  });
+
+  it('shows only the cooks first names', async () => {
+    const fixture = await createComponent();
+    const cooks = fixture.nativeElement.querySelector('.challenge-card__cooks').textContent;
+    expect(cooks).not.toContain('Smith');
   });
 
   it('tints each cook name with their plate color', async () => {

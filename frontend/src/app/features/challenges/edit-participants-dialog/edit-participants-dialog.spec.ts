@@ -22,8 +22,8 @@ const updatedChallenge: Challenge = {
   dishName: 'Ramen',
   status: ChallengeStatus.OPEN,
   cookAssignments: [
-    { accountId: 'acc-1', name: 'Alice A', label: DishLabel.A, colorId: null },
-    { accountId: 'acc-2', name: 'Bob B', label: DishLabel.B, colorId: null }
+    { accountId: 'acc-1', name: 'Alice Smith', firstName: 'Alice', label: DishLabel.A, colorId: null },
+    { accountId: 'acc-2', name: 'Bob Smith', firstName: 'Bob', label: DishLabel.B, colorId: null }
   ],
   guestAccountIds: ['acc-4'],
   createdByAccountId: 'organizer-1',

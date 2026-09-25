@@ -30,6 +30,7 @@ const openChallenge: ParticipantChallenge = {
   status: ChallengeStatus.OPEN,
   labels: [DishLabel.A, DishLabel.B],
   categories: [],
+  cookFirstNames: ['Alice', 'Bob'],
   participantCookAssignments: [
     { label: DishLabel.A, accountId: null, name: null, colorId: null },
     { label: DishLabel.B, accountId: null, name: null, colorId: null }

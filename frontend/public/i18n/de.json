@@ -37,7 +37,7 @@
   "status": {
     "OPEN": "Offen",
     "CLOSED": "Bewertung beendet",
-    "REVEALED": "Aufgedeckt"
+    "REVEALED": "Auf"
   },
   "category": {
     "MUNDGEFUEHL": "Mundgefühl",
@@ -171,6 +171,7 @@
     }
   },
   "participantCard": {
+    "cooksVs": "{{first}} gegen {{second}}",
     "pickGroup": "Wähle deine Tellerfarbe",
     "pick": "{{color}} wählen",
     "ownColorBefore": "Deine Tellerfarbe ist",
@@ -244,8 +245,9 @@
     "empty": "Noch keine Challenges – starte deinen ersten Kochwettbewerb."
   },
   "challengeDetail": {
+    "cooksVs": "{{first}} gegen {{second}}",
     "back": "Zurück zu den Challenges",
-    "revealed": "Aufgedeckt!",
+    "revealed": "Aufgegessen!",
     "guestList": "Gästeliste",
     "guestCaption": "Abgabestatus der Gäste",
     "guest": "Gast",
@@ -257,11 +259,13 @@
     "qr": "QR-Code zur Registrierung",
     "closeScoring": "Bewertung beenden",
     "reopenScoring": "Bewertung wieder öffnen",
-    "revealResults": "Ergebnisse aufdecken",
+    "revealResults": "Ergebnisse freigeben",
     "linksSent": "Links gesendet",
     "unrevealHint": "Fehler passiert? Du kannst die Ergebnisse wieder verbergen (die Bewertung bleibt beendet).",
     "unreveal": "Aufdeckung zurücknehmen",
     "deleteHint": "Beim Löschen verschwindet diese Challenge aus allen Listen und aus der Rivalitäts-Bilanz.",
+    "changePhoto": "Foto ändern",
+    "addPhoto": "Foto hinzufügen",
     "delete": "Challenge löschen",
     "closeDialog": {
       "title": "Bewertung beenden?",
@@ -269,9 +273,9 @@
       "confirm": "Ja, Bewertung beenden"
     },
     "revealDialog": {
-      "title": "Diese Challenge aufdecken?",
-      "message": "Beim Aufdecken werden die Köche sichtbar und die Ergebnisse berechnet. Du kannst sie später wieder verbergen, falls nötig.",
-      "confirm": "Ja, aufdecken"
+      "title": "Diese Challenge freigeben?",
+      "message": "Beim Freigeben werden die Köche sichtbar und die Ergebnisse berechnet. Du kannst sie später wieder verbergen, falls nötig.",
+      "confirm": "Ja, freigeben"
     },
     "unrevealDialog": {
       "title": "Aufdeckung dieser Challenge zurücknehmen?",

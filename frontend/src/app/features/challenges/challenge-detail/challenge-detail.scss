@@ -59,9 +59,17 @@
   margin-bottom: var(--md-sys-spacing-8);
 }
 
-.challenge-detail__photo {
+.challenge-detail__photo-column {
   flex: 1 1 280px;
   max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--md-sys-spacing-2);
+}
+
+.challenge-detail__photo {
+  align-self: stretch;
   border-radius: var(--md-sys-shape-corner-medium);
   overflow: hidden;
 }
@@ -90,6 +98,11 @@
 .challenge-detail__title {
   margin: 0;
   font: var(--mat-sys-headline-medium);
+}
+
+.challenge-detail__cooks {
+  margin: 0;
+  font: var(--mat-sys-body-large);
 }
 
 .challenge-detail__actions {

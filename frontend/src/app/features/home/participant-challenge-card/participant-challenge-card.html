@@ -7,6 +7,9 @@
     <mat-card-content class="participant-challenge-card__content">
       <p class="participant-challenge-card__kicker">{{ challenge().date | date: 'mediumDate' }}</p>
       <h3 class="participant-challenge-card__title">{{ challenge().dishName }}</h3>
+      <p class="participant-challenge-card__cooks">
+        {{ 'participantCard.cooksVs' | transloco: { first: challenge().cookFirstNames[0], second: challenge().cookFirstNames[1] } }}
+      </p>
 
       <div class="participant-challenge-card__action">
         @if (challenge().canPickColor) {

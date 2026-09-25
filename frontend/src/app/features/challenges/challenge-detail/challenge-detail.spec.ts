@@ -28,8 +28,8 @@ const challengeDetail = {
   status: ChallengeStatus.OPEN,
   hasImage: false,
   cookAssignments: [
-    { accountId: 'cook-a', name: 'Alice', label: DishLabel.A, colorId: null },
-    { accountId: 'cook-b', name: 'Bob', label: DishLabel.B, colorId: null }
+    { accountId: 'cook-a', name: 'Alice Smith', firstName: 'Alice', label: DishLabel.A, colorId: null },
+    { accountId: 'cook-b', name: 'Bob Smith', firstName: 'Bob', label: DishLabel.B, colorId: null }
   ]
 };
 
@@ -81,6 +81,92 @@ describe('ChallengeDetail', () => {
     expect(getChallengeStatus).toHaveBeenCalledWith('chal-1');
     expect(fixture.nativeElement.textContent).toContain('Ramen');
     expect(fixture.nativeElement.textContent).toContain('Pending');
+  });
+
+  it('shows the cook first names alphabetically as "A vs B" below the dish name, regardless of dish label', () => {
+    const reversed = {
+      ...challengeDetail,
+      cookAssignments: [
+        { accountId: 'cook-b', name: 'Bob Smith', firstName: 'Bob', label: DishLabel.A, colorId: null },
+        { accountId: 'cook-a', name: 'Alice Smith', firstName: 'Alice', label: DishLabel.B, colorId: null }
+      ]
+    };
+    const { fixture } = setup({ getChallengeStatus: vi.fn().mockReturnValue(of({ data: reversed, meta })) });
+
+    const cooks = fixture.nativeElement.querySelector('.challenge-detail__cooks');
+    expect(cooks.textContent.trim()).toBe('Alice vs Bob');
+  });
+
+  describe('photo change', () => {
+    function photoButton(fixture: { nativeElement: HTMLElement }): HTMLButtonElement | null {
+      return fixture.nativeElement.querySelector('.challenge-detail__photo-button');
+    }
+
+    function pickFile(fixture: { nativeElement: HTMLElement }, file: File): void {
+      const input = fixture.nativeElement.querySelector('input[type="file"]') as HTMLInputElement;
+      Object.defineProperty(input, 'files', { value: [file], configurable: true });
+      input.dispatchEvent(new Event('change'));
+    }
+
+    it.each([ChallengeStatus.OPEN, ChallengeStatus.CLOSED])('offers "Add photo" while %s and no photo exists', (status) => {
+      const { fixture } = setup({ getChallengeStatus: () => of({ data: { ...challengeDetail, status }, meta }) });
+
+      expect(photoButton(fixture)?.textContent).toContain('Add photo');
+    });
+
+    it('offers "Change photo" when a photo already exists', () => {
+      const withImage = { ...challengeDetail, hasImage: true };
+      const { fixture } = setup({
+        getChallengeStatus: () => of({ data: withImage, meta }),
+        getChallengeImage: () => of(new Blob(['x'], { type: 'image/png' }))
+      });
+
+      expect(photoButton(fixture)?.textContent).toContain('Change photo');
+    });
+
+    it('offers no photo change once REVEALED, matching the backend 409', () => {
+      const revealed = { ...challengeDetail, status: ChallengeStatus.REVEALED };
+      const { fixture } = setup({
+        getChallengeStatus: () => of({ data: revealed, meta }),
+        getChallengeResults: () => of({ data: revealedResult, meta })
+      });
+
+      expect(photoButton(fixture)).toBeNull();
+      expect(fixture.nativeElement.querySelector('input[type="file"]')).toBeNull();
+    });
+
+    it('uploads the picked file and marks the challenge as having a photo', () => {
+      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url');
+      const updateChallengeImage = vi.fn().mockReturnValue(of({ data: { ...challengeDetail, hasImage: true }, meta }));
+      const { fixture } = setup({
+        getChallengeStatus: () => of({ data: challengeDetail, meta }),
+        getChallengeImage: () => of(new Blob(['x'], { type: 'image/png' })),
+        updateChallengeImage
+      });
+      const file = new File(['x'], 'ramen.png', { type: 'image/png' });
+
+      pickFile(fixture, file);
+      fixture.detectChanges();
+
+      expect(updateChallengeImage).toHaveBeenCalledWith('chal-1', file);
+      expect(fixture.componentInstance['challenge']()?.hasImage).toBe(true);
+      expect(fixture.componentInstance['photoVersion']()).toBe(1);
+      expect(photoButton(fixture)?.textContent).toContain('Change photo');
+    });
+
+    it('shows the API error and keeps the current photo state when the upload fails', () => {
+      const updateChallengeImage = vi.fn().mockReturnValue(throwError(() => ({ message: 'Too large' })));
+      const { fixture, notification } = setup({
+        getChallengeStatus: () => of({ data: challengeDetail, meta }),
+        updateChallengeImage
+      });
+
+      pickFile(fixture, new File(['x'], 'ramen.png', { type: 'image/png' }));
+
+      expect(notification.error).toHaveBeenCalledWith('Too large');
+      expect(fixture.componentInstance['challenge']()?.hasImage).toBe(false);
+      expect(fixture.componentInstance['photoBusy']()).toBe(false);
+    });
   });
 
   it('renders a back link to the challenge history', () => {

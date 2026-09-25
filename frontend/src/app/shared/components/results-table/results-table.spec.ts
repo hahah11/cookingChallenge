@@ -5,8 +5,8 @@ import { ResultsTable } from './results-table';
 import { provideTestI18n } from '../../../testing/i18n';
 
 const cookAssignments: CookAssignment[] = [
-  { accountId: 'cook-a', name: 'Alice', label: DishLabel.A, colorId: 'red' },
-  { accountId: 'cook-b', name: 'Bob', label: DishLabel.B, colorId: 'yellow' }
+  { accountId: 'cook-a', name: 'Alice Smith', firstName: 'Alice', label: DishLabel.A, colorId: 'red' },
+  { accountId: 'cook-b', name: 'Bob Smith', firstName: 'Bob', label: DishLabel.B, colorId: 'yellow' }
 ];
 
 const rivalry: RivalrySummary = {
@@ -127,5 +127,14 @@ describe('ResultsTable', () => {
     expect(headerCrowns[0].textContent.trim()).toBe('👑');
     expect(headerCrowns[0].closest('th').textContent).toContain('Alice');
     expect(fixture.nativeElement.querySelector('thead mat-icon')).toBeNull();
+  });
+
+  it('labels cooks by first name only', async () => {
+    const fixture = await createComponent();
+    const headers = Array.from(fixture.nativeElement.querySelectorAll('.results-table__cook')).map((th) =>
+      (th as HTMLElement).textContent!.trim()
+    );
+    expect(headers.join(' ')).toContain('Alice');
+    expect(fixture.nativeElement.textContent).not.toContain('Smith');
   });
 });

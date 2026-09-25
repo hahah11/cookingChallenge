@@ -16,8 +16,8 @@ const result = {
   categoryTotals: [],
   overallWinnerAccountId: 'cook-a',
   cookAssignments: [
-    { accountId: 'cook-a', name: 'Alice', label: DishLabel.A, colorId: 'red' },
-    { accountId: 'cook-b', name: 'Bob', label: DishLabel.B, colorId: 'yellow' }
+    { accountId: 'cook-a', name: 'Alice Smith', firstName: 'Alice', label: DishLabel.A, colorId: 'red' },
+    { accountId: 'cook-b', name: 'Bob Smith', firstName: 'Bob', label: DishLabel.B, colorId: 'yellow' }
   ],
   rivalry: {
     cookAAccountId: 'cook-a',

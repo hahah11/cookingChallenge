@@ -81,6 +81,15 @@ export class ChallengeDetail {
   protected readonly unrevealBusy = signal(false);
   protected readonly scoringBusy = signal(false);
   protected readonly deleteBusy = signal(false);
+  protected readonly photoBusy = signal(false);
+  protected readonly photoVersion = signal(0);
+
+  /** Cook first names, alphabetical, so the "vs" line never reveals a dish-to-cook order. */
+  protected readonly cookFirstNames = computed<string[]>(() =>
+    (this.challenge()?.cookAssignments ?? [])
+      .map((cook) => cook.firstName)
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+  );
 
   protected readonly plateColorHex = computed<Record<string, string>>(() =>
     Object.fromEntries(this.appConfig.plateColors().map((color) => [color.id, color.hexCode]))
@@ -295,6 +304,27 @@ export class ChallengeDetail {
       },
       error: (error: ApiError) => {
         this.unrevealBusy.set(false);
+        this.notification.error(error.message);
+      }
+    });
+  }
+
+  protected onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    const challenge = this.challenge();
+    if (!file || !challenge) return;
+
+    this.photoBusy.set(true);
+    this.challengesApi.updateChallengeImage(challenge.challengeId, file).subscribe({
+      next: () => {
+        this.photoBusy.set(false);
+        this.challenge.update((current) => (current ? { ...current, hasImage: true } : current));
+        this.photoVersion.update((version) => version + 1);
+      },
+      error: (error: ApiError) => {
+        this.photoBusy.set(false);
         this.notification.error(error.message);
       }
     });

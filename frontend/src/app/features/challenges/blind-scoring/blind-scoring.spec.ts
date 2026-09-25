@@ -25,6 +25,7 @@ const challenge: ParticipantChallenge = {
   status: ChallengeStatus.OPEN,
   labels: [DishLabel.A, DishLabel.B],
   categories: [Category.MUNDGEFUEHL, Category.TELLERSPRACHE, Category.GESCHMACK],
+  cookFirstNames: ['Alice', 'Bob'],
   participantCookAssignments: [
     { label: DishLabel.A, accountId: null, name: null, colorId: 'red' },
     { label: DishLabel.B, accountId: null, name: null, colorId: 'yellow' }

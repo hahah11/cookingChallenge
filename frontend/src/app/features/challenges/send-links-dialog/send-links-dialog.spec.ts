@@ -15,8 +15,8 @@ const guests: GuestSubmissionStatus[] = [
 ];
 
 const cookAssignments: CookAssignment[] = [
-  { accountId: 'cook-a', name: 'Alice', label: DishLabel.A, colorId: null },
-  { accountId: 'cook-b', name: 'Bob', label: DishLabel.B, colorId: null }
+  { accountId: 'cook-a', name: 'Alice Smith', firstName: 'Alice', label: DishLabel.A, colorId: null },
+  { accountId: 'cook-b', name: 'Bob Smith', firstName: 'Bob', label: DishLabel.B, colorId: null }
 ];
 
 describe('SendLinksDialog', () => {

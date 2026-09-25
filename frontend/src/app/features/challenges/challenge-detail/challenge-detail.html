@@ -25,13 +25,42 @@
             <h1 class="challenge-detail__title">{{ challenge.dishName }}</h1>
             <app-status-tag [status]="challenge.status" />
           </div>
+          @if (cookFirstNames(); as cooks) {
+            <p class="challenge-detail__cooks">
+              {{ 'challengeDetail.cooksVs' | transloco: { first: cooks[0], second: cooks[1] } }}
+            </p>
+          }
         </div>
-        <app-challenge-photo
-          class="challenge-detail__photo"
-          [challengeId]="challenge.challengeId"
-          [hasImage]="challenge.hasImage"
-          [alt]="challenge.dishName"
-        />
+        <div class="challenge-detail__photo-column">
+          <app-challenge-photo
+            class="challenge-detail__photo"
+            [challengeId]="challenge.challengeId"
+            [hasImage]="challenge.hasImage"
+            [refreshKey]="photoVersion()"
+            [alt]="challenge.dishName"
+          />
+          @if (challenge.status !== ChallengeStatus.REVEALED) {
+            <button
+              mat-stroked-button
+              type="button"
+              class="challenge-detail__photo-button"
+              [disabled]="photoBusy()"
+              (click)="photoInput.click()"
+            >
+              <mat-icon aria-hidden="true">add_a_photo</mat-icon>
+              {{ (challenge.hasImage ? 'challengeDetail.changePhoto' : 'challengeDetail.addPhoto') | transloco }}
+            </button>
+            <input
+              #photoInput
+              type="file"
+              accept="image/*"
+              class="cc-visually-hidden"
+              tabindex="-1"
+              [attr.aria-label]="'challengeDetail.changePhoto' | transloco"
+              (change)="onPhotoSelected($event)"
+            />
+          }
+        </div>
       </div>
 
       @if (challenge.status !== ChallengeStatus.REVEALED) {
