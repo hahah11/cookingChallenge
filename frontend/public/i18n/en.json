@@ -72,9 +72,12 @@
     "overallWinner": "(overall winner)",
     "categoryWinner": "(category winner)",
     "total": "Total",
-    "headToHead": "Head-to-head wins",
-    "winsOne": "{{count}} head-to-head win",
-    "winsOther": "{{count}} head-to-head wins"
+    "rivalry": "Rivalry",
+    "draws": "Draws",
+    "drawsOne": "{{count}} draw",
+    "drawsOther": "{{count}} draws",
+    "winsOne": "{{count}} win",
+    "winsOther": "{{count}} wins"
   },
   "errors": {
     "VALIDATION_ERROR": "Some of the information you entered isn't valid. Please check it and try again.",

@@ -8,7 +8,7 @@
         <th scope="col" class="results-table__cook plate-tint" [style.--plate-color]="hexFor(cook)">
           {{ cook.name }}
           @if (cook.accountId === overallWinnerAccountId()) {
-            <mat-icon class="results-table__trophy" aria-hidden="true">emoji_events</mat-icon>
+            <span class="results-table__crown" aria-hidden="true">👑</span>
             <span class="cc-visually-hidden">{{ 'resultsTable.overallWinner' | transloco }}</span>
           }
         </th>
@@ -49,19 +49,36 @@
         </td>
       }
     </tr>
-    <tr>
-      <th scope="row">{{ 'resultsTable.headToHead' | transloco }}</th>
-      @for (cook of cookAssignments(); track cook.accountId) {
-        <td class="results-table__crowns plate-tint" [style.--plate-color]="hexFor(cook)">
-          <span aria-hidden="true">{{ crownsFor(cook) }}</span>
-          <span class="cc-visually-hidden">{{
-            (winsFor(cook) === 1 ? 'resultsTable.winsOne' : 'resultsTable.winsOther') | transloco: { count: winsFor(cook) }
-          }}</span>
-        </td>
-      }
-    </tr>
   </tfoot>
 </table>
 </div>
 
-<p class="results-table__headline">{{ headline() }}</p>
+<section class="rivalry">
+  <h2 class="rivalry__title">{{ 'resultsTable.rivalry' | transloco }}</h2>
+  <table class="rivalry__table">
+    <tbody>
+      @for (cook of cookAssignments(); track cook.accountId) {
+        <tr>
+          <th scope="row">{{ cook.name }}</th>
+          <td>
+            <span class="rivalry__crowns" aria-hidden="true">{{ crownsFor(cook) }}</span>
+            <span class="cc-visually-hidden">{{
+              (winsFor(cook) === 1 ? 'resultsTable.winsOne' : 'resultsTable.winsOther') | transloco: { count: winsFor(cook) }
+            }}</span>
+          </td>
+        </tr>
+      }
+      <tr>
+        <th scope="row">{{ 'resultsTable.draws' | transloco }}</th>
+        <td>
+          @for (draw of drawIcons(); track $index) {
+            <mat-icon class="rivalry__draw" aria-hidden="true">balance</mat-icon>
+          }
+          <span class="cc-visually-hidden">{{
+            (rivalry().draws === 1 ? 'resultsTable.drawsOne' : 'resultsTable.drawsOther') | transloco: { count: rivalry().draws }
+          }}</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>

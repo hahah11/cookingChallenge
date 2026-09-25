@@ -72,9 +72,12 @@
     "overallWinner": "(Gesamtsieger)",
     "categoryWinner": "(Kategoriesieger)",
     "total": "Gesamt",
-    "headToHead": "Direkte Duelle gewonnen",
-    "winsOne": "{{count}} gewonnenes direktes Duell",
-    "winsOther": "{{count}} gewonnene direkte Duelle"
+    "rivalry": "Rivalität",
+    "draws": "Unentschieden",
+    "drawsOne": "{{count}} Unentschieden",
+    "drawsOther": "{{count}} Unentschieden",
+    "winsOne": "{{count}} Sieg",
+    "winsOther": "{{count}} Siege"
   },
   "errors": {
     "VALIDATION_ERROR": "Einige deiner Angaben sind ungültig. Bitte überprüfe sie und versuche es erneut.",

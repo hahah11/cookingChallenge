@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -9,7 +9,6 @@ import {
   DishLabel,
   RivalrySummary
 } from '../../../core/api/generated';
-import { RivalryText } from '../../../core/i18n/rivalry-text';
 
 interface ResultsTableRow {
   category: Category;
@@ -19,7 +18,7 @@ interface ResultsTableRow {
 
 /**
  * Shared by the organizer challenge detail and the participant results screen
- * — crown row, tinted columns, bold winner, Total row, head-to-head row.
+ * — crown row, tinted columns, bold winner, Total row, and a separate borderless Rivalry table (head-to-head crowns, draws).
  * The frontend sums `categoryTotals` for the Total row itself, deliberately,
  * per the frontend plan's Phase 6 (plain arithmetic, not business logic).
  */
@@ -37,19 +36,7 @@ export class ResultsTable {
   readonly rivalry = input.required<RivalrySummary>();
   readonly plateColorHex = input.required<Record<string, string>>();
 
-  private readonly rivalryText = inject(RivalryText);
-
-  protected readonly headline = computed(() => {
-    const rivalry = this.rivalry();
-    const nameOf = (accountId: string) => this.cookAssignments().find((cook) => cook.accountId === accountId)?.name ?? '';
-    return this.rivalryText.headline({
-      cookAName: nameOf(rivalry.cookAAccountId),
-      cookBName: nameOf(rivalry.cookBAccountId),
-      cookAWins: rivalry.cookAWins,
-      cookBWins: rivalry.cookBWins,
-      draws: rivalry.draws
-    });
-  });
+  protected readonly drawIcons = computed(() => Array.from({ length: this.rivalry().draws }));
 
   protected readonly rows = computed<ResultsTableRow[]>(() =>
     this.categoryTotals().map((categoryTotal) => ({

@@ -31,12 +31,9 @@
   font-weight: 700;
 }
 
-.results-table__trophy {
+.results-table__crown {
   font-size: 16px;
-  width: 16px;
-  height: 16px;
   vertical-align: text-bottom;
-  color: var(--mat-sys-primary);
 }
 
 .results-table__value.plate-tint {
@@ -64,14 +61,41 @@ tfoot tr:first-child th[scope='row'] {
   font-weight: 600;
 }
 
-.results-table__crowns {
-  font-size: 20px;
-  letter-spacing: 1px;
-  border-radius: 0;
+.rivalry {
+  margin-top: var(--md-sys-spacing-5);
 }
 
-.results-table__headline {
-  margin: var(--md-sys-spacing-4) 0 0;
+.rivalry__title {
+  margin: 0 0 var(--md-sys-spacing-2);
+  font: var(--mat-sys-title-medium);
+}
+
+.rivalry__table {
+  border-collapse: collapse;
   font: var(--mat-sys-body-medium);
+}
+
+.rivalry__table th,
+.rivalry__table td {
+  padding: var(--md-sys-spacing-1) var(--md-sys-spacing-3) var(--md-sys-spacing-1) 0;
+  border: none;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.rivalry__table th {
+  font-weight: 600;
+}
+
+.rivalry__crowns {
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
+.rivalry__draw {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
   color: var(--mat-sys-on-surface-variant);
 }

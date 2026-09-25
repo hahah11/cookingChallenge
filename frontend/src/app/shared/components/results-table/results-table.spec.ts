@@ -75,10 +75,38 @@ describe('ResultsTable', () => {
     expect(rowHeaders).toContain('Mouthfeel');
   });
 
-  it('builds the rivalry headline from the counts and cook names', async () => {
+  it('no longer renders the head-to-head row or the headline sentence in the score table', async () => {
     const fixture = await createComponent();
-    const headline = fixture.nativeElement.querySelector('.results-table__headline');
-    expect(headline.textContent.trim()).toBe('Alice leads Bob 3-1');
+    expect(fixture.nativeElement.querySelector('.results-table tfoot').querySelectorAll('tr').length).toBe(1);
+    expect(fixture.nativeElement.textContent).not.toContain('Alice leads Bob');
+  });
+
+  it('renders a headerless Rivalry table with one row per cook plus a draws row', async () => {
+    const fixture = await createComponent();
+    expect(fixture.nativeElement.querySelector('.rivalry__title').textContent.trim()).toBe('Rivalry');
+    const table = fixture.nativeElement.querySelector('.rivalry__table');
+    expect(table.querySelector('thead')).toBeNull();
+    const labels = Array.from<Element>(table.querySelectorAll('tr th')).map((th) => th.textContent?.trim());
+    expect(labels).toEqual(['Alice', 'Bob', 'Draws']);
+  });
+
+  it('shows one crown per win in the Rivalry table', async () => {
+    const fixture = await createComponent();
+    const crowns = Array.from<Element>(fixture.nativeElement.querySelectorAll('.rivalry__crowns')).map((el) =>
+      el.textContent?.trim()
+    );
+    expect(crowns).toEqual(['👑👑👑', '👑']);
+  });
+
+  it('shows one scale icon per draw and none when there are no draws', async () => {
+    const fixture = await createComponent();
+    expect(fixture.nativeElement.querySelectorAll('.rivalry__draw').length).toBe(0);
+
+    fixture.componentRef.setInput('rivalry', { ...rivalry, draws: 2 });
+    fixture.detectChanges();
+    const scales = fixture.nativeElement.querySelectorAll('.rivalry__draw');
+    expect(scales.length).toBe(2);
+    expect(scales[0].textContent.trim()).toBe('balance');
   });
 
   it('resolves plate color hex from colorId for column tinting', async () => {
@@ -92,5 +120,14 @@ describe('ResultsTable', () => {
     expect(fixture.componentInstance['crownsFor'](cookAssignments[0])).toBe('👑👑👑');
     expect(fixture.componentInstance['crownsFor'](cookAssignments[1])).toBe('👑');
     expect(fixture.componentInstance['winsFor'](cookAssignments[0])).toBe(3);
+  });
+
+  it('marks the overall winner column header with the same crown as the head-to-head row', async () => {
+    const fixture = await createComponent();
+    const headerCrowns = fixture.nativeElement.querySelectorAll('thead .results-table__crown');
+    expect(headerCrowns.length).toBe(1);
+    expect(headerCrowns[0].textContent.trim()).toBe('👑');
+    expect(headerCrowns[0].closest('th').textContent).toContain('Alice');
+    expect(fixture.nativeElement.querySelector('thead mat-icon')).toBeNull();
   });
 });
