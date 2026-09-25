@@ -98,15 +98,13 @@ describe('ResultsTable', () => {
     expect(crowns).toEqual(['👑👑👑', '👑']);
   });
 
-  it('shows one scale icon per draw and none when there are no draws', async () => {
+  it('shows one ghost per draw and none when there are no draws', async () => {
     const fixture = await createComponent();
-    expect(fixture.nativeElement.querySelectorAll('.rivalry__draw').length).toBe(0);
+    expect(fixture.nativeElement.querySelector('.rivalry__draws').textContent.trim()).toBe('');
 
     fixture.componentRef.setInput('rivalry', { ...rivalry, draws: 2 });
     fixture.detectChanges();
-    const scales = fixture.nativeElement.querySelectorAll('.rivalry__draw');
-    expect(scales.length).toBe(2);
-    expect(scales[0].textContent.trim()).toBe('balance');
+    expect(fixture.nativeElement.querySelector('.rivalry__draws').textContent.trim()).toBe('👻👻');
   });
 
   it('resolves plate color hex from colorId for column tinting', async () => {

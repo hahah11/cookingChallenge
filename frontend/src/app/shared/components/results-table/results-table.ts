@@ -36,7 +36,7 @@ export class ResultsTable {
   readonly rivalry = input.required<RivalrySummary>();
   readonly plateColorHex = input.required<Record<string, string>>();
 
-  protected readonly drawIcons = computed(() => Array.from({ length: this.rivalry().draws }));
+  protected readonly ghostsForDraws = computed(() => '👻'.repeat(this.rivalry().draws));
 
   protected readonly rows = computed<ResultsTableRow[]>(() =>
     this.categoryTotals().map((categoryTotal) => ({

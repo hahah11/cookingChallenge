@@ -5,7 +5,8 @@ The results table (`app-results-table`, used on the challenge detail page and th
 
 Decisions (confirmed with user):
 - Headline sentence ("Alice leads Bob 3-1") is **removed**.
-- Draws: **one scale icon per draw**, mirroring the crowns.
+- Draws: **one icon per draw**, mirroring the crowns.
+- **Amendment:** the draw icon is the ghost emoji 👻 (U+1F47B), not the Material `balance` scale icon. It is rendered like the crowns (`ghostsForDraws()` = `'👻'.repeat(draws)` in a `.rivalry__draws` span, shared 20px/letter-spacing style with `.rivalry__crowns`). Wherever the sections below say "scale icon" / `balance` / `mat-icon`, read "👻 emoji".
 
 Frontend only; no API change (`RivalrySummary` already has `cookAWins`, `cookBWins`, `draws`).
 

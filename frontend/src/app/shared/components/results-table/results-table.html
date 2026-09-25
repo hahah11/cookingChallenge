@@ -71,9 +71,7 @@
       <tr>
         <th scope="row">{{ 'resultsTable.draws' | transloco }}</th>
         <td>
-          @for (draw of drawIcons(); track $index) {
-            <mat-icon class="rivalry__draw" aria-hidden="true">balance</mat-icon>
-          }
+          <span class="rivalry__draws" aria-hidden="true">{{ ghostsForDraws() }}</span>
           <span class="cc-visually-hidden">{{
             (rivalry().draws === 1 ? 'resultsTable.drawsOne' : 'resultsTable.drawsOther') | transloco: { count: rivalry().draws }
           }}</span>
