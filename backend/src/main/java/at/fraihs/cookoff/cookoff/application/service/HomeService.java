@@ -43,7 +43,7 @@ public class HomeService {
                     .orElse(null);
             ParticipantChallengeRestDto view =
                     ChallengeModelMapper.toParticipantChallenge(challenge, mySubmission, accountId, accountLookup);
-            if (challenge.getStatus() == ChallengeStatus.OPEN) {
+            if (challenge.getStatus() != ChallengeStatus.REVEALED) {
                 open.add(view);
             } else {
                 past.add(view);

@@ -37,6 +37,18 @@ const challenge: ParticipantChallenge = {
   canPickColor: false
 };
 
+const fullSubmission = {
+  submittedAt: '2026-08-01T12:00:00Z',
+  scores: [
+    { dishLabel: DishLabel.A, category: Category.MUNDGEFUEHL, points: 4 },
+    { dishLabel: DishLabel.B, category: Category.MUNDGEFUEHL, points: 3 },
+    { dishLabel: DishLabel.A, category: Category.TELLERSPRACHE, points: 5 },
+    { dishLabel: DishLabel.B, category: Category.TELLERSPRACHE, points: 2 },
+    { dishLabel: DishLabel.A, category: Category.GESCHMACK, points: 5 },
+    { dishLabel: DishLabel.B, category: Category.GESCHMACK, points: 4 }
+  ]
+};
+
 const config: Config = {
   availableRoles: [],
   plateColors: [
@@ -158,8 +170,12 @@ describe('BlindScoring', () => {
     expect(fixture.nativeElement.querySelector('.blind-scoring__submit').textContent.trim()).toBe('Save changes');
   });
 
-  it('shows a revealed-mid-edit message on a 409 submit response, and does not retry', () => {
-    const getChallenge = vi.fn().mockReturnValue(of({ data: challenge, meta }));
+  it('reloads the challenge on a 409 submit response and shows the revealed message, without retrying', () => {
+    const revealedChallenge: ParticipantChallenge = { ...challenge, status: ChallengeStatus.REVEALED };
+    const getChallenge = vi
+      .fn()
+      .mockReturnValueOnce(of({ data: challenge, meta }))
+      .mockReturnValueOnce(of({ data: revealedChallenge, meta }));
     const conflict: ApiError = {
       code: 'INVALID_STATE',
       message: 'Challenge revealed.',
@@ -181,8 +197,75 @@ describe('BlindScoring', () => {
     fixture.detectChanges();
 
     expect(submitScores).toHaveBeenCalledTimes(1);
+    expect(getChallenge).toHaveBeenCalledTimes(2);
     expect(fixture.nativeElement.textContent).toContain('has been revealed');
     expect(fixture.nativeElement.querySelector('.blind-scoring__grid')).toBeNull();
+  });
+
+  it('reloads into the read-only closed view on a 409 when scoring was closed mid-edit', () => {
+    const closedChallenge: ParticipantChallenge = {
+      ...challenge,
+      status: ChallengeStatus.CLOSED,
+      submitted: true,
+      mySubmission: fullSubmission
+    };
+    const getChallenge = vi
+      .fn()
+      .mockReturnValueOnce(of({ data: challenge, meta }))
+      .mockReturnValueOnce(of({ data: closedChallenge, meta }));
+    const conflict: ApiError = {
+      code: 'CHALLENGE_NOT_OPEN',
+      message: 'Scoring closed.',
+      details: [],
+      requestId: '',
+      timestamp: '2026-01-01T00:00:00Z',
+      status: 409
+    };
+    const submitScores = vi.fn().mockReturnValue(throwError(() => conflict));
+    const { fixture } = setup({ getChallenge, submitScores });
+
+    for (const category of challenge.categories) {
+      for (const label of challenge.labels) {
+        fixture.componentInstance['setScore'](category, label, 3);
+      }
+    }
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('.blind-scoring__submit').click();
+    fixture.detectChanges();
+
+    expect(submitScores).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.textContent).toContain('Scoring is closed');
+    expect(fixture.nativeElement.querySelector('.blind-scoring__submit')).toBeNull();
+  });
+
+  it('renders submitted scores read-only with a closed banner and no submit button when CLOSED', () => {
+    const closedChallenge: ParticipantChallenge = {
+      ...challenge,
+      status: ChallengeStatus.CLOSED,
+      submitted: true,
+      mySubmission: fullSubmission
+    };
+    const getChallenge = vi.fn().mockReturnValue(of({ data: closedChallenge, meta }));
+    const { fixture } = setup({ getChallenge });
+
+    expect(fixture.nativeElement.querySelector('.blind-scoring__closed-banner').textContent).toContain(
+      'Scoring is closed — results coming soon'
+    );
+    expect(fixture.nativeElement.querySelector('.blind-scoring__grid')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.blind-scoring__submit')).toBeNull();
+    const radios: HTMLInputElement[] = Array.from(fixture.nativeElement.querySelectorAll('app-star-rating input'));
+    expect(radios.length).toBeGreaterThan(0);
+    expect(radios.every((radio) => radio.disabled)).toBe(true);
+  });
+
+  it('shows only the closed banner when CLOSED and the guest never submitted', () => {
+    const closedChallenge: ParticipantChallenge = { ...challenge, status: ChallengeStatus.CLOSED };
+    const getChallenge = vi.fn().mockReturnValue(of({ data: closedChallenge, meta }));
+    const { fixture } = setup({ getChallenge });
+
+    expect(fixture.nativeElement.textContent).toContain('Scoring is closed');
+    expect(fixture.nativeElement.querySelector('.blind-scoring__grid')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.blind-scoring__submit')).toBeNull();
   });
 
   it('shows the already-revealed message immediately when the challenge loads REVEALED', () => {

@@ -35,7 +35,7 @@
         />
       </div>
 
-      @if (challenge.status === ChallengeStatus.OPEN) {
+      @if (challenge.status !== ChallengeStatus.REVEALED) {
         <div class="challenge-detail__guests-section">
           <h2 class="challenge-detail__guests-heading">Guest list</h2>
           <table class="challenge-detail__guests">
@@ -72,16 +72,27 @@
             <mat-icon aria-hidden="true">forward_to_inbox</mat-icon>
             Send links
           </button>
-          <button mat-stroked-button type="button" (click)="openEditParticipantsDialog()">
-            Edit cooks & guests
-          </button>
-          <button mat-stroked-button type="button" (click)="openQrDialog()">
-            <mat-icon aria-hidden="true">qr_code_2</mat-icon>
-            Registration QR code
-          </button>
-          <button mat-flat-button type="button" [disabled]="revealBusy()" (click)="confirmReveal()">
-            Reveal results
-          </button>
+          @if (challenge.status === ChallengeStatus.OPEN) {
+            <button mat-stroked-button type="button" (click)="openEditParticipantsDialog()">
+              Edit cooks & guests
+            </button>
+            <button mat-stroked-button type="button" (click)="openQrDialog()">
+              <mat-icon aria-hidden="true">qr_code_2</mat-icon>
+              Registration QR code
+            </button>
+            <button mat-flat-button type="button" [disabled]="scoringBusy()" (click)="confirmCloseScoring()">
+              <mat-icon aria-hidden="true">lock</mat-icon>
+              Close scoring
+            </button>
+          } @else {
+            <button mat-stroked-button type="button" [disabled]="scoringBusy()" (click)="reopenScoring()">
+              <mat-icon aria-hidden="true">lock_open</mat-icon>
+              Reopen scoring
+            </button>
+            <button mat-flat-button type="button" [disabled]="revealBusy()" (click)="confirmReveal()">
+              Reveal results
+            </button>
+          }
         </div>
         @if (linksSentFlash()) {
           <p class="challenge-detail__links-sent" role="status">
@@ -109,7 +120,7 @@
               />
               <mat-divider class="challenge-detail__unreveal-divider" />
               <div class="challenge-detail__unreveal">
-                <p>Made a mistake? You can reopen scoring and hide the results again.</p>
+                <p>Made a mistake? You can hide the results again (scoring stays closed).</p>
                 <button mat-stroked-button type="button" [disabled]="unrevealBusy()" (click)="confirmUnreveal()">
                   <mat-icon aria-hidden="true">undo</mat-icon>
                   Unreveal challenge

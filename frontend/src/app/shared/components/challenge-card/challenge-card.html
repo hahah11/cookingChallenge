@@ -43,6 +43,10 @@
         <span class="challenge-card__progress-text">
           {{ challenge().submittedGuestCount }}/{{ challenge().totalGuestCount }} submitted
         </span>
+      } @else if (challenge().status === ChallengeStatus.CLOSED) {
+        <span class="challenge-card__progress-text">
+          {{ challenge().submittedGuestCount }}/{{ challenge().totalGuestCount }} submitted · Scoring closed
+        </span>
       } @else {
         <span class="challenge-card__progress-text">Results ready</span>
       }

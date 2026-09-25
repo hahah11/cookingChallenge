@@ -30,7 +30,7 @@ type LoadState = 'loading' | 'loaded' | 'error';
 
 /**
  * `GET /challenges/{id}` (the participant-blind view), pre-filled from `mySubmission` for
- * edit-until-reveal. `accountId` on `participantCookAssignments` is null until reveal — the
+ * editing while scoring is OPEN; read-only once the organizer has CLOSED scoring. `accountId` on `participantCookAssignments` is null until reveal — the
  * grid identifies dishes by plate color only, never by cook name, per the frontend plan's
  * Phase 6.
  */
@@ -67,6 +67,8 @@ export class BlindScoring {
   protected readonly submitting = signal(false);
   protected readonly submitErrorMessage = signal<string | null>(null);
   protected readonly submitted = signal(false);
+
+  protected readonly scoringClosed = computed(() => this.challenge()?.status === ChallengeStatus.CLOSED);
 
   protected readonly submitButtonLabel = computed(() =>
     this.challenge()?.mySubmission ? 'Save changes' : 'Submit scores'
@@ -169,8 +171,8 @@ export class BlindScoring {
       error: (error: ApiError) => {
         this.submitting.set(false);
         if (error.status === 409) {
-          // Someone revealed mid-edit — show that, don't retry.
-          this.revealedMidEdit.set(true);
+          // Scoring was closed or revealed mid-edit — reload so the page renders whichever it is.
+          this.loadChallenge();
         } else {
           this.submitErrorMessage.set(error.message);
         }

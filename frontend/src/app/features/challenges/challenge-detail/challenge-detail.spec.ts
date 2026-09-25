@@ -90,12 +90,77 @@ describe('ChallengeDetail', () => {
     expect(back.getAttribute('href')).toBe('/challenges');
   });
 
+  function buttonLabels(fixture: { nativeElement: HTMLElement }): string[] {
+    return Array.from(fixture.nativeElement.querySelectorAll('.challenge-detail__actions button')).map((button) =>
+      (button as HTMLElement).textContent!.replace(/\s+/g, ' ').trim()
+    );
+  }
+
+  it('offers edit, QR and close scoring (but not reveal) while OPEN', () => {
+    const { fixture } = setup({ getChallengeStatus: () => of({ data: challengeDetail, meta }) });
+
+    const labels = buttonLabels(fixture);
+    expect(labels.some((label) => label.includes('Edit cooks & guests'))).toBe(true);
+    expect(labels.some((label) => label.includes('Registration QR code'))).toBe(true);
+    expect(labels.some((label) => label.includes('Close scoring'))).toBe(true);
+    expect(labels.some((label) => label.includes('Reveal results'))).toBe(false);
+  });
+
+  it('offers send links, reopen and reveal (but not edit or QR) while CLOSED, keeping the guest list', () => {
+    const closedChallenge = { ...challengeDetail, status: ChallengeStatus.CLOSED };
+    const { fixture } = setup({ getChallengeStatus: () => of({ data: closedChallenge, meta }) });
+
+    const labels = buttonLabels(fixture);
+    expect(labels.some((label) => label.includes('Send links'))).toBe(true);
+    expect(labels.some((label) => label.includes('Reopen scoring'))).toBe(true);
+    expect(labels.some((label) => label.includes('Reveal results'))).toBe(true);
+    expect(labels.some((label) => label.includes('Edit cooks & guests'))).toBe(false);
+    expect(labels.some((label) => label.includes('Registration QR code'))).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Gina');
+  });
+
+  it('closes scoring after confirmation and switches to the CLOSED actions', () => {
+    const closeChallenge = vi.fn().mockReturnValue(of({ data: null, meta }));
+    const dialog = { open: vi.fn().mockReturnValue({ afterClosed: () => of(true) }) };
+    const { fixture } = setup({ getChallengeStatus: () => of({ data: challengeDetail, meta }), closeChallenge }, dialog);
+
+    fixture.componentInstance['confirmCloseScoring']();
+    fixture.detectChanges();
+
+    expect(dialog.open).toHaveBeenCalled();
+    expect(closeChallenge).toHaveBeenCalledWith('chal-1');
+    expect(fixture.componentInstance['challenge']()?.status).toBe(ChallengeStatus.CLOSED);
+    expect(buttonLabels(fixture).some((label) => label.includes('Reopen scoring'))).toBe(true);
+  });
+
+  it('does not close scoring when the confirmation is cancelled', () => {
+    const closeChallenge = vi.fn();
+    const dialog = { open: vi.fn().mockReturnValue({ afterClosed: () => of(false) }) };
+    const { fixture } = setup({ getChallengeStatus: () => of({ data: challengeDetail, meta }), closeChallenge }, dialog);
+
+    fixture.componentInstance['confirmCloseScoring']();
+
+    expect(closeChallenge).not.toHaveBeenCalled();
+    expect(fixture.componentInstance['challenge']()?.status).toBe(ChallengeStatus.OPEN);
+  });
+
+  it('reopens scoring back to OPEN', () => {
+    const closedChallenge = { ...challengeDetail, status: ChallengeStatus.CLOSED };
+    const reopenChallenge = vi.fn().mockReturnValue(of({ data: null, meta }));
+    const { fixture } = setup({ getChallengeStatus: () => of({ data: closedChallenge, meta }), reopenChallenge });
+
+    fixture.componentInstance['reopenScoring']();
+
+    expect(reopenChallenge).toHaveBeenCalledWith('chal-1');
+    expect(fixture.componentInstance['challenge']()?.status).toBe(ChallengeStatus.OPEN);
+  });
+
   it('reveals the challenge and switches to the results view after confirmation', () => {
     const revealChallenge = vi.fn().mockReturnValue(of({ data: revealedResult, meta }));
     const dialog = { open: vi.fn().mockReturnValue({ afterClosed: () => of(true) }) };
     const { fixture } = setup(
       {
-        getChallengeStatus: () => of({ data: challengeDetail, meta }),
+        getChallengeStatus: () => of({ data: { ...challengeDetail, status: ChallengeStatus.CLOSED }, meta }),
         revealChallenge
       },
       dialog
@@ -109,9 +174,9 @@ describe('ChallengeDetail', () => {
     expect(fixture.componentInstance['result']()).toEqual(revealedResult);
   });
 
-  it('unreveals back to the open guest view after confirmation, re-fetching the challenge', () => {
+  it('unreveals back to the closed guest view after confirmation, re-fetching the challenge', () => {
     const revealedChallenge = { ...challengeDetail, status: ChallengeStatus.REVEALED };
-    const unrevealedChallenge = { ...challengeDetail, status: ChallengeStatus.OPEN };
+    const unrevealedChallenge = { ...challengeDetail, status: ChallengeStatus.CLOSED };
     const getChallengeStatus = vi
       .fn()
       .mockReturnValueOnce(of({ data: revealedChallenge, meta }))
@@ -131,7 +196,7 @@ describe('ChallengeDetail', () => {
 
     expect(unrevealChallenge).toHaveBeenCalledWith('chal-1');
     expect(getChallengeStatus).toHaveBeenCalledTimes(2);
-    expect(fixture.componentInstance['challenge']()?.status).toBe(ChallengeStatus.OPEN);
+    expect(fixture.componentInstance['challenge']()?.status).toBe(ChallengeStatus.CLOSED);
   });
 
   it(

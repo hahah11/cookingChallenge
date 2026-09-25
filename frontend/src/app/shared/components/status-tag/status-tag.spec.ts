@@ -21,6 +21,15 @@ describe('StatusTag', () => {
     expect(chip.classList).not.toContain('status-tag--revealed');
   });
 
+  it('renders "Scoring closed" for a closed challenge with the closed override class', async () => {
+    const fixture = await createComponent(ChallengeStatus.CLOSED);
+    const chip = fixture.nativeElement.querySelector('mat-chip');
+    expect(chip.querySelector('.status-tag__label').textContent.trim()).toBe('Scoring closed');
+    expect(chip.classList).toContain('status-tag--closed');
+    expect(chip.classList).not.toContain('status-tag--open');
+    expect(chip.classList).not.toContain('status-tag--revealed');
+  });
+
   it('renders "Revealed" for a revealed challenge with the success override class', async () => {
     const fixture = await createComponent(ChallengeStatus.REVEALED);
     const chip = fixture.nativeElement.querySelector('mat-chip');

@@ -387,7 +387,7 @@ paths:
       operationId: pickChallengeColor
       summary: A cook picks their plate color; the other cook is auto-assigned the remainder
       description: >
-        OPEN challenges only, and only by one of this challenge's two cooks. Irreversible
+        OPEN or CLOSED challenges only (not once REVEALED), and only by one of this challenge's two cooks. Irreversible
         once either cook has picked - both colors are assigned atomically in this call.
       security: [{ bearerAuth: [] }]
       parameters:
@@ -418,7 +418,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Challenge is not OPEN, or a color has already been picked.
+          description: Challenge is already REVEALED, or a color has already been picked.
           content:
             application/json:
               schema:
@@ -428,7 +428,7 @@ paths:
     patch:
       tags: [Challenges]
       operationId: updateChallengeImage
-      summary: Upload or replace the challenge photo (OPEN challenges only)
+      summary: Upload or replace the challenge photo (OPEN or CLOSED challenges only)
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChallengeIdPathParam'
@@ -459,7 +459,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Challenge is not OPEN.
+          description: Challenge is already REVEALED.
           content:
             application/json:
               schema:
@@ -550,6 +550,64 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /api/v1/challenges/{challengeId}/close:
+    post:
+      tags: [Challenges]
+      operationId: closeChallenge
+      summary: Close scoring, freezing guest scores without revealing results
+      description: No mails are sent.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChallengeIdPathParam'
+      responses:
+        '200':
+          description: Scoring closed; the challenge is now CLOSED.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChallengeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Challenge is not OPEN.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/challenges/{challengeId}/reopen:
+    post:
+      tags: [Challenges]
+      operationId: reopenChallenge
+      summary: Reopen scoring, returning a CLOSED challenge to OPEN
+      description: No mails are sent.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChallengeIdPathParam'
+      responses:
+        '200':
+          description: Scoring reopened; the challenge is now OPEN.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChallengeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Challenge is not CLOSED.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/challenges/{challengeId}/reveal:
     post:
       tags: [Challenges]
@@ -570,7 +628,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Challenge is not OPEN.
+          description: Challenge is not CLOSED (scoring must be closed before revealing).
           content:
             application/json:
               schema:
@@ -580,13 +638,13 @@ paths:
     post:
       tags: [Challenges]
       operationId: unrevealChallenge
-      summary: Reverse a reveal, returning the challenge to OPEN
+      summary: Reverse a reveal, returning the challenge to CLOSED
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/ChallengeIdPathParam'
       responses:
         '200':
-          description: Challenge returned to OPEN.
+          description: Challenge returned to CLOSED (scoring stays closed).
           content:
             application/json:
               schema:
@@ -635,12 +693,12 @@ paths:
     post:
       tags: [Challenges]
       operationId: submitScores
-      summary: Submit (or edit, until reveal) blind category scores for both dishes
+      summary: Submit (or edit, while scoring is open) blind category scores for both dishes
       description: >
-        Scores are editable until the challenge is revealed: the first
+        Scores are editable while the challenge is OPEN: the first
         submission returns 201, a later resubmission by the same guest returns
-        200 and replaces the prior scores. Once REVEALED, further submissions
-        are rejected. Callers must have `canScore = true` on the participant
+        200 and replaces the prior scores. Once scoring is CLOSED (or REVEALED),
+        further submissions are rejected. Callers must have `canScore = true` on the participant
         challenge view (a guest, or the challenge's creator) - cooks are authenticated
         but are rejected with 403 here.
       security: [{ bearerAuth: [] }]
@@ -674,7 +732,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Challenge has already been revealed.
+          description: Challenge is not OPEN (scoring closed or results revealed).
           content:
             application/json:
               schema:
@@ -727,11 +785,9 @@ paths:
       operationId: getMyHome
       summary: Personalized home for a guest or cook - challenges needing action vs. already handled
       description: >
-        `open` holds challenges the requester still has a pending action on: an
-        unsubmitted score for a guest/creator (`canScore`), or an unpicked color for a
-        cook (`canPickColor`). `past` holds everything else the requester is a
-        participant in: already actioned but still OPEN (editable/re-pickable until
-        reveal, per each flag) and REVEALED challenges (view results).
+        `open` holds the requester's not-yet-revealed challenges (OPEN, or CLOSED while
+        scoring is frozen ahead of the reveal); `past` holds REVEALED challenges (view
+        results).
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -938,7 +994,7 @@ components:
 
     ChallengeStatus:
       type: string
-      enum: [OPEN, REVEALED]
+      enum: [OPEN, CLOSED, REVEALED]
 
     Category:
       type: string
@@ -1211,7 +1267,7 @@ components:
         overallWinnerAccountId:
           type: string
           nullable: true
-          description: Aggregate id, Crockford Base32-encoded TSID. Set once REVEALED (null while OPEN, or if the revealed result was a draw) - lets the history grid tint the winner's name without a separate results call.
+          description: Aggregate id, Crockford Base32-encoded TSID. Set once REVEALED (null before that, or if the revealed result was a draw) - lets the history grid tint the winner's name without a separate results call.
 
     CreateChallengeRequest:
       type: object
@@ -1781,12 +1837,12 @@ components:
         overallWinnerAccountId:
           type: string
           nullable: true
-          description: Aggregate id, Crockford Base32-encoded TSID. Null while OPEN, or if the revealed result was a draw.
+          description: Aggregate id, Crockford Base32-encoded TSID. Null until REVEALED, or if the revealed result was a draw.
         outcomeLabel:
           type: string
           description: >
             Server-rendered display text for this challenge's outcome, e.g.
-            "Alice won", "Draw", or "Pending" while OPEN.
+            "Alice won", "Draw", or "Pending" while OPEN or CLOSED.
 
     RivalryDetail:
       allOf:

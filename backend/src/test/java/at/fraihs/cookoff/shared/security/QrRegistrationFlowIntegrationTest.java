@@ -82,6 +82,7 @@ class QrRegistrationFlowIntegrationTest {
         // Close the challenge the same way a real reveal would, without needing the full
         // score-submission flow — this test is about registration behavior, not reveal itself.
         Challenge challenge = challengeRepository.findById(ChallengeId.fromString(challengeDto.getId())).orElseThrow();
+        challenge.closeScoring();
         challenge.reveal(null);
         challengeRepository.save(challenge);
 

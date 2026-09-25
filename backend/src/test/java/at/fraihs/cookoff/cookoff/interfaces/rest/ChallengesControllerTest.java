@@ -18,6 +18,8 @@ import at.fraihs.cookoff.cookoff.application.service.RevealChallengeService;
 import at.fraihs.cookoff.cookoff.application.service.SendChallengeInvitationsService;
 import at.fraihs.cookoff.cookoff.application.service.SubmitScoreService;
 import at.fraihs.cookoff.cookoff.application.service.UnrevealChallengeService;
+import at.fraihs.cookoff.cookoff.application.service.CloseChallengeScoringService;
+import at.fraihs.cookoff.cookoff.application.service.ReopenChallengeScoringService;
 import at.fraihs.cookoff.shared.config.JacksonConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
 import at.fraihs.cookoff.shared.web.dto.PagedResult;
@@ -112,6 +114,12 @@ class ChallengesControllerTest {
     private RevealChallengeService revealChallengeService;
     @MockitoBean
     private UnrevealChallengeService unrevealChallengeService;
+
+    @MockitoBean
+    private CloseChallengeScoringService closeChallengeScoringService;
+
+    @MockitoBean
+    private ReopenChallengeScoringService reopenChallengeScoringService;
     @MockitoBean
     private GetChallengeResultsService getChallengeResultsService;
     @MockitoBean
@@ -306,6 +314,39 @@ class ChallengesControllerTest {
         authenticateAs(organizer);
 
         mockMvc.perform(post("/api/v1/challenges/chal-1/unreveal"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value("chal-1"));
+    }
+
+    @Test
+    void should_return200_when_closingScoring() throws Exception {
+        AccountId organizer = AccountId.generate();
+        when(closeChallengeScoringService.execute("chal-1", organizer)).thenReturn(sampleChallenge());
+        authenticateAs(organizer);
+
+        mockMvc.perform(post("/api/v1/challenges/chal-1/close"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value("chal-1"));
+    }
+
+    @Test
+    void should_return409_when_closingScoringThatIsNotOpen() throws Exception {
+        AccountId organizer = AccountId.generate();
+        when(closeChallengeScoringService.execute("chal-1", organizer))
+                .thenThrow(new IllegalStateException("Challenge is not open (status=CLOSED)"));
+        authenticateAs(organizer);
+
+        mockMvc.perform(post("/api/v1/challenges/chal-1/close"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void should_return200_when_reopeningScoring() throws Exception {
+        AccountId organizer = AccountId.generate();
+        when(reopenChallengeScoringService.execute("chal-1", organizer)).thenReturn(sampleChallenge());
+        authenticateAs(organizer);
+
+        mockMvc.perform(post("/api/v1/challenges/chal-1/reopen"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value("chal-1"));
     }

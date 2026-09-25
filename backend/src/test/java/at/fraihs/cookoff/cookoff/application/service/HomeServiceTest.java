@@ -98,9 +98,27 @@ class HomeServiceTest {
     }
 
     @Test
+    void should_bucketClosedChallengeAsOpen_when_scoringClosedButNotYetRevealed() {
+        Challenge closed = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+                AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
+        closed.closeScoring();
+        when(accountLookup.getById(any())).thenReturn(
+                new AccountSummary(AccountId.generate(), new Email("guest@example.com"), "Guest", "Guest"));
+        when(challengeRepository.findByParticipant(accountId)).thenReturn(List.of(closed));
+        when(scoreSubmissionRepository.findByChallengeIdAndGuestAccountId(closed.getId(), accountId))
+                .thenReturn(Optional.empty());
+
+        GuestHomeRestDto home = service.execute(accountId);
+
+        assertEquals(1, home.getOpen().size());
+        assertTrue(home.getPast().isEmpty());
+    }
+
+    @Test
     void should_bucketRevealedChallengeAsPast_evenWithoutASubmission() {
         Challenge revealed = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
+        revealed.closeScoring();
         revealed.reveal(null);
         when(accountLookup.getById(any())).thenReturn(
                 new AccountSummary(AccountId.generate(), new Email("guest@example.com"), "Guest", "Guest"));

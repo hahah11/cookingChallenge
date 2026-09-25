@@ -33,7 +33,7 @@ const config: Config = {
 };
 
 describe('ChallengeCard', () => {
-  async function createComponent() {
+  async function createComponent(overrides: Partial<Challenge> = {}) {
     await TestBed.configureTestingModule({
       imports: [ChallengeCard],
       providers: [
@@ -44,7 +44,7 @@ describe('ChallengeCard', () => {
     }).compileComponents();
     TestBed.inject(AppConfig).load().subscribe();
     const fixture = TestBed.createComponent(ChallengeCard);
-    fixture.componentRef.setInput('challenge', challenge);
+    fixture.componentRef.setInput('challenge', { ...challenge, ...overrides });
     fixture.detectChanges();
     return fixture;
   }
@@ -79,6 +79,13 @@ describe('ChallengeCard', () => {
     expect(fixture.nativeElement.querySelector('.challenge-card__progress-text').textContent.trim()).toBe(
       'Results ready'
     );
+  });
+
+  it('shows submission progress plus "Scoring closed" while scoring is closed', async () => {
+    const fixture = await createComponent({ status: ChallengeStatus.CLOSED, overallWinnerAccountId: null });
+    expect(
+      fixture.nativeElement.querySelector('.challenge-card__progress-text').textContent.replace(/\s+/g, ' ').trim()
+    ).toBe('1/1 submitted · Scoring closed');
   });
 
   it('emits open with the challenge id on click', async () => {

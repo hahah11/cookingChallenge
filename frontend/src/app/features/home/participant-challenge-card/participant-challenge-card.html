@@ -28,6 +28,15 @@
             <span class="participant-challenge-card__swatch plate-swatch" [style.--plate-color]="color.hexCode" aria-hidden="true"></span>
             You're plating <strong>{{ color.name }}</strong> — noted for guests once scoring opens.
           </p>
+        } @else if (challenge().canScore && scoringClosed()) {
+          <div class="participant-challenge-card__edit-score">
+            <mat-chip-set>
+              <mat-chip class="participant-challenge-card__closed-tag" highlighted disableRipple>Scoring closed</mat-chip>
+            </mat-chip-set>
+            @if (challenge().submitted) {
+              <button mat-stroked-button type="button" (click)="score.emit(challenge().id)">View my scores</button>
+            }
+          </div>
         } @else if (challenge().canScore && !challenge().submitted) {
           <button mat-flat-button type="button" (click)="score.emit(challenge().id)">Score now</button>
         } @else if (challenge().canScore && challenge().submitted) {

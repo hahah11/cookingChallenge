@@ -71,6 +71,7 @@ class GetChallengeResultsServiceTest {
     void should_throw_when_requesterIsNotAParticipant() {
         Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
+        challenge.closeScoring();
         challenge.reveal(cookA);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
@@ -82,6 +83,7 @@ class GetChallengeResultsServiceTest {
     void should_returnResults_when_challengeRevealed() {
         Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
+        challenge.closeScoring();
         challenge.reveal(cookA);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(scoreSubmissionRepository.findByChallengeId(challenge.getId())).thenReturn(List.of());
@@ -98,6 +100,7 @@ class GetChallengeResultsServiceTest {
     void should_returnResults_when_requesterIsTheChallengeCreator() {
         Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
+        challenge.closeScoring();
         challenge.reveal(cookA);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(scoreSubmissionRepository.findByChallengeId(challenge.getId())).thenReturn(List.of());
@@ -115,6 +118,7 @@ class GetChallengeResultsServiceTest {
         AccountId otherOrganizer = AccountId.generate();
         Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
+        challenge.closeScoring();
         challenge.reveal(cookA);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 

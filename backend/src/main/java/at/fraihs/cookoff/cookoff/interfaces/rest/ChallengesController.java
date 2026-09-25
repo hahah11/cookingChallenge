@@ -2,6 +2,7 @@ package at.fraihs.cookoff.cookoff.interfaces.rest;
 
 import at.fraihs.cookoff.cookoff.application.dto.StoredImage;
 import at.fraihs.cookoff.cookoff.application.service.ChangeChallengeImageService;
+import at.fraihs.cookoff.cookoff.application.service.CloseChallengeScoringService;
 import at.fraihs.cookoff.cookoff.application.service.CreateChallengeService;
 import at.fraihs.cookoff.cookoff.application.service.CreateRegistrationInviteService;
 import at.fraihs.cookoff.cookoff.application.service.EditChallengeParticipantsService;
@@ -11,6 +12,7 @@ import at.fraihs.cookoff.cookoff.application.service.GetChallengeResultsService;
 import at.fraihs.cookoff.cookoff.application.service.GetChallengeStatusService;
 import at.fraihs.cookoff.cookoff.application.service.ListChallengesService;
 import at.fraihs.cookoff.cookoff.application.service.PickColorService;
+import at.fraihs.cookoff.cookoff.application.service.ReopenChallengeScoringService;
 import at.fraihs.cookoff.cookoff.application.service.RevealChallengeService;
 import at.fraihs.cookoff.cookoff.application.service.SendChallengeInvitationsService;
 import at.fraihs.cookoff.cookoff.application.service.SubmitScoreService;
@@ -65,6 +67,8 @@ public class ChallengesController implements ChallengesApi {
     private final GetChallengeImageService getChallengeImageService;
     private final CreateRegistrationInviteService createRegistrationInviteService;
     private final SendChallengeInvitationsService sendChallengeInvitationsService;
+    private final CloseChallengeScoringService closeChallengeScoringService;
+    private final ReopenChallengeScoringService reopenChallengeScoringService;
     private final RevealChallengeService revealChallengeService;
     private final UnrevealChallengeService unrevealChallengeService;
     private final GetChallengeResultsService getChallengeResultsService;
@@ -141,6 +145,18 @@ public class ChallengesController implements ChallengesApi {
             String challengeId, SendInvitationsRequestRestDto sendInvitationsRequest) {
         var sent = sendChallengeInvitationsService.execute(challengeId, CurrentAccount.id(), sendInvitationsRequest);
         return ResponseEntity.ok(new InvitationsSentResponseRestDto(sent, meta()));
+    }
+
+    @Override
+    public ResponseEntity<ChallengeResponseRestDto> closeChallenge(String challengeId) {
+        ChallengeRestDto challenge = closeChallengeScoringService.execute(challengeId, CurrentAccount.id());
+        return ResponseEntity.ok(new ChallengeResponseRestDto(challenge, meta()));
+    }
+
+    @Override
+    public ResponseEntity<ChallengeResponseRestDto> reopenChallenge(String challengeId) {
+        ChallengeRestDto challenge = reopenChallengeScoringService.execute(challengeId, CurrentAccount.id());
+        return ResponseEntity.ok(new ChallengeResponseRestDto(challenge, meta()));
     }
 
     @Override

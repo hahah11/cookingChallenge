@@ -27,59 +27,72 @@
       } @else if (!challenge.canScore) {
         <app-error-state message="You can't score this challenge." />
       } @else {
-        <p class="blind-scoring__instructions">{{ instructionText() }}</p>
-        <mat-divider class="blind-scoring__divider" />
+        @if (scoringClosed()) {
+          <p class="blind-scoring__closed-banner" role="status">
+            <mat-icon aria-hidden="true">lock</mat-icon>
+            Scoring is closed — results coming soon
+          </p>
+        } @else {
+          <p class="blind-scoring__instructions">{{ instructionText() }}</p>
+        }
 
-        <div class="blind-scoring__scroll">
-          <div class="blind-scoring__grid" role="table" aria-label="Blind scoring — one row per category">
-            <div class="blind-scoring__row blind-scoring__row--header" role="row">
-              <div class="blind-scoring__cell" role="columnheader">
-                <span class="cc-visually-hidden">Category</span>
-              </div>
-              @for (label of challenge.labels; track label) {
-                <div
-                  class="blind-scoring__cell blind-scoring__plate"
-                  role="columnheader"
-                  [class.plate-solid]="colorFor(label)"
-                  [style.--plate-color]="colorFor(label)?.hexCode"
-                >
-                  {{ plateLabel(label) }}
-                </div>
-              }
-            </div>
-            @for (category of challenge.categories; track category) {
-              <div class="blind-scoring__row" role="row">
-                <div class="blind-scoring__cell blind-scoring__category" role="rowheader">
-                  {{ CATEGORY_LABELS[category] }}
+        @if (!scoringClosed() || challenge.mySubmission) {
+          <mat-divider class="blind-scoring__divider" />
+
+          <div class="blind-scoring__scroll">
+            <div class="blind-scoring__grid" role="table" aria-label="Blind scoring — one row per category">
+              <div class="blind-scoring__row blind-scoring__row--header" role="row">
+                <div class="blind-scoring__cell" role="columnheader">
+                  <span class="cc-visually-hidden">Category</span>
                 </div>
                 @for (label of challenge.labels; track label) {
-                  <div class="blind-scoring__cell" role="cell">
-                    <app-star-rating
-                      [label]="CATEGORY_LABELS[category] + ' for ' + plateLabel(label)"
-                      [colorHex]="colorFor(label)?.hexCode"
-                      [value]="scoreValues()[keyFor(category, label)] ?? null"
-                      (valueChange)="setScore(category, label, $event)"
-                    />
+                  <div
+                    class="blind-scoring__cell blind-scoring__plate"
+                    role="columnheader"
+                    [class.plate-solid]="colorFor(label)"
+                    [style.--plate-color]="colorFor(label)?.hexCode"
+                  >
+                    {{ plateLabel(label) }}
                   </div>
                 }
               </div>
-            }
+              @for (category of challenge.categories; track category) {
+                <div class="blind-scoring__row" role="row">
+                  <div class="blind-scoring__cell blind-scoring__category" role="rowheader">
+                    {{ CATEGORY_LABELS[category] }}
+                  </div>
+                  @for (label of challenge.labels; track label) {
+                    <div class="blind-scoring__cell" role="cell">
+                      <app-star-rating
+                        [label]="CATEGORY_LABELS[category] + ' for ' + plateLabel(label)"
+                        [colorHex]="colorFor(label)?.hexCode"
+                        [value]="scoreValues()[keyFor(category, label)] ?? null"
+                        [disabled]="scoringClosed()"
+                        (valueChange)="setScore(category, label, $event)"
+                      />
+                    </div>
+                  }
+                </div>
+              }
+            </div>
           </div>
-        </div>
 
-        @if (submitErrorMessage(); as message) {
-          <p class="blind-scoring__error" role="alert">{{ message }}</p>
+          @if (submitErrorMessage(); as message) {
+            <p class="blind-scoring__error" role="alert">{{ message }}</p>
+          }
+
+          @if (!scoringClosed()) {
+            <button
+              mat-flat-button
+              type="button"
+              class="blind-scoring__submit"
+              [disabled]="!canSubmit() || submitting()"
+              (click)="submit()"
+            >
+              {{ submitButtonLabel() }}
+            </button>
+          }
         }
-
-        <button
-          mat-flat-button
-          type="button"
-          class="blind-scoring__submit"
-          [disabled]="!canSubmit() || submitting()"
-          (click)="submit()"
-        >
-          {{ submitButtonLabel() }}
-        </button>
       }
     }
   }

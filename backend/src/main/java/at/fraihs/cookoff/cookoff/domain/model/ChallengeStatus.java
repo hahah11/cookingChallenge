@@ -5,5 +5,6 @@ import org.jmolecules.ddd.annotation.ValueObject;
 @ValueObject
 public enum ChallengeStatus {
     OPEN,
+    CLOSED,
     REVEALED
 }

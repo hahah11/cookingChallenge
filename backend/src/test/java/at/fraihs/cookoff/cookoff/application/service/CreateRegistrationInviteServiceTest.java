@@ -85,6 +85,7 @@ class CreateRegistrationInviteServiceTest {
     @Test
     void should_throw_when_challengeIsAlreadyRevealed() {
         Challenge challenge = openChallenge();
+        challenge.closeScoring();
         challenge.reveal(null);
         when(accountLookup.canOrganize(organizerId)).thenReturn(true);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));

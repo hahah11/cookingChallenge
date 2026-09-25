@@ -118,6 +118,7 @@ class ChallengeRepositoryImplTest {
                 cookB, new AccountId(persistAccount()), List.of(), organizer));
         Challenge revealed = Challenge.create(LocalDate.now(), null, new DishName("Palatschinken"),
                 cookA, cookB, List.of(guest), organizer);
+        revealed.closeScoring();
         revealed.reveal(null);
         Challenge savedRevealed = repository.save(revealed);
 
@@ -185,12 +186,13 @@ class ChallengeRepositoryImplTest {
     }
 
     @Test
-    void should_roundTripRevealResult_when_revealedThenUnrevealedThenFindingById() {
+    void should_roundTripRevealResultAndClosedStatus_when_revealedThenUnrevealedThenFindingById() {
         AccountId cookA = new AccountId(persistAccount());
         AccountId cookB = new AccountId(persistAccount());
         AccountId organizer = new AccountId(persistAccount());
         Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
+        challenge.closeScoring();
         challenge.reveal(cookA);
 
         Challenge savedRevealed = repository.save(challenge);
@@ -201,7 +203,7 @@ class ChallengeRepositoryImplTest {
         foundRevealed.unreveal();
         Challenge savedUnrevealed = repository.save(foundRevealed);
         Challenge foundUnrevealed = repository.findById(savedUnrevealed.getId()).orElseThrow();
-        assertEquals(ChallengeStatus.OPEN, foundUnrevealed.getStatus());
+        assertEquals(ChallengeStatus.CLOSED, foundUnrevealed.getStatus());
         assertEquals(null, foundUnrevealed.getLastRevealResult());
     }
 

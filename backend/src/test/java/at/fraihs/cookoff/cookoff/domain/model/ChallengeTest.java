@@ -136,9 +136,92 @@ class ChallengeTest {
     }
 
     @Test
+    void should_transitionToClosed_when_scoringClosed() {
+        Challenge challenge = newChallenge();
+
+        challenge.closeScoring();
+
+        assertEquals(ChallengeStatus.CLOSED, challenge.getStatus());
+    }
+
+    @Test
+    void should_throw_when_closingScoringTwice() {
+        Challenge challenge = newChallenge();
+        challenge.closeScoring();
+
+        assertThrows(IllegalStateException.class, challenge::closeScoring);
+    }
+
+    @Test
+    void should_transitionBackToOpen_when_scoringReopened() {
+        Challenge challenge = newChallenge();
+        challenge.closeScoring();
+
+        challenge.reopenScoring();
+
+        assertEquals(ChallengeStatus.OPEN, challenge.getStatus());
+    }
+
+    @Test
+    void should_throw_when_reopeningScoringThatIsStillOpen() {
+        Challenge challenge = newChallenge();
+
+        assertThrows(IllegalStateException.class, challenge::reopenScoring);
+    }
+
+    @Test
+    void should_throw_when_reopeningScoringAfterReveal() {
+        Challenge challenge = newChallenge();
+        challenge.closeScoring();
+        challenge.reveal(cookA);
+
+        assertThrows(IllegalStateException.class, challenge::reopenScoring);
+    }
+
+    @Test
+    void should_throw_when_revealingWhileScoringIsStillOpen() {
+        Challenge challenge = newChallenge();
+
+        assertThrows(IllegalStateException.class, () -> challenge.reveal(cookA));
+        assertEquals(ChallengeStatus.OPEN, challenge.getStatus());
+    }
+
+    @Test
+    void should_throw_when_editingParticipantsWhileScoringIsClosed() {
+        Challenge challenge = newChallenge();
+        challenge.closeScoring();
+
+        assertThrows(IllegalStateException.class,
+                () -> challenge.editParticipants(null, null, List.of(AccountId.generate()), List.of()));
+    }
+
+    @Test
+    void should_allowPickingColor_when_scoringIsClosed() {
+        Challenge challenge = newChallenge();
+        challenge.closeScoring();
+        PlateColorId red = PlateColorId.generate();
+        PlateColorId yellow = PlateColorId.generate();
+
+        challenge.pickColor(cookA, red, yellow);
+
+        assertEquals(red, challenge.cookAssignmentFor(DishLabel.A).colorId());
+    }
+
+    @Test
+    void should_allowChangingImage_when_scoringIsClosed() {
+        Challenge challenge = newChallenge();
+        challenge.closeScoring();
+
+        challenge.changeImage("image-ref-1");
+
+        assertEquals("image-ref-1", challenge.getImageRef());
+    }
+
+    @Test
     void should_transitionToRevealed_when_revealed() {
         Challenge challenge = newChallenge();
 
+        challenge.closeScoring();
         ChallengeRevealed event = challenge.reveal(cookA);
 
         assertEquals(ChallengeStatus.REVEALED, challenge.getStatus());
@@ -152,19 +235,21 @@ class ChallengeTest {
     @Test
     void should_throw_when_revealingTwice() {
         Challenge challenge = newChallenge();
+        challenge.closeScoring();
         challenge.reveal(cookA);
 
         assertThrows(IllegalStateException.class, () -> challenge.reveal(cookA));
     }
 
     @Test
-    void should_transitionBackToOpen_when_unrevealed() {
+    void should_transitionBackToClosed_when_unrevealed() {
         Challenge challenge = newChallenge();
+        challenge.closeScoring();
         challenge.reveal(cookA);
 
         ChallengeUnrevealed event = challenge.unreveal();
 
-        assertEquals(ChallengeStatus.OPEN, challenge.getStatus());
+        assertEquals(ChallengeStatus.CLOSED, challenge.getStatus());
         assertEquals(null, challenge.getLastRevealResult());
         assertEquals(challenge.getId(), event.challengeId());
         assertEquals(cookA, event.cookAAccountId());
@@ -175,6 +260,7 @@ class ChallengeTest {
     @Test
     void should_carryNullPreviousWinner_when_unrevealingADraw() {
         Challenge challenge = newChallenge();
+        challenge.closeScoring();
         challenge.reveal(null);
 
         ChallengeUnrevealed event = challenge.unreveal();
@@ -192,6 +278,7 @@ class ChallengeTest {
     @Test
     void should_throw_when_unrevealingTwice() {
         Challenge challenge = newChallenge();
+        challenge.closeScoring();
         challenge.reveal(cookA);
         challenge.unreveal();
 
@@ -201,6 +288,7 @@ class ChallengeTest {
     @Test
     void should_allowReRevealingWithADifferentWinner_when_unrevealedFirst() {
         Challenge challenge = newChallenge();
+        challenge.closeScoring();
         challenge.reveal(cookA);
         challenge.unreveal();
 
@@ -214,6 +302,7 @@ class ChallengeTest {
     @Test
     void should_throw_when_editingParticipantsAfterReveal() {
         Challenge challenge = newChallenge();
+        challenge.closeScoring();
         challenge.reveal(null);
 
         assertThrows(IllegalStateException.class,
@@ -326,6 +415,7 @@ class ChallengeTest {
     @Test
     void should_throw_when_pickingColorAfterReveal() {
         Challenge challenge = newChallenge();
+        challenge.closeScoring();
         challenge.reveal(cookA);
 
         assertThrows(IllegalStateException.class,
@@ -354,6 +444,7 @@ class ChallengeTest {
     @Test
     void should_throw_when_changingImageAfterReveal() {
         Challenge challenge = newChallenge();
+        challenge.closeScoring();
         challenge.reveal(cookA);
 
         assertThrows(IllegalStateException.class, () -> challenge.changeImage("image-ref-1"));

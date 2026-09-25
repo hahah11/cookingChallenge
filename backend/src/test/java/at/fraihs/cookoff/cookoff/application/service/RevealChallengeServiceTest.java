@@ -70,13 +70,19 @@ class RevealChallengeServiceTest {
                 cookAId, cookBId, List.of(guestId), organizerId);
     }
 
+    private Challenge closedChallenge() {
+        Challenge challenge = openChallenge();
+        challenge.closeScoring();
+        return challenge;
+    }
+
     private Score score(DishLabel label, Category category, int points) {
         return new Score(label, category, points);
     }
 
     @Test
     void should_revealChallenge_andPublishEvent_when_challengeExists() {
-        Challenge challenge = openChallenge();
+        Challenge challenge = closedChallenge();
         ScoreSubmission submission = ScoreSubmission.submit(challenge.getId(), guestId, List.of(
                 score(DishLabel.A, Category.MUNDGEFUEHL, 5),
                 score(DishLabel.A, Category.TELLERSPRACHE, 5),
@@ -110,6 +116,16 @@ class RevealChallengeServiceTest {
     }
 
     @Test
+    void should_throw_when_scoringIsStillOpen() {
+        Challenge challenge = openChallenge();
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+
+        assertThrows(IllegalStateException.class, () -> service.execute(challenge.getId().toString(), organizerId));
+        verify(challengeRepository, never()).save(any());
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
     void should_throw_when_requesterDidNotCreateTheChallenge() {
         Challenge challenge = openChallenge();
         AccountId otherOrganizerId = AccountId.generate();
@@ -122,7 +138,7 @@ class RevealChallengeServiceTest {
 
     @Test
     void should_allowReveal_when_requesterIsAdminButNotTheCreator() {
-        Challenge challenge = openChallenge();
+        Challenge challenge = closedChallenge();
         AccountId adminId = AccountId.generate();
         ScoreSubmission submission = ScoreSubmission.submit(challenge.getId(), guestId, List.of(
                 score(DishLabel.A, Category.MUNDGEFUEHL, 5),

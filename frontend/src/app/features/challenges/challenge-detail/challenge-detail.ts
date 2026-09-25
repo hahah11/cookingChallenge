@@ -75,6 +75,7 @@ export class ChallengeDetail {
   protected readonly revealing = signal(false);
   protected readonly revealBusy = signal(false);
   protected readonly unrevealBusy = signal(false);
+  protected readonly scoringBusy = signal(false);
 
   protected readonly plateColorHex = computed<Record<string, string>>(() =>
     Object.fromEntries(this.appConfig.plateColors().map((color) => [color.id, color.hexCode]))
@@ -170,11 +171,61 @@ export class ChallengeDetail {
     this.dialog.open(QrDialog, { data, width: '360px' });
   }
 
+  protected confirmCloseScoring(): void {
+    const data: ConfirmDialogData = {
+      title: 'Close scoring?',
+      message: 'Guests can no longer submit or edit scores.',
+      confirmLabel: 'Yes, close scoring'
+    };
+    this.dialog
+      .open(ConfirmDialog, { data, width: '360px' })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.closeScoring();
+        }
+      });
+  }
+
+  private closeScoring(): void {
+    const challenge = this.challenge();
+    if (!challenge) return;
+
+    this.scoringBusy.set(true);
+    this.challengesApi.closeChallenge(challenge.challengeId).subscribe({
+      next: () => {
+        this.scoringBusy.set(false);
+        this.challenge.set({ ...challenge, status: ChallengeStatus.CLOSED });
+      },
+      error: (error: ApiError) => {
+        this.scoringBusy.set(false);
+        this.notification.error(error.message);
+      }
+    });
+  }
+
+  protected reopenScoring(): void {
+    const challenge = this.challenge();
+    if (!challenge) return;
+
+    this.scoringBusy.set(true);
+    this.challengesApi.reopenChallenge(challenge.challengeId).subscribe({
+      next: () => {
+        this.scoringBusy.set(false);
+        this.challenge.set({ ...challenge, status: ChallengeStatus.OPEN });
+      },
+      error: (error: ApiError) => {
+        this.scoringBusy.set(false);
+        this.notification.error(error.message);
+      }
+    });
+  }
+
   protected confirmReveal(): void {
     const data: ConfirmDialogData = {
       title: 'Reveal this challenge?',
       message:
-        'Revealing shows cook identities, computes results, and closes scoring. You can reopen it later if you need to.',
+        'Revealing shows cook identities and computes results. You can hide them again later if you need to.',
       confirmLabel: 'Yes, reveal'
     };
     this.dialog
@@ -216,7 +267,7 @@ export class ChallengeDetail {
     const data: ConfirmDialogData = {
       title: 'Unreveal this challenge?',
       message:
-        'This hides the cook-to-dish mapping again and reopens scoring — guests will see it as pending until you reveal it again.',
+        'This hides the cook-to-dish mapping again. Scoring stays closed — guests will see it as pending until you reveal it again.',
       confirmLabel: 'Yes, unreveal'
     };
     this.dialog

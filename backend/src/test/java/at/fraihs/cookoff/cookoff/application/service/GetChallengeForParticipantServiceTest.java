@@ -84,6 +84,7 @@ class GetChallengeForParticipantServiceTest {
     @Test
     void should_includeCookMapping_when_revealed() {
         Challenge challenge = challenge();
+        challenge.closeScoring();
         challenge.reveal(cookA);
         when(accountLookup.getById(any())).thenReturn(
                 new AccountSummary(AccountId.generate(), new Email("cook@example.com"), "Cook", "Cook"));

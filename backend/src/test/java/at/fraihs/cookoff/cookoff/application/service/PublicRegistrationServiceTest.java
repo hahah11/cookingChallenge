@@ -68,6 +68,7 @@ class PublicRegistrationServiceTest {
     @Test
     void should_registerWithoutJoining_when_challengeIsNoLongerOpen() {
         Challenge challenge = openChallenge();
+        challenge.closeScoring();
         challenge.reveal(null);
         AccountId newAccountId = AccountId.generate();
         when(registrationInvites.register("tok", "Walk", "In", "walkin@example.com"))

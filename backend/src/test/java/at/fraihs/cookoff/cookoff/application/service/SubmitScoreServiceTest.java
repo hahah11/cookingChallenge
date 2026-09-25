@@ -134,8 +134,19 @@ class SubmitScoreServiceTest {
     }
 
     @Test
+    void should_throw_when_scoringIsClosed() {
+        Challenge challenge = openChallenge(List.of(guestId));
+        challenge.closeScoring();
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+
+        assertThrows(ChallengeNotOpenException.class, () -> service.execute(
+                challenge.getId().toString(), guestId, sixValidScores()));
+    }
+
+    @Test
     void should_throw_when_challengeIsAlreadyRevealed() {
         Challenge challenge = openChallenge(List.of(guestId));
+        challenge.closeScoring();
         challenge.reveal(null);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 

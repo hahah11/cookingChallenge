@@ -108,12 +108,27 @@ public class Challenge {
     }
 
     /**
+     * Freezes scoring ahead of the reveal: guests can no longer submit or edit scores, and
+     * results stay hidden. No event — nothing reacts to this transition.
+     */
+    public void closeScoring() {
+        requireOpen();
+        this.status = ChallengeStatus.CLOSED;
+    }
+
+    /** Undoes {@link #closeScoring}, letting guests submit and edit scores again. */
+    public void reopenScoring() {
+        requireClosed();
+        this.status = ChallengeStatus.OPEN;
+    }
+
+    /**
      * Transitions to REVEALED and returns the event to publish. The overall winner is
      * computed beforehand by ResultCalculator (it needs the ScoreSubmissions, which live
      * outside this aggregate) — the application layer orchestrates that, then calls this.
      */
     public ChallengeRevealed reveal(AccountId overallWinnerAccountId) {
-        requireOpen();
+        requireClosed();
         this.status = ChallengeStatus.REVEALED;
         this.lastRevealResult = new RevealResult(overallWinnerAccountId);
         AccountId cookA = cookAssignmentFor(DishLabel.A).accountId();
@@ -122,7 +137,7 @@ public class Challenge {
     }
 
     /**
-     * Reverts a reveal back to OPEN, returning the event to publish so the application layer
+     * Reverts a reveal back to CLOSED (scoring stays frozen), returning the event to publish so the application layer
      * can reverse the CookRivalry update {@link #reveal} triggered. Re-revealing afterwards
      * (possibly with a different result, e.g. after scores were edited) is just a normal
      * {@link #reveal} call again.
@@ -130,7 +145,7 @@ public class Challenge {
     public ChallengeUnrevealed unreveal() {
         requireRevealed();
         AccountId previousWinner = lastRevealResult.winnerAccountId();
-        this.status = ChallengeStatus.OPEN;
+        this.status = ChallengeStatus.CLOSED;
         this.lastRevealResult = null;
         AccountId cookA = cookAssignmentFor(DishLabel.A).accountId();
         AccountId cookB = cookAssignmentFor(DishLabel.B).accountId();
@@ -142,7 +157,7 @@ public class Challenge {
      * left. Irreversible once either cook has a color — first pick wins for the pair.
      */
     public void pickColor(AccountId cookAccountId, PlateColorId chosenColorId, PlateColorId otherColorId) {
-        requireOpen();
+        requireNotRevealed();
         if (cookAssignments.stream().anyMatch(CookAssignment::hasColor)) {
             throw new IllegalStateException("Plate colors have already been picked for this challenge");
         }
@@ -160,7 +175,7 @@ public class Challenge {
 
     /** Replaces the challenge's photo reference; the old blob's lifecycle is the caller's concern. */
     public void changeImage(String newImageRef) {
-        requireOpen();
+        requireNotRevealed();
         this.imageRef = newImageRef;
     }
 
@@ -198,6 +213,18 @@ public class Challenge {
     private void requireOpen() {
         if (status != ChallengeStatus.OPEN) {
             throw new IllegalStateException("Challenge is not open (status=" + status + ")");
+        }
+    }
+
+    private void requireClosed() {
+        if (status != ChallengeStatus.CLOSED) {
+            throw new IllegalStateException("Challenge scoring is not closed (status=" + status + ")");
+        }
+    }
+
+    private void requireNotRevealed() {
+        if (status == ChallengeStatus.REVEALED) {
+            throw new IllegalStateException("Challenge is already revealed");
         }
     }
 

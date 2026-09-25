@@ -110,6 +110,7 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         when(accountLookup.getById(cookBId)).thenReturn(new AccountSummary(cookBId, new Email("b@x.com"), "Cook B", "Cook"));
         Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(guestId), organizerId);
+        challenge.closeScoring();
         challengeRepository.save(challenge);
         scoreSubmissionRepository.replace(challenge.getId(), cookAWinsSubmission(challenge.getId()));
 
