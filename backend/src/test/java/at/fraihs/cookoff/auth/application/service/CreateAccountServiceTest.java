@@ -7,6 +7,7 @@ import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.CreateAccountRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.LocaleRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
 
 import java.util.List;
@@ -51,6 +52,27 @@ class CreateAccountServiceTest {
         assertEquals("host@example.com", result.getEmail());
         assertEquals("Host Person", result.getName());
         assertTrue(result.getRoles().contains(SystemRoleRestDto.ORGANIZER));
+    }
+
+    @Test
+    void should_storeTheRequestedLanguage_when_localeIsGiven() {
+        when(accountRepository.existsByEmail(new Email("host@example.com"))).thenReturn(false);
+        when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AccountRestDto result = service.execute(
+                new CreateAccountRequestRestDto("host@example.com", "Host", "Person").locale(LocaleRestDto.DE));
+
+        assertEquals(LocaleRestDto.DE, result.getLocale());
+    }
+
+    @Test
+    void should_defaultToEnglish_when_localeIsOmitted() {
+        when(accountRepository.existsByEmail(new Email("host@example.com"))).thenReturn(false);
+        when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AccountRestDto result = service.execute(new CreateAccountRequestRestDto("host@example.com", "Host", "Person"));
+
+        assertEquals(LocaleRestDto.EN, result.getLocale());
     }
 
     @Test

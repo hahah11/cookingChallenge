@@ -16,6 +16,7 @@ import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { BlindScoring } from './blind-scoring';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const challenge: ParticipantChallenge = {
   id: 'chal-1',
@@ -63,7 +64,7 @@ describe('BlindScoring', () => {
   function setup(challengesApi: Record<string, unknown>) {
     TestBed.configureTestingModule({
       imports: [BlindScoring],
-      providers: [
+      providers: [...provideTestI18n(), 
         provideRouter([]),
         { provide: ChallengesApi, useValue: challengesApi },
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta }) } },
@@ -94,7 +95,7 @@ describe('BlindScoring', () => {
 
     const ratings: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.blind-scoring__rating'));
     expect(ratings.length).toBe(challenge.categories.length * challenge.labels.length);
-    expect(ratings[0].querySelector('.blind-scoring__cell-label')?.textContent?.trim()).toBe('Mundgefühl');
+    expect(ratings[0].querySelector('.blind-scoring__cell-label')?.textContent?.trim()).toBe('Mouthfeel');
     expect(ratings.map((cell) => [cell.style.getPropertyValue('--label-index'), cell.style.getPropertyValue('--category-index')])).toEqual(
       challenge.categories.flatMap((_, categoryIndex) =>
         challenge.labels.map((_, labelIndex) => [String(labelIndex), String(categoryIndex)])

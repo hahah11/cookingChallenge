@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 
 import { ChallengesApi, CookAssignment, DishLabel, GuestSubmissionStatus } from '../../../core/api/generated';
 import { SendLinksDialog, SendLinksDialogData } from './send-links-dialog';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const guests: GuestSubmissionStatus[] = [
   { accountId: 'guest-1', name: 'Gina', email: 'gina@example.com', submitted: false },
@@ -31,7 +32,7 @@ describe('SendLinksDialog', () => {
 
     await TestBed.configureTestingModule({
       imports: [SendLinksDialog, MatDialogModule],
-      providers: [
+      providers: [...provideTestI18n(), 
         Overlay,
         { provide: MatDialogRef, useValue: dialogRef },
         { provide: MAT_DIALOG_DATA, useValue: { challengeId: 'chal-1' } satisfies SendLinksDialogData },

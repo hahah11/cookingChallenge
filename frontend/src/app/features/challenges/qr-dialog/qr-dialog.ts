@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ChallengesApi } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
@@ -22,9 +23,9 @@ type LoadState = 'loading' | 'loaded' | 'error';
  */
 @Component({
   selector: 'app-qr-dialog',
-  imports: [ErrorState, LoadingSkeleton, MatButtonModule, MatDialogModule, QrCode],
+  imports: [ErrorState, LoadingSkeleton, MatButtonModule, MatDialogModule, QrCode, TranslocoPipe],
   template: `
-    <h2 mat-dialog-title class="qr-dialog__title">Scan to register</h2>
+    <h2 mat-dialog-title class="qr-dialog__title">{{ 'qrDialog.title' | transloco }}</h2>
     <mat-dialog-content class="qr-dialog__content">
       @switch (state()) {
         @case ('loading') {
@@ -35,12 +36,12 @@ type LoadState = 'loading' | 'loaded' | 'error';
         }
         @case ('loaded') {
           <app-qr-code [value]="registrationUrl()" [size]="200" />
-          <p class="qr-dialog__hint">Guests scan this to register for the app and join {{ data.challengeName }}.</p>
+          <p class="qr-dialog__hint">{{ 'qrDialog.hint' | transloco: { name: data.challengeName } }}</p>
         }
       }
     </mat-dialog-content>
     <mat-dialog-actions align="center">
-      <button mat-button type="button" mat-dialog-close>Close</button>
+      <button mat-button type="button" mat-dialog-close>{{ 'common.close' | transloco }}</button>
     </mat-dialog-actions>
   `,
   styles: `

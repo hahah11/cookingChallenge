@@ -4,13 +4,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { filter } from 'rxjs';
 
 import { SystemRole } from '../../core/api/generated';
 import { Auth } from '../../core/auth/auth';
 
 interface OrganizerNavLink {
-  label: string;
+  labelKey: string;
   route: string;
 }
 
@@ -27,7 +28,7 @@ interface OrganizerNavLink {
  */
 @Component({
   selector: 'app-organizer-shell',
-  imports: [MatToolbarModule, MatButtonModule, MatTabsModule, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [MatToolbarModule, MatButtonModule, MatTabsModule, RouterLink, RouterLinkActive, RouterOutlet, TranslocoPipe],
   templateUrl: './organizer-shell.html',
   styleUrl: './organizer-shell.scss'
 })
@@ -53,11 +54,11 @@ export class OrganizerShell {
   }
 
   protected readonly links = computed<OrganizerNavLink[]>(() => {
-    const links: OrganizerNavLink[] = [{ label: 'History', route: '/challenges' }];
+    const links: OrganizerNavLink[] = [{ labelKey: 'nav.history', route: '/challenges' }];
     if (this.auth.hasAnyRole(SystemRole.ADMIN)) {
-      links.push({ label: 'Accounts', route: '/accounts' });
+      links.push({ labelKey: 'nav.accounts', route: '/accounts' });
     }
-    links.push({ label: 'Rivalries', route: '/rivalries' });
+    links.push({ labelKey: 'nav.rivalries', route: '/rivalries' });
     return links;
   });
 

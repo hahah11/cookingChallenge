@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, map, tap } from 'rxjs';
 
 import { AccessLinkLoginRequest, AuthApi, AuthToken, LoginRequest, SystemRole } from '../api/generated';
+import { detectApiLocale } from '../i18n/api-locale';
 import { JwtClaims, decodeJwtClaims, isJwtExpired } from './jwt-claims';
 
 const STORAGE_KEY = 'cookoff.accessToken';
@@ -41,20 +42,32 @@ export class Auth {
   login(request: LoginRequest): Observable<AuthToken> {
     return this.authApi.login(request).pipe(
       map((response) => response.data),
-      tap((token) => this.storeToken(token.accessToken))
+      tap((token) => this.storeToken(token.accessToken)),
+      tap(() => this.syncLocale())
     );
   }
 
   accessLinkLogin(request: AccessLinkLoginRequest): Observable<AuthToken> {
     return this.authApi.accessLinkLogin(request).pipe(
       map((response) => response.data),
-      tap((token) => this.storeToken(token.accessToken))
+      tap((token) => this.storeToken(token.accessToken)),
+      tap(() => this.syncLocale())
     );
   }
 
   logout(): void {
     sessionStorage.removeItem(STORAGE_KEY);
     this.token.set(null);
+  }
+
+  /**
+   * Tells the backend which language this browser prefers, so emails to this account (invitations,
+   * results, password resets — all sent by someone else) come in that language. Login returns only
+   * a token, so there is no stored value to compare against: it is simply sent every time.
+   * Best effort — a failure must never disturb the login itself.
+   */
+  private syncLocale(): void {
+    this.authApi.updateMyLocale({ locale: detectApiLocale() }).subscribe({ error: () => undefined });
   }
 
   private storeToken(accessToken: string): void {

@@ -1,8 +1,10 @@
 package at.fraihs.cookoff.shared.security;
 
 import at.fraihs.cookoff.auth.application.service.AccessLinkService;
+import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.application.service.CreateAccountService;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.domain.model.Language;
 import at.fraihs.cookoff.cookoff.application.service.CreateChallengeService;
 import at.fraihs.cookoff.shared.testsupport.GuestOnboardingTestSupport;
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
@@ -24,7 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,6 +53,9 @@ class SecurityIntegrationTest {
 
     @Autowired
     private CreateAccountService createAccountService;
+
+    @Autowired
+    private AccountRepository accountRepository;
 
     @Autowired
     private CreateChallengeService createChallengeService;
@@ -95,6 +102,30 @@ class SecurityIntegrationTest {
 
         mockMvc.perform(get("/api/v1/challenges").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void should_return401_when_unauthenticatedRequestUpdatesLocale() throws Exception {
+        mockMvc.perform(put("/api/v1/me/locale").contentType("application/json").content("{\"locale\":\"de\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void should_storeTheLanguage_when_aUserRoleAccountUpdatesItsOwnLocale() throws Exception {
+        AccountRestDto account = createAccountService.execute(
+                new CreateAccountRequestRestDto("locale-user@example.com", "User", "Test")
+                        .roles(List.of(SystemRoleRestDto.USER)).password("password123"));
+        String token = login("locale-user@example.com", "password123");
+
+        mockMvc.perform(put("/api/v1/me/locale")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json")
+                        .content("{\"locale\":\"de\"}"))
+                .andExpect(status().isNoContent());
+
+        assertEquals(Language.DE, accountRepository.findById(AccountId.fromString(account.getId()))
+                .orElseThrow().getLanguage());
     }
 
     @Test

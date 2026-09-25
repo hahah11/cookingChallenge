@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { ConfirmDialog, ConfirmDialogData } from './confirm-dialog';
+import { provideTestI18n } from '../../../testing/i18n';
 
 describe('ConfirmDialog', () => {
   let dialog: MatDialog;
@@ -12,7 +13,7 @@ describe('ConfirmDialog', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MatDialogModule],
-      providers: [Overlay]
+      providers: [...provideTestI18n(), Overlay]
     }).compileComponents();
     dialog = TestBed.inject(MatDialog);
     appRef = TestBed.inject(ApplicationRef);

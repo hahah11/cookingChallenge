@@ -7,11 +7,12 @@ import { vi } from 'vitest';
 
 import { Auth } from '../auth/auth';
 import { errorInterceptor } from './error-interceptor';
+import { provideTestI18n } from '../../testing/i18n';
 
 describe('errorInterceptor', () => {
   function setup(auth: Partial<Auth>) {
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: Auth, useValue: auth }]
+      providers: [...provideTestI18n(), provideRouter([]), { provide: Auth, useValue: auth }]
     });
     return { router: TestBed.inject(Router) };
   }

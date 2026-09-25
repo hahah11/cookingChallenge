@@ -68,7 +68,7 @@ public class ChallengeRevealedNotifier {
             notificationPort.sendResultsAvailable(new ResultsAvailableNotification(
                     account.email(), account.firstName(), challenge.getTitle(),
                     frontendBaseUrl + "/home?token=" + token,
-                    challenge.canScore(accountId), challenge.isCook(accountId)));
+                    challenge.canScore(accountId), challenge.isCook(accountId), account.locale()));
         }
         log.info("Notified participants that challenge {} was revealed", event.challengeId());
     }

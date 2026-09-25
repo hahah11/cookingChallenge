@@ -8,6 +8,7 @@ import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { ChallengeResults } from './challenge-results';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const result = {
   challengeId: 'chal-1',
@@ -47,7 +48,7 @@ describe('ChallengeResults', () => {
   function setup(challengesApi: Record<string, unknown>) {
     TestBed.configureTestingModule({
       imports: [ChallengeResults],
-      providers: [
+      providers: [...provideTestI18n(), 
         provideRouter([]),
         { provide: ChallengesApi, useValue: { getChallengeImage: () => of(new Blob()), ...challengesApi } },
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta }) } },

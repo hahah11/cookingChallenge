@@ -2,10 +2,12 @@ import { TestBed } from '@angular/core/testing';
 
 import { ChallengeStatus } from '../../../core/api/generated';
 import { StatusTag } from './status-tag';
+import { provideTestI18n } from '../../../testing/i18n';
 
 describe('StatusTag', () => {
   async function createComponent(status: ChallengeStatus) {
-    await TestBed.configureTestingModule({ imports: [StatusTag] }).compileComponents();
+    await TestBed.configureTestingModule({
+      providers: [...provideTestI18n()], imports: [StatusTag] }).compileComponents();
     const fixture = TestBed.createComponent(StatusTag);
     fixture.componentRef.setInput('status', status);
     fixture.detectChanges();

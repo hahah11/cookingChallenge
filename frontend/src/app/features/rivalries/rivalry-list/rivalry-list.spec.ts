@@ -7,6 +7,7 @@ import { RivalriesApi, Rivalry } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { RivalryList } from './rivalry-list';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const rivalry: Rivalry = {
   cookAAccountId: 'cook-a',
@@ -24,7 +25,7 @@ describe('RivalryList', () => {
   function setup(listRivalries: ReturnType<typeof vi.fn>) {
     TestBed.configureTestingModule({
       imports: [RivalryList],
-      providers: [provideRouter([]), { provide: RivalriesApi, useValue: { listRivalries } }]
+      providers: [...provideTestI18n(), provideRouter([]), { provide: RivalriesApi, useValue: { listRivalries } }]
     });
 
     const fixture = TestBed.createComponent(RivalryList);

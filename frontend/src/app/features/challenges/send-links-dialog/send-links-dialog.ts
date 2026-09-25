@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ChallengesApi, CookAssignment, DishLabel, GuestSubmissionStatus, InvitationsSent } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
@@ -16,7 +17,7 @@ export interface SendLinksDialogData {
 interface Recipient {
   accountId: string;
   name: string;
-  role: 'Cook A' | 'Cook B' | 'Guest';
+  role: 'cookA' | 'cookB' | 'guest';
   submitted: boolean;
 }
 
@@ -31,7 +32,7 @@ type LoadState = 'loading' | 'loaded' | 'error';
  */
 @Component({
   selector: 'app-send-links-dialog',
-  imports: [ErrorState, LoadingSkeleton, MatButtonModule, MatCheckboxModule, MatDialogModule, MatProgressSpinnerModule],
+  imports: [ErrorState, LoadingSkeleton, MatButtonModule, MatCheckboxModule, MatDialogModule, MatProgressSpinnerModule, TranslocoPipe],
   templateUrl: './send-links-dialog.html',
   styleUrl: './send-links-dialog.scss'
 })
@@ -51,13 +52,13 @@ export class SendLinksDialog {
     ...this.cooks().map((cook) => ({
       accountId: cook.accountId,
       name: cook.name,
-      role: cook.label === DishLabel.A ? ('Cook A' as const) : ('Cook B' as const),
+      role: cook.label === DishLabel.A ? ('cookA' as const) : ('cookB' as const),
       submitted: false
     })),
     ...this.guests().map((guest) => ({
       accountId: guest.accountId,
       name: guest.name,
-      role: 'Guest' as const,
+      role: 'guest' as const,
       submitted: guest.submitted
     }))
   ]);

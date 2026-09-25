@@ -2,12 +2,14 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { ChallengesApi, GuestHome, HomeApi, ParticipantChallenge, PlateColor } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
 import { Auth } from '../../../core/auth/auth';
 import { Notification } from '../../../core/notifications/notification';
+import { translatePlateColor } from '../../../core/i18n/plate-color-name';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
@@ -25,11 +27,12 @@ type LoadState = 'loading' | 'loaded' | 'link-expired' | 'error';
  */
 @Component({
   selector: 'app-participant-home',
-  imports: [DatePipe, EmptyState, ErrorState, LoadingSkeleton, PageHeader, ParticipantChallengeCard, StatusTag],
+  imports: [DatePipe, EmptyState, ErrorState, LoadingSkeleton, PageHeader, ParticipantChallengeCard, StatusTag, TranslocoPipe],
   templateUrl: './participant-home.html',
   styleUrl: './participant-home.scss'
 })
 export class ParticipantHome {
+  private readonly transloco = inject(TranslocoService);
   private readonly auth = inject(Auth);
   private readonly homeApi = inject(HomeApi);
   private readonly challengesApi = inject(ChallengesApi);
@@ -112,11 +115,11 @@ export class ParticipantHome {
   }
 
   protected confirmPickColor(challenge: ParticipantChallenge, color: PlateColor): void {
+    const colorName = translatePlateColor(this.transloco, color.name);
     const data: ConfirmDialogData = {
-      title: `Plate under ${color.name}?`,
-      message:
-        "This locks your plate color for this challenge and assigns the other cook the remaining color automatically. This can't be changed afterward.",
-      confirmLabel: `Yes, choose ${color.name}`
+      title: this.transloco.translate('home.pickColor.title', { color: colorName }),
+      message: this.transloco.translate('home.pickColor.message'),
+      confirmLabel: this.transloco.translate('home.pickColor.confirm', { color: colorName })
     };
     this.dialog
       .open(ConfirmDialog, { data })

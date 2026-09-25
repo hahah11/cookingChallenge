@@ -1,7 +1,7 @@
-<app-page-header kicker="Cook-off history" title="Challenges">
+<app-page-header [kicker]="'history.kicker' | transloco" [title]="'history.title' | transloco">
   <button mat-flat-button type="button" actions (click)="openNewChallengeDialog()">
     <mat-icon aria-hidden="true">add</mat-icon>
-    New challenge
+    {{ 'history.new' | transloco }}
   </button>
 </app-page-header>
 
@@ -14,8 +14,10 @@
   }
   @case ('loaded') {
     @if (challenges().length === 0) {
-      <app-empty-state icon="restaurant_menu" message="No challenges yet — start your first cook-off.">
-        <button mat-flat-button type="button" (click)="openNewChallengeDialog()">New challenge</button>
+      <app-empty-state icon="restaurant_menu" [message]="'history.empty' | transloco">
+        <button mat-flat-button type="button" (click)="openNewChallengeDialog()">
+          {{ 'history.new' | transloco }}
+        </button>
       </app-empty-state>
     } @else {
       <div class="challenge-history__grid">

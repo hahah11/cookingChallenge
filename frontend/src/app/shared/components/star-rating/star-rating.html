@@ -13,7 +13,7 @@
         (change)="select(v)"
       />
       <label [for]="name() + '-' + v" class="star-rating__star">
-        <span class="cc-visually-hidden">{{ v }} {{ v === 1 ? 'star' : 'stars' }}</span>
+        <span class="cc-visually-hidden">{{ (v === 1 ? 'starRating.one' : 'starRating.other') | transloco: { count: v } }}</span>
       </label>
     }
   </div>

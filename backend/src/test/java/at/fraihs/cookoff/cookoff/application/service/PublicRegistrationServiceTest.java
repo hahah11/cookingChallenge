@@ -8,11 +8,13 @@ import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.port.ChallengeRepository;
 import at.fraihs.cookoff.cookoff.domain.model.Challenge;
 import at.fraihs.cookoff.cookoff.domain.model.DishName;
+import at.fraihs.cookoff.shared.web.openapi.model.LocaleRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationRequestRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationResultRestDto;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,7 +55,7 @@ class PublicRegistrationServiceTest {
     void should_registerAndJoinChallenge_when_challengeIsStillOpen() {
         Challenge challenge = openChallenge();
         AccountId newAccountId = AccountId.generate();
-        when(registrationInvites.register("tok", "Walk", "In", "walkin@example.com"))
+        when(registrationInvites.register("tok", "Walk", "In", "walkin@example.com", Locale.ENGLISH))
                 .thenReturn(new RegistrationResult(newAccountId, challenge.getId().value()));
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
@@ -66,12 +68,25 @@ class PublicRegistrationServiceTest {
     }
 
     @Test
+    void should_passTheRegistrantsLanguageOn_when_requestCarriesALocale() {
+        Challenge challenge = openChallenge();
+        AccountId newAccountId = AccountId.generate();
+        when(registrationInvites.register("tok", "Walk", "In", "walkin@example.com", Locale.GERMAN))
+                .thenReturn(new RegistrationResult(newAccountId, challenge.getId().value()));
+        when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
+
+        service.execute(request("tok").locale(LocaleRestDto.DE));
+
+        verify(registrationInvites).register("tok", "Walk", "In", "walkin@example.com", Locale.GERMAN);
+    }
+
+    @Test
     void should_registerWithoutJoining_when_challengeIsNoLongerOpen() {
         Challenge challenge = openChallenge();
         challenge.closeScoring();
         challenge.reveal(null);
         AccountId newAccountId = AccountId.generate();
-        when(registrationInvites.register("tok", "Walk", "In", "walkin@example.com"))
+        when(registrationInvites.register("tok", "Walk", "In", "walkin@example.com", Locale.ENGLISH))
                 .thenReturn(new RegistrationResult(newAccountId, challenge.getId().value()));
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
 
@@ -84,7 +99,7 @@ class PublicRegistrationServiceTest {
 
     @Test
     void should_throw_when_emailIsAlreadyRegistered() {
-        when(registrationInvites.register("tok", "Walk", "In", "walkin@example.com"))
+        when(registrationInvites.register("tok", "Walk", "In", "walkin@example.com", Locale.ENGLISH))
                 .thenThrow(new AccountAlreadyExistsException("walkin@example.com"));
 
         assertThrows(AccountAlreadyExistsException.class, () -> service.execute(request("tok")));
@@ -92,7 +107,7 @@ class PublicRegistrationServiceTest {
 
     @Test
     void should_throw_when_tokenIsInvalidOrExpired() {
-        when(registrationInvites.register("bad-tok", "Walk", "In", "walkin@example.com"))
+        when(registrationInvites.register("bad-tok", "Walk", "In", "walkin@example.com", Locale.ENGLISH))
                 .thenThrow(new InvalidOrExpiredLinkException());
 
         assertThrows(InvalidOrExpiredLinkException.class, () -> service.execute(request("bad-tok")));

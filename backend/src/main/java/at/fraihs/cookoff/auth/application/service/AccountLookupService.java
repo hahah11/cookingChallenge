@@ -21,7 +21,8 @@ public class AccountLookupService implements AccountLookup {
     @Transactional(readOnly = true)
     public AccountSummary getById(AccountId id) {
         Account account = findOrThrow(id);
-        return new AccountSummary(account.getId(), account.getEmail(), account.getName(), account.getFirstName());
+        return new AccountSummary(account.getId(), account.getEmail(), account.getName(), account.getFirstName(),
+                account.getLanguage().toLocale());
     }
 
     @Override

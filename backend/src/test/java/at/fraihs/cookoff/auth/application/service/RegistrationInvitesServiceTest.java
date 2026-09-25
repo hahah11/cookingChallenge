@@ -6,6 +6,7 @@ import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkExceptio
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
+import at.fraihs.cookoff.auth.domain.model.Language;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,7 +53,7 @@ class RegistrationInvitesServiceTest {
         when(accountRepository.existsByEmail(new Email("walkin@example.com"))).thenReturn(false);
         when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RegistrationResult result = service.register("tok", "Walk", "In", "walkin@example.com");
+        RegistrationResult result = service.register("tok", "Walk", "In", "walkin@example.com", Locale.ENGLISH);
 
         assertEquals(42L, result.challengeId());
         ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
@@ -62,12 +64,38 @@ class RegistrationInvitesServiceTest {
     }
 
     @Test
+    void should_storeGerman_when_registrantsBrowserLanguageIsGermanAustrian() {
+        when(registrationInviteService.verify("tok")).thenReturn(42L);
+        when(accountRepository.existsByEmail(new Email("walkin@example.com"))).thenReturn(false);
+        when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.register("tok", "Walk", "In", "walkin@example.com", Locale.forLanguageTag("de-AT"));
+
+        ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
+        verify(accountRepository).save(captor.capture());
+        assertEquals(Language.DE, captor.getValue().getLanguage());
+    }
+
+    @Test
+    void should_fallBackToEnglish_when_registrantsLanguageIsNotSupported() {
+        when(registrationInviteService.verify("tok")).thenReturn(42L);
+        when(accountRepository.existsByEmail(new Email("walkin@example.com"))).thenReturn(false);
+        when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.register("tok", "Walk", "In", "walkin@example.com", Locale.FRENCH);
+
+        ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
+        verify(accountRepository).save(captor.capture());
+        assertEquals(Language.EN, captor.getValue().getLanguage());
+    }
+
+    @Test
     void should_throw_when_emailIsAlreadyRegistered() {
         when(registrationInviteService.verify("tok")).thenReturn(42L);
         when(accountRepository.existsByEmail(new Email("walkin@example.com"))).thenReturn(true);
 
         assertThrows(AccountAlreadyExistsException.class,
-                () -> service.register("tok", "Walk", "In", "walkin@example.com"));
+                () -> service.register("tok", "Walk", "In", "walkin@example.com", Locale.ENGLISH));
         verify(accountRepository, never()).save(any());
     }
 
@@ -76,7 +104,7 @@ class RegistrationInvitesServiceTest {
         when(registrationInviteService.verify("bad-tok")).thenThrow(new InvalidOrExpiredLinkException());
 
         assertThrows(InvalidOrExpiredLinkException.class,
-                () -> service.register("bad-tok", "Walk", "In", "walkin@example.com"));
+                () -> service.register("bad-tok", "Walk", "In", "walkin@example.com", Locale.ENGLISH));
         verify(accountRepository, never()).save(any());
     }
 }

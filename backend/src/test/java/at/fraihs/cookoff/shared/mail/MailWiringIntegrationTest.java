@@ -7,6 +7,7 @@ import at.fraihs.cookoff.cookoff.infrastructure.notification.EmailNotificationAd
 
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
+import java.util.Locale;
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ class MailWiringIntegrationTest {
 
         notificationPort.sendAccessLink(new InvitationNotification(
                 new Email("ada@example.com"), "Ada", "Schnitzel-Off", "https://cookoff.test/home?token=abc",
-                true, false));
+                true, false, Locale.ENGLISH));
 
         // No transaction here, so the listener's fallbackExecution path runs it inline — but
         // still on the mail executor, hence the timeout rather than a bare verify.

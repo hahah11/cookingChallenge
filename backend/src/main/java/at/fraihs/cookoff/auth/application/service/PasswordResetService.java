@@ -58,7 +58,8 @@ public class PasswordResetService {
                 TsidSupport.generate(), accountId, token, now.plus(TOKEN_VALIDITY), null, now));
 
         notificationPort.sendPasswordReset(new PasswordResetNotification(
-                account.getEmail(), account.getFirstName(), frontendBaseUrl + "/reset-password?token=" + token));
+                account.getEmail(), account.getFirstName(), frontendBaseUrl + "/reset-password?token=" + token,
+                account.getLanguage().toLocale()));
         log.info("Password reset issued for account {}", accountId);
     }
 

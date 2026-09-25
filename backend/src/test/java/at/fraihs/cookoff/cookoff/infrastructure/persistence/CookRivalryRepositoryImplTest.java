@@ -1,6 +1,7 @@
 package at.fraihs.cookoff.cookoff.infrastructure.persistence;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.domain.model.Language;
 import at.fraihs.cookoff.auth.infrastructure.persistence.entity.AccountJpaEntity;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalry;
 import at.fraihs.cookoff.cookoff.domain.model.CookRivalryId;
@@ -99,7 +100,7 @@ class CookRivalryRepositoryImplTest {
     private long persistAccount() {
         AccountId id = AccountId.generate();
         entityManager.persistAndFlush(new AccountJpaEntity(
-                id.value(), id + "@example.com", "Account", "" + id, null, Set.of()));
+                id.value(), id + "@example.com", "Account", "" + id, null, Set.of(), Language.EN));
         return id.value();
     }
 }

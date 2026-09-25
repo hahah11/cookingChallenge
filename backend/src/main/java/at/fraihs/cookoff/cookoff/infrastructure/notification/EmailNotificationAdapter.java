@@ -3,6 +3,7 @@ package at.fraihs.cookoff.cookoff.infrastructure.notification;
 import at.fraihs.cookoff.cookoff.application.dto.InvitationNotification;
 import at.fraihs.cookoff.cookoff.application.dto.ResultsAvailableNotification;
 import at.fraihs.cookoff.cookoff.application.port.NotificationPort;
+import at.fraihs.cookoff.shared.mail.MailMessages;
 import at.fraihs.cookoff.shared.mail.MailRequest;
 
 import java.util.Map;
@@ -26,32 +27,35 @@ import org.springframework.stereotype.Component;
 public class EmailNotificationAdapter implements NotificationPort {
 
     private final ApplicationEventPublisher eventPublisher;
+    private final MailMessages mailMessages;
 
     @Override
     public void sendAccessLink(InvitationNotification notification) {
         eventPublisher.publishEvent(new MailRequest(
                 notification.recipient().value(),
-                "You're invited: " + notification.challengeTitle(),
+                mailMessages.get("mail.accessLink.subject", notification.locale(), notification.challengeTitle()),
                 "access-link",
                 Map.of(
                         "firstName", notification.firstName(),
                         "challengeTitle", notification.challengeTitle(),
                         "link", notification.link(),
                         "canRate", notification.canRate(),
-                        "picksPlateColor", notification.picksPlateColor())));
+                        "picksPlateColor", notification.picksPlateColor()),
+                notification.locale()));
     }
 
     @Override
     public void sendResultsAvailable(ResultsAvailableNotification notification) {
         eventPublisher.publishEvent(new MailRequest(
                 notification.recipient().value(),
-                "The results are in: " + notification.challengeTitle(),
+                mailMessages.get("mail.resultsAvailable.subject", notification.locale(), notification.challengeTitle()),
                 "results-available",
                 Map.of(
                         "firstName", notification.firstName(),
                         "challengeTitle", notification.challengeTitle(),
                         "link", notification.link(),
                         "canRate", notification.canRate(),
-                        "picksPlateColor", notification.picksPlateColor())));
+                        "picksPlateColor", notification.picksPlateColor()),
+                notification.locale()));
     }
 }

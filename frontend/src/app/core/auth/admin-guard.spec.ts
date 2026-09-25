@@ -4,6 +4,7 @@ import { ActivatedRouteSnapshot, provideRouter, Router, RouterStateSnapshot, Url
 
 import { adminGuard } from './admin-guard';
 import { Auth } from './auth';
+import { provideTestI18n } from '../../testing/i18n';
 
 describe('adminGuard', () => {
   const route = {} as ActivatedRouteSnapshot;
@@ -17,7 +18,7 @@ describe('adminGuard', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: Auth, useValue: auth }]
+      providers: [...provideTestI18n(), provideRouter([]), { provide: Auth, useValue: auth }]
     });
     return TestBed.runInInjectionContext(() => adminGuard(route, state));
   }

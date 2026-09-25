@@ -1,23 +1,21 @@
 <!DOCTYPE html>
 <!--/* Chrome and palette live in _layout.html. The fragment reference must keep the .html
-       extension: MailConfig selects resolvers by pattern with an empty suffix. */-->
+       extension: MailConfig selects resolvers by pattern with an empty suffix. Wording lives in
+       mail/messages*.properties; only HTML-escaped arguments go into the *.html messages. */-->
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{mail/_layout.html :: page(~{::title}, ~{::heading}, ~{::body-copy}, 'See the results', ~{::footer})}">
+      th:replace="~{mail/_layout.html :: page(~{::title}, ~{::heading}, ~{::body-copy}, #{mail.resultsAvailable.cta}, ~{::footer})}">
 <head>
   <title th:text="${challengeTitle}">Cook-off</title>
 </head>
 <body>
-<th:block th:ref="heading">Hi <span th:text="${firstName}">there</span>, the results are in!</th:block>
+<th:block th:ref="heading" th:text="#{mail.resultsAvailable.heading(${firstName})}">Hi there, the results are in!</th:block>
 <th:block th:ref="body-copy">
-  <strong th:text="${challengeTitle}">The cook-off</strong> has been revealed.
+  <!--/* The title is user-entered and the message carries markup, so escape it before it goes in. */-->
+  <th:block th:utext="#{mail.resultsAvailable.intro.html(${#strings.escapeXml(challengeTitle)})}"><strong>The cook-off</strong> has been revealed.</th:block>
   <!--/* Two independent flags, not either/or: a cook who is also a guest gets both. */-->
-  <th:block th:if="${canRate}">You can now see who cooked which plate, the scores per category, and the winner.</th:block>
-  <th:block th:if="${picksPlateColor}">The dishes are unblinded. See how yours scored in each category,
-    and who took it.</th:block>
+  <th:block th:if="${canRate}" th:text="#{mail.resultsAvailable.canRate}">You can now see who cooked which plate.</th:block>
+  <th:block th:if="${picksPlateColor}" th:text="#{mail.resultsAvailable.picksPlateColor}">The dishes are unblinded.</th:block>
 </th:block>
-<th:block th:ref="footer">
-  This link is personal to you and logs you in — please don't forward it.
-  It works for 30 days.
-</th:block>
+<th:block th:ref="footer" th:text="#{mail.personalLink.footer}">This link is personal to you.</th:block>
 </body>
 </html>

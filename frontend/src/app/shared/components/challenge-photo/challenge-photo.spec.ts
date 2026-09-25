@@ -4,6 +4,7 @@ import { afterEach, beforeEach, vi } from 'vitest';
 
 import { ChallengesApi } from '../../../core/api/generated';
 import { ChallengePhoto } from './challenge-photo';
+import { provideTestI18n } from '../../../testing/i18n';
 
 describe('ChallengePhoto', () => {
   const blob = new Blob(['fake-image'], { type: 'image/png' });
@@ -16,7 +17,7 @@ describe('ChallengePhoto', () => {
 
     await TestBed.configureTestingModule({
       imports: [ChallengePhoto],
-      providers: [{ provide: ChallengesApi, useValue: { getChallengeImage } }]
+      providers: [...provideTestI18n(), { provide: ChallengesApi, useValue: { getChallengeImage } }]
     }).compileComponents();
   });
 

@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 
 import { StarRating } from './star-rating';
+import { provideTestI18n } from '../../../testing/i18n';
 
 describe('StarRating', () => {
   async function createComponent() {
-    await TestBed.configureTestingModule({ imports: [StarRating] }).compileComponents();
+    await TestBed.configureTestingModule({
+      providers: [...provideTestI18n()], imports: [StarRating] }).compileComponents();
     const fixture = TestBed.createComponent(StarRating);
     fixture.componentRef.setInput('label', 'Mundgefühl for dish A');
     fixture.detectChanges();

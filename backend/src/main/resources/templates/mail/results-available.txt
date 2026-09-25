@@ -1,12 +1,10 @@
-Hi [(${firstName})], the results are in!
+[(#{mail.resultsAvailable.heading(${firstName})})]
 
-"[(${challengeTitle})]" has been revealed.
-[# th:if="${canRate}"]You can now see who cooked which plate, the scores per category, and the winner.
-[/][# th:if="${picksPlateColor}"]The dishes are unblinded. See how yours scored in each category, and
-who took it.
+[(#{mail.resultsAvailable.intro.text(${challengeTitle})})]
+[# th:if="${canRate}"][(#{mail.resultsAvailable.canRate})]
+[/][# th:if="${picksPlateColor}"][(#{mail.resultsAvailable.picksPlateColor})]
 [/]
-See the results:
+[(#{mail.resultsAvailable.cta})]:
 [(${link})]
 
-This link is personal to you and logs you in - please don't forward it.
-It works for 30 days.
+[(#{mail.personalLink.footer})]

@@ -2,6 +2,7 @@ package at.fraihs.cookoff.auth.infrastructure.notification;
 
 import at.fraihs.cookoff.auth.application.dto.PasswordResetNotification;
 import at.fraihs.cookoff.auth.application.port.PasswordResetNotificationPort;
+import at.fraihs.cookoff.shared.mail.MailMessages;
 import at.fraihs.cookoff.shared.mail.MailRequest;
 
 import java.util.Map;
@@ -21,15 +22,17 @@ import org.springframework.stereotype.Component;
 public class EmailPasswordResetNotificationAdapter implements PasswordResetNotificationPort {
 
     private final ApplicationEventPublisher eventPublisher;
+    private final MailMessages mailMessages;
 
     @Override
     public void sendPasswordReset(PasswordResetNotification notification) {
         eventPublisher.publishEvent(new MailRequest(
                 notification.recipient().value(),
-                "Reset your CookOff password",
+                mailMessages.get("mail.passwordReset.subject", notification.locale()),
                 "password-reset",
                 Map.of(
                         "firstName", notification.firstName(),
-                        "link", notification.link())));
+                        "link", notification.link()),
+                notification.locale()));
     }
 }

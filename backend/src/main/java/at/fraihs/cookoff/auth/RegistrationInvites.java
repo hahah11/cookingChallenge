@@ -3,6 +3,7 @@ package at.fraihs.cookoff.auth;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 
 import java.time.Duration;
+import java.util.Locale;
 
 /**
  * Public contract for other modules to issue/consume self-registration QR invites. Keeps
@@ -17,10 +18,12 @@ public interface RegistrationInvites {
     /**
      * Verifies the token, then creates a brand-new USER account for the walk-in — rejecting
      * if the email is already registered — and returns both the new account's id and the
-     * challenge id the invite was issued for.
+     * challenge id the invite was issued for. {@code locale} is the walk-in's browser language
+     * (null or unsupported means English) and decides the language of later emails.
      *
      * @throws at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkException if the token is missing/expired
      * @throws at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsException  if the email is already registered
      */
-    RegistrationResult register(String token, String firstName, String lastName, String email);
+    RegistrationResult register(String token, String firstName, String lastName, String email,
+                              Locale locale);
 }

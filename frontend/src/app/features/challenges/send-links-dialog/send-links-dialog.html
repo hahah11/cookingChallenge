@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Send / resend links</h2>
+<h2 mat-dialog-title>{{ 'sendLinks.title' | transloco }}</h2>
 <mat-dialog-content class="send-links-dialog__content">
   @switch (state()) {
     @case ('loading') {
@@ -9,7 +9,7 @@
     }
     @case ('loaded') {
       <p class="send-links-dialog__hint">
-        Choose who should get (or re-get) their personalized access link by email.
+        {{ 'sendLinks.hint' | transloco }}
       </p>
       @for (recipient of recipients(); track recipient.accountId) {
         <mat-checkbox
@@ -17,9 +17,9 @@
           (change)="toggle(recipient.accountId, $event.checked)"
         >
           {{ recipient.name }}
-          <span class="send-links-dialog__role">{{ recipient.role }}</span>
+          <span class="send-links-dialog__role">{{ 'participants.role.' + recipient.role | transloco }}</span>
           @if (recipient.submitted) {
-            <span class="send-links-dialog__submitted">already submitted</span>
+            <span class="send-links-dialog__submitted">{{ 'sendLinks.alreadySubmitted' | transloco }}</span>
           }
         </mat-checkbox>
       }
@@ -27,7 +27,7 @@
   }
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="onCancel()">Cancel</button>
+  <button mat-button type="button" (click)="onCancel()">{{ 'common.cancel' | transloco }}</button>
   <button
     mat-flat-button
     type="button"
@@ -37,7 +37,7 @@
     @if (submitting()) {
       <mat-spinner diameter="20" />
     } @else {
-      Send links
+      {{ 'sendLinks.submit' | transloco }}
     }
   </button>
 </mat-dialog-actions>

@@ -1,0 +1,343 @@
+{
+  "app": {
+    "title": "CookOff"
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "tryAgain": "Erneut versuchen",
+    "loading": "Wird geladen …",
+    "dismiss": "Schließen",
+    "home": "Start",
+    "saveChanges": "Änderungen speichern",
+    "close": "Schließen"
+  },
+  "route": {
+    "login": "Anmeldung für Organisatoren",
+    "register": "Registrieren",
+    "resetPassword": "Passwort zurücksetzen",
+    "linkExpired": "Link abgelaufen",
+    "challenges": "Challenges",
+    "challenge": "Challenge",
+    "accounts": "Konten",
+    "rivalries": "Rivalitäten",
+    "rivalry": "Rivalität",
+    "home": "Start",
+    "score": "Bewerten",
+    "results": "Ergebnisse",
+    "notFound": "Nicht gefunden"
+  },
+  "nav": {
+    "primary": "Hauptnavigation",
+    "history": "Verlauf",
+    "accounts": "Konten",
+    "rivalries": "Rivalitäten",
+    "logOut": "Abmelden"
+  },
+  "status": {
+    "OPEN": "Offen",
+    "CLOSED": "Bewertung beendet",
+    "REVEALED": "Aufgedeckt"
+  },
+  "category": {
+    "MUNDGEFUEHL": "Mundgefühl",
+    "TELLERSPRACHE": "Tellersprache",
+    "GESCHMACK": "Geschmack"
+  },
+  "plateColor": {
+    "red": "Rot",
+    "yellow": "Gelb"
+  },
+  "starRating": {
+    "one": "{{count}} Stern",
+    "other": "{{count}} Sterne"
+  },
+  "qrCode": {
+    "label": "QR-Code zur Registrierung"
+  },
+  "notFound": {
+    "message": "Diese Seite gibt es nicht.",
+    "back": "Zurück zur Startseite"
+  },
+  "challengeCard": {
+    "open": "{{dish}} öffnen",
+    "winner": "Gewinner:",
+    "submitted": "{{submitted}}/{{total}} abgegeben",
+    "submittedClosed": "{{submitted}}/{{total}} abgegeben · Bewertung beendet",
+    "resultsReady": "Ergebnisse verfügbar"
+  },
+  "resultsTable": {
+    "caption": "Ergebnisse nach Kategorie und Koch",
+    "category": "Kategorie",
+    "overallWinner": "(Gesamtsieger)",
+    "categoryWinner": "(Kategoriesieger)",
+    "total": "Gesamt",
+    "headToHead": "Direkte Duelle gewonnen",
+    "winsOne": "{{count}} gewonnenes direktes Duell",
+    "winsOther": "{{count}} gewonnene direkte Duelle"
+  },
+  "errors": {
+    "VALIDATION_ERROR": "Einige deiner Angaben sind ungültig. Bitte überprüfe sie und versuche es erneut.",
+    "INVALID_ARGUMENT": "Diese Anfrage war ungültig. Bitte überprüfe deine Eingaben und versuche es erneut.",
+    "INVALID_CREDENTIALS": "E-Mail-Adresse oder Passwort ist falsch.",
+    "INVALID_OR_EXPIRED_LINK": "Dieser Link ist ungültig oder abgelaufen.",
+    "UNAUTHENTICATED": "Bitte melde dich an, um fortzufahren.",
+    "FORBIDDEN": "Dafür fehlt dir die Berechtigung.",
+    "NOT_A_PARTICIPANT": "Du nimmst an dieser Challenge nicht teil.",
+    "NOT_FOUND": "Das Gesuchte wurde nicht gefunden.",
+    "ACCOUNT_ALREADY_EXISTS": "Für diese E-Mail-Adresse gibt es bereits ein Konto.",
+    "CHALLENGE_NOT_OPEN": "Diese Challenge ist nicht für Bewertungen geöffnet.",
+    "DUPLICATE_SUBMISSION": "Du hast für diese Challenge bereits Bewertungen abgegeben.",
+    "INVALID_STATE": "Das ist im aktuellen Status der Challenge nicht möglich.",
+    "PASSWORD_RESET_NOT_ELIGIBLE": "Dieses Konto hat kein Passwort, das zurückgesetzt werden könnte.",
+    "INTERNAL_ERROR": "Bei uns ist etwas schiefgelaufen. Bitte versuche es erneut.",
+    "UNKNOWN_ERROR": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+  },
+  "fields": {
+    "email": "E-Mail-Adresse",
+    "password": "Passwort",
+    "newPassword": "Neues Passwort",
+    "confirmPassword": "Neues Passwort bestätigen",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "language": "Sprache"
+  },
+  "validation": {
+    "emailRequired": "E-Mail-Adresse ist erforderlich.",
+    "emailInvalid": "Gib eine gültige E-Mail-Adresse ein.",
+    "passwordRequired": "Passwort ist erforderlich.",
+    "newPasswordRequired": "Neues Passwort ist erforderlich.",
+    "passwordMin": "Verwende mindestens {{min}} Zeichen.",
+    "confirmRequired": "Bitte bestätige dein neues Passwort.",
+    "passwordMismatch": "Die Passwörter stimmen nicht überein.",
+    "firstNameRequired": "Vorname ist erforderlich.",
+    "lastNameRequired": "Nachname ist erforderlich.",
+    "titleRequired": "Titel ist erforderlich.",
+    "dateRequired": "Datum ist erforderlich.",
+    "dishNameRequired": "Name des Gerichts ist erforderlich.",
+    "cookARequired": "Wähle Koch A.",
+    "cookBRequired": "Wähle Koch B."
+  },
+  "login": {
+    "title": "Anmeldung für Organisatoren",
+    "submit": "Anmelden",
+    "version": "Version {{version}}",
+    "note": "Köche und Gäste melden sich hier nicht an – sie erhalten für jede Challenge einen persönlichen Link per E-Mail.",
+    "incorrectCredentials": "E-Mail-Adresse oder Passwort ist falsch."
+  },
+  "resetPassword": {
+    "title": "Neues Passwort festlegen",
+    "hint": "Mindestens {{min}} Zeichen.",
+    "submit": "Passwort speichern",
+    "success": "Passwort geändert. Melde dich mit deinem neuen Passwort an."
+  },
+  "linkExpired": {
+    "back": "Zurück zum Anfang",
+    "link": {
+      "kicker": "Link abgelaufen",
+      "headline": "Dieser Link ist nicht mehr gültig",
+      "body": "Dein persönlicher Zugangslink ist abgelaufen. Wende dich an den Organisator und bitte ihn, dir den Link für diese Challenge erneut zu schicken."
+    },
+    "qr": {
+      "kicker": "QR-Code abgelaufen",
+      "headline": "Dieser QR-Code ist nicht mehr gültig",
+      "body": "Der Registrierungs-QR-Code für diesen Kochwettbewerb ist abgelaufen. Bitte den Organisator, dir einen neuen Code zu zeigen oder dir einen persönlichen Link per E-Mail zu schicken."
+    },
+    "reset": {
+      "kicker": "Link zum Zurücksetzen abgelaufen",
+      "headline": "Dieser Link zum Zurücksetzen ist nicht mehr gültig",
+      "body": "Links zum Zurücksetzen des Passworts funktionieren nur einmal und laufen nach 2 Stunden ab; ein neuer Link ersetzt ältere. Bitte einen Admin, dir einen neuen Link zu schicken."
+    }
+  },
+  "register": {
+    "title": "Registrieren",
+    "submit": "Registrieren",
+    "expired": "Dieser Code ist abgelaufen. Bitte deinen Gastgeber um einen neuen QR-Code.",
+    "welcome": "Willkommen, {{name}}!",
+    "joined": "Du bist registriert! Du bekommst eine E-Mail, sobald der Organisator die Bewertung für diesen Kochwettbewerb öffnet.",
+    "closed": "Du bist registriert, aber diese Veranstaltung ist bereits beendet."
+  },
+  "home": {
+    "expired": "Dieser Link ist abgelaufen. Bitte deinen Gastgeber, ihn erneut zu schicken.",
+    "kicker": "Dein persönlicher Link",
+    "greeting": "Hallo, {{name}}",
+    "emptyOpen": "Gerade ist nichts offen – schau nach dem nächsten Kochwettbewerb wieder vorbei.",
+    "openRequests": "Offene Bewertungsanfragen",
+    "past": "Vergangene Challenges",
+    "pickColor": {
+      "title": "Teller unter {{color}}?",
+      "confirm": "Ja, {{color}} wählen",
+      "message": "Damit legst du deine Tellerfarbe für diese Challenge fest; dem anderen Koch wird automatisch die verbleibende Farbe zugewiesen. Das lässt sich nachträglich nicht mehr ändern."
+    }
+  },
+  "participantCard": {
+    "pickGroup": "Wähle deine Tellerfarbe",
+    "pick": "{{color}} wählen",
+    "ownColorBefore": "Deine Tellerfarbe ist",
+    "ownColorAfter": "– für die Gäste vermerkt, sobald die Bewertung startet.",
+    "scoringClosed": "Bewertung beendet",
+    "viewMyScores": "Meine Bewertungen ansehen",
+    "view": "Ansehen",
+    "scoreNow": "Jetzt bewerten",
+    "submitted": "Abgegeben – bis zur Aufdeckung änderbar",
+    "editScores": "Bewertungen ändern"
+  },
+  "rivalry": {
+    "kicker": "Direkter Vergleich",
+    "listTitle": "Koch-Rivalitäten",
+    "title": "Rivalität",
+    "count": {
+      "one": "{{count}} Challenge",
+      "other": "{{count}} Challenges"
+    },
+    "vs": "{{a}} gegen {{b}}",
+    "open": "{{a}} gegen {{b}} öffnen",
+    "empty": "Noch keine aufgedeckten Challenges – Rivalitäten entstehen, sobald Ergebnisse vorliegen.",
+    "all": "Alle Rivalitäten",
+    "draws": {
+      "one": "{{count}} Unentschieden",
+      "other": "{{count}} Unentschieden"
+    },
+    "drawsLabel": "Unentschieden",
+    "headline": {
+      "none": "{{a}} und {{b}} sind noch nicht gegeneinander angetreten.",
+      "tied": "{{a}} und {{b}} liegen gleichauf ({{wins}}:{{wins}})",
+      "leads": "{{leader}} führt gegen {{trailer}} mit {{high}}:{{low}}"
+    },
+    "outcome": {
+      "pending": "Ausstehend",
+      "draw": "Unentschieden",
+      "won": "{{name}} hat gewonnen"
+    }
+  },
+  "paginator": {
+    "itemsPerPage": "Einträge pro Seite:",
+    "next": "Nächste Seite",
+    "previous": "Vorherige Seite",
+    "first": "Erste Seite",
+    "last": "Letzte Seite",
+    "range": "{{start}} – {{end}} von {{length}}"
+  },
+  "blindScoring": {
+    "success": "Danke – Bewertungen abgegeben!",
+    "successBody": "Die Ergebnisse werden aufgedeckt, sobald der Gastgeber die Bewertung beendet.",
+    "backHome": "Zurück zum Start",
+    "revealed": "Diese Challenge wurde aufgedeckt – die Bewertung ist beendet.",
+    "viewResults": "Ergebnisse ansehen",
+    "cannotScore": "Du kannst diese Challenge nicht bewerten.",
+    "closedBanner": "Die Bewertung ist beendet – die Ergebnisse folgen bald",
+    "instructions": "Blindverkostung – bewerte die Teller „{{first}}“ und „{{second}}“ mit je 1–5 Sternen, ohne zu wissen, wer was gekocht hat.",
+    "gridLabel": "Blindbewertung – eine Zeile pro Kategorie",
+    "category": "Kategorie",
+    "starsFor": "{{category}} für {{plate}}",
+    "dish": "Gericht {{label}}",
+    "submit": "Bewertungen abgeben"
+  },
+  "results": {
+    "title": "Ergebnisse",
+    "photoAlt": "Foto der Challenge"
+  },
+  "history": {
+    "kicker": "Verlauf der Kochwettbewerbe",
+    "title": "Challenges",
+    "new": "Neue Challenge",
+    "empty": "Noch keine Challenges – starte deinen ersten Kochwettbewerb."
+  },
+  "challengeDetail": {
+    "back": "Zurück zu den Challenges",
+    "revealed": "Aufgedeckt!",
+    "guestList": "Gästeliste",
+    "guestCaption": "Abgabestatus der Gäste",
+    "guest": "Gast",
+    "status": "Status",
+    "submitted": "Abgegeben",
+    "pending": "Ausstehend",
+    "sendLinks": "Links senden",
+    "editParticipants": "Köche & Gäste bearbeiten",
+    "qr": "QR-Code zur Registrierung",
+    "closeScoring": "Bewertung beenden",
+    "reopenScoring": "Bewertung wieder öffnen",
+    "revealResults": "Ergebnisse aufdecken",
+    "linksSent": "Links gesendet",
+    "unrevealHint": "Fehler passiert? Du kannst die Ergebnisse wieder verbergen (die Bewertung bleibt beendet).",
+    "unreveal": "Aufdeckung zurücknehmen",
+    "closeDialog": {
+      "title": "Bewertung beenden?",
+      "message": "Gäste können danach keine Bewertungen mehr abgeben oder ändern.",
+      "confirm": "Ja, Bewertung beenden"
+    },
+    "revealDialog": {
+      "title": "Diese Challenge aufdecken?",
+      "message": "Beim Aufdecken werden die Köche sichtbar und die Ergebnisse berechnet. Du kannst sie später wieder verbergen, falls nötig.",
+      "confirm": "Ja, aufdecken"
+    },
+    "unrevealDialog": {
+      "title": "Aufdeckung dieser Challenge zurücknehmen?",
+      "message": "Damit wird die Zuordnung von Köchen zu Gerichten wieder verborgen. Die Bewertung bleibt beendet – Gäste sehen die Challenge als ausstehend, bis du sie erneut aufdeckst.",
+      "confirm": "Ja, zurücknehmen"
+    }
+  },
+  "participants": {
+    "cookA": "Koch A",
+    "cookB": "Koch B",
+    "guests": "Gäste",
+    "role": {
+      "cookA": "Koch A",
+      "cookB": "Koch B",
+      "guest": "Gast"
+    }
+  },
+  "sendLinks": {
+    "title": "Links senden / erneut senden",
+    "hint": "Wähle aus, wer seinen persönlichen Zugangslink per E-Mail erhalten (oder erneut erhalten) soll.",
+    "alreadySubmitted": "bereits abgegeben",
+    "submit": "Links senden"
+  },
+  "editParticipants": {
+    "title": "Köche & Gäste bearbeiten"
+  },
+  "newChallenge": {
+    "title": "Neue Challenge",
+    "photoLabel": "Foto der Rivalität",
+    "changePhoto": "Foto ändern",
+    "addPhoto": "Foto hinzufügen",
+    "removePhoto": "Foto entfernen",
+    "drop": "Ziehe ein 4:3-Foto für diese Rivalität hierher",
+    "titleField": "Titel",
+    "date": "Datum",
+    "dishName": "Name des Gerichts",
+    "submit": "Challenge erstellen"
+  },
+  "qrDialog": {
+    "title": "Zum Registrieren scannen",
+    "hint": "Gäste scannen diesen Code, um sich für die App zu registrieren und {{name}} beizutreten."
+  },
+  "roles": {
+    "ADMIN": "Admin",
+    "ORGANIZER": "Organisator",
+    "USER": "Nutzer"
+  },
+  "accounts": {
+    "kicker": "Admin",
+    "title": "Konten",
+    "new": "Neues Konto",
+    "empty": "Noch keine Konten.",
+    "name": "Name",
+    "roles": "Rollen",
+    "actions": "Aktionen",
+    "edit": "Bearbeiten",
+    "resetPassword": "Passwort zurücksetzen",
+    "resetSent": "Link zum Zurücksetzen an {{email}} gesendet.",
+    "resetDialog": {
+      "title": "Passwort zurücksetzen?",
+      "message": "{{name}} erhält eine E-Mail mit einem Link zum Festlegen eines neuen Passworts. Der Link funktioniert nur einmal, 2 Stunden lang, und ersetzt jeden früheren Link zum Zurücksetzen.",
+      "confirm": "Link senden"
+    }
+  },
+  "editAccount": {
+    "titleNew": "Neues Konto",
+    "titleEdit": "Konto bearbeiten",
+    "submitNew": "Konto erstellen",
+    "passwordHint": "Erforderlich für die Rollen Organisator/Admin, sonst ohne Wirkung."
+  }
+}

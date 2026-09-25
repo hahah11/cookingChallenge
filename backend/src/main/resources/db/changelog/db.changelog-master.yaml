@@ -25,3 +25,5 @@ databaseChangeLog:
       file: db/changelog/auth/005-add-claude-user.yaml
   - include:
       file: db/changelog/auth/006-password-reset-tokens.yaml
+  - include:
+      file: db/changelog/auth/007-account-locale.yaml

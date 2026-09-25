@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
 import { ParticipantShell } from './participant-shell';
+import { provideTestI18n } from '../../testing/i18n';
 
 @Component({ template: 'Home content' })
 class DummyHomeComponent {}
@@ -11,7 +12,7 @@ class DummyHomeComponent {}
 describe('ParticipantShell', () => {
   it('renders the matched child route inside its content container', async () => {
     TestBed.configureTestingModule({
-      providers: [
+      providers: [...provideTestI18n(), 
         provideRouter([
           {
             path: '',

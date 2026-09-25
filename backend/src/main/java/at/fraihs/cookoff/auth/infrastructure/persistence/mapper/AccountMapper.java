@@ -21,7 +21,8 @@ public interface AccountMapper {
                 entity.getFirstName(),
                 entity.getLastName(),
                 entity.getPasswordHash(),
-                entity.getRoles());
+                entity.getRoles(),
+                entity.getLanguage());
     }
 
     default AccountJpaEntity toEntity(Account account) {
@@ -31,6 +32,7 @@ public interface AccountMapper {
                 account.getFirstName(),
                 account.getLastName(),
                 account.getPasswordHash(),
-                account.getRoles());
+                account.getRoles(),
+                account.getLanguage());
     }
 }

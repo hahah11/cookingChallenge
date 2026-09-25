@@ -1,12 +1,12 @@
 @if (revealing()) {
   <div class="challenge-detail__reveal-overlay" role="status" aria-live="polite">
-    <span class="challenge-detail__reveal-text">Revealed!</span>
+    <span class="challenge-detail__reveal-text">{{ 'challengeDetail.revealed' | transloco }}</span>
   </div>
 }
 
 <a mat-button type="button" routerLink="/challenges" class="challenge-detail__back">
   <mat-icon aria-hidden="true">arrow_back</mat-icon>
-  Back to challenges
+  {{ 'challengeDetail.back' | transloco }}
 </a>
 
 @switch (loadState()) {
@@ -37,13 +37,13 @@
 
       @if (challenge.status !== ChallengeStatus.REVEALED) {
         <div class="challenge-detail__guests-section">
-          <h2 class="challenge-detail__guests-heading">Guest list</h2>
+          <h2 class="challenge-detail__guests-heading">{{ 'challengeDetail.guestList' | transloco }}</h2>
           <table class="challenge-detail__guests">
-            <caption class="cc-visually-hidden">Guest submission status</caption>
+            <caption class="cc-visually-hidden">{{ 'challengeDetail.guestCaption' | transloco }}</caption>
             <thead>
               <tr>
-                <th scope="col">Guest</th>
-                <th scope="col">Status</th>
+                <th scope="col">{{ 'challengeDetail.guest' | transloco }}</th>
+                <th scope="col">{{ 'challengeDetail.status' | transloco }}</th>
               </tr>
             </thead>
             <tbody>
@@ -58,7 +58,7 @@
                       @if (guest.submitted) {
                         <mat-icon class="challenge-detail__guest-tag-icon" aria-hidden="true">check_circle</mat-icon>
                       }
-                      {{ guest.submitted ? 'Submitted' : 'Pending' }}
+                      {{ (guest.submitted ? 'challengeDetail.submitted' : 'challengeDetail.pending') | transloco }}
                     </span>
                   </td>
                 </tr>
@@ -70,34 +70,34 @@
         <div class="challenge-detail__actions">
           <button mat-stroked-button type="button" (click)="openSendLinksDialog()">
             <mat-icon aria-hidden="true">forward_to_inbox</mat-icon>
-            Send links
+            {{ 'challengeDetail.sendLinks' | transloco }}
           </button>
           @if (challenge.status === ChallengeStatus.OPEN) {
             <button mat-stroked-button type="button" (click)="openEditParticipantsDialog()">
-              Edit cooks & guests
+              {{ 'challengeDetail.editParticipants' | transloco }}
             </button>
             <button mat-stroked-button type="button" (click)="openQrDialog()">
               <mat-icon aria-hidden="true">qr_code_2</mat-icon>
-              Registration QR code
+              {{ 'challengeDetail.qr' | transloco }}
             </button>
             <button mat-flat-button type="button" [disabled]="scoringBusy()" (click)="confirmCloseScoring()">
               <mat-icon aria-hidden="true">lock</mat-icon>
-              Close scoring
+              {{ 'challengeDetail.closeScoring' | transloco }}
             </button>
           } @else {
             <button mat-stroked-button type="button" [disabled]="scoringBusy()" (click)="reopenScoring()">
               <mat-icon aria-hidden="true">lock_open</mat-icon>
-              Reopen scoring
+              {{ 'challengeDetail.reopenScoring' | transloco }}
             </button>
             <button mat-flat-button type="button" [disabled]="revealBusy()" (click)="confirmReveal()">
-              Reveal results
+              {{ 'challengeDetail.revealResults' | transloco }}
             </button>
           }
         </div>
         @if (linksSentFlash()) {
           <p class="challenge-detail__links-sent" role="status">
             <mat-icon aria-hidden="true">check_circle</mat-icon>
-            Links sent
+            {{ 'challengeDetail.linksSent' | transloco }}
           </p>
         }
       } @else {
@@ -120,10 +120,10 @@
               />
               <mat-divider class="challenge-detail__unreveal-divider" />
               <div class="challenge-detail__unreveal">
-                <p>Made a mistake? You can hide the results again (scoring stays closed).</p>
+                <p>{{ 'challengeDetail.unrevealHint' | transloco }}</p>
                 <button mat-stroked-button type="button" [disabled]="unrevealBusy()" (click)="confirmUnreveal()">
                   <mat-icon aria-hidden="true">undo</mat-icon>
-                  Unreveal challenge
+                  {{ 'challengeDetail.unreveal' | transloco }}
                 </button>
               </div>
             }

@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import {
   ChallengeDetail as ChallengeDetailModel,
@@ -48,12 +49,14 @@ const LINKS_SENT_FLASH_MS = 3000;
     MatIconModule,
     ResultsTable,
     RouterLink,
-    StatusTag
+    StatusTag,
+    TranslocoPipe
   ],
   templateUrl: './challenge-detail.html',
   styleUrl: './challenge-detail.scss'
 })
 export class ChallengeDetail {
+  private readonly transloco = inject(TranslocoService);
   private readonly challengesApi = inject(ChallengesApi);
   private readonly appConfig = inject(AppConfig);
   private readonly dialog = inject(MatDialog);
@@ -173,9 +176,9 @@ export class ChallengeDetail {
 
   protected confirmCloseScoring(): void {
     const data: ConfirmDialogData = {
-      title: 'Close scoring?',
-      message: 'Guests can no longer submit or edit scores.',
-      confirmLabel: 'Yes, close scoring'
+      title: this.transloco.translate('challengeDetail.closeDialog.title'),
+      message: this.transloco.translate('challengeDetail.closeDialog.message'),
+      confirmLabel: this.transloco.translate('challengeDetail.closeDialog.confirm')
     };
     this.dialog
       .open(ConfirmDialog, { data, width: '360px' })
@@ -223,10 +226,9 @@ export class ChallengeDetail {
 
   protected confirmReveal(): void {
     const data: ConfirmDialogData = {
-      title: 'Reveal this challenge?',
-      message:
-        'Revealing shows cook identities and computes results. You can hide them again later if you need to.',
-      confirmLabel: 'Yes, reveal'
+      title: this.transloco.translate('challengeDetail.revealDialog.title'),
+      message: this.transloco.translate('challengeDetail.revealDialog.message'),
+      confirmLabel: this.transloco.translate('challengeDetail.revealDialog.confirm')
     };
     this.dialog
       .open(ConfirmDialog, { data, width: '360px' })
@@ -265,10 +267,9 @@ export class ChallengeDetail {
 
   protected confirmUnreveal(): void {
     const data: ConfirmDialogData = {
-      title: 'Unreveal this challenge?',
-      message:
-        'This hides the cook-to-dish mapping again. Scoring stays closed — guests will see it as pending until you reveal it again.',
-      confirmLabel: 'Yes, unreveal'
+      title: this.transloco.translate('challengeDetail.unrevealDialog.title'),
+      message: this.transloco.translate('challengeDetail.unrevealDialog.message'),
+      confirmLabel: this.transloco.translate('challengeDetail.unrevealDialog.confirm')
     };
     this.dialog
       .open(ConfirmDialog, { data, width: '360px' })

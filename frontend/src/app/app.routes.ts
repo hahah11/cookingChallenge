@@ -22,23 +22,23 @@ function rootRedirect(): string {
 export const routes: Routes = [
   {
     path: 'login',
-    title: 'Organizer log in',
+    title: 'route.login',
     loadComponent: () => import('./features/auth/organizer-login/organizer-login').then((m) => m.OrganizerLogin)
   },
   {
     path: 'register',
-    title: 'Register',
+    title: 'route.register',
     loadComponent: () =>
       import('./features/register/public-registration/public-registration').then((m) => m.PublicRegistration)
   },
   {
     path: 'reset-password',
-    title: 'Reset password',
+    title: 'route.resetPassword',
     loadComponent: () => import('./features/auth/reset-password/reset-password').then((m) => m.ResetPassword)
   },
   {
     path: 'link-expired',
-    title: 'Link expired',
+    title: 'route.linkExpired',
     loadComponent: () => import('./features/auth/link-expired/link-expired').then((m) => m.LinkExpired)
   },
   { path: '', pathMatch: 'full', redirectTo: rootRedirect },
@@ -48,33 +48,33 @@ export const routes: Routes = [
     children: [
       {
         path: 'challenges',
-        title: 'Challenges',
+        title: 'route.challenges',
         canActivate: [organizerGuard],
         loadComponent: () =>
           import('./features/challenges/challenge-history/challenge-history').then((m) => m.ChallengeHistory)
       },
       {
         path: 'challenges/:id',
-        title: 'Challenge',
+        title: 'route.challenge',
         canActivate: [organizerGuard],
         loadComponent: () =>
           import('./features/challenges/challenge-detail/challenge-detail').then((m) => m.ChallengeDetail)
       },
       {
         path: 'accounts',
-        title: 'Accounts',
+        title: 'route.accounts',
         canActivate: [adminGuard],
         loadComponent: () => import('./features/accounts/accounts-admin/accounts-admin').then((m) => m.AccountsAdmin)
       },
       {
         path: 'rivalries',
-        title: 'Rivalries',
+        title: 'route.rivalries',
         canActivate: [organizerGuard],
         loadComponent: () => import('./features/rivalries/rivalry-list/rivalry-list').then((m) => m.RivalryList)
       },
       {
         path: 'rivalries/:cookA/:cookB',
-        title: 'Rivalry',
+        title: 'route.rivalry',
         canActivate: [organizerGuard],
         loadComponent: () => import('./features/rivalries/rivalry-detail/rivalry-detail').then((m) => m.RivalryDetail)
       }
@@ -86,20 +86,20 @@ export const routes: Routes = [
     children: [
       {
         path: 'home',
-        title: 'Home',
+        title: 'route.home',
         canActivate: [authGuard],
         loadComponent: () =>
           import('./features/home/participant-home/participant-home').then((m) => m.ParticipantHome)
       },
       {
         path: 'challenges/:id/score',
-        title: 'Score',
+        title: 'route.score',
         canActivate: [authGuard],
         loadComponent: () => import('./features/challenges/blind-scoring/blind-scoring').then((m) => m.BlindScoring)
       },
       {
         path: 'challenges/:id/results',
-        title: 'Results',
+        title: 'route.results',
         canActivate: [authGuard],
         loadComponent: () =>
           import('./features/challenges/challenge-results/challenge-results').then((m) => m.ChallengeResults)
@@ -108,7 +108,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    title: 'Not found',
+    title: 'route.notFound',
     loadComponent: () => import('./features/not-found/not-found').then((m) => m.NotFound)
   }
 ];

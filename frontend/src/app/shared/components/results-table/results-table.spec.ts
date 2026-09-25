@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { Category, CookAssignment, DishLabel, RivalrySummary } from '../../../core/api/generated';
 import { ResultsTable } from './results-table';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const cookAssignments: CookAssignment[] = [
   { accountId: 'cook-a', name: 'Alice', label: DishLabel.A, colorId: 'red' },
@@ -20,7 +21,8 @@ const rivalry: RivalrySummary = {
 
 describe('ResultsTable', () => {
   async function createComponent() {
-    await TestBed.configureTestingModule({ imports: [ResultsTable] }).compileComponents();
+    await TestBed.configureTestingModule({
+      providers: [...provideTestI18n()], imports: [ResultsTable] }).compileComponents();
     const fixture = TestBed.createComponent(ResultsTable);
     fixture.componentRef.setInput('cookAssignments', cookAssignments);
     fixture.componentRef.setInput('categoryTotals', [
@@ -57,15 +59,23 @@ describe('ResultsTable', () => {
     expect(totals[DishLabel.B]).toBe(23);
   });
 
-  it('resolves the category label and winner for each row', async () => {
+  it('resolves the category and winner for each row', async () => {
     const fixture = await createComponent();
     const [mundgefuehl, geschmack] = fixture.componentInstance['rows']();
-    expect(mundgefuehl.label).toBe('Mundgefühl');
+    expect(mundgefuehl.category).toBe(Category.MUNDGEFUEHL);
     expect(mundgefuehl.winnerAccountId).toBe('cook-a');
     expect(geschmack.winnerAccountId).toBe('cook-b');
   });
 
-  it('renders the server-rendered rivalry headline verbatim', async () => {
+  it('renders the category names in the active language', async () => {
+    const fixture = await createComponent();
+    const rowHeaders = Array.from<Element>(fixture.nativeElement.querySelectorAll('tbody th[scope="row"]')).map((th) =>
+      th.textContent?.trim()
+    );
+    expect(rowHeaders).toContain('Mouthfeel');
+  });
+
+  it('builds the rivalry headline from the counts and cook names', async () => {
     const fixture = await createComponent();
     const headline = fixture.nativeElement.querySelector('.results-table__headline');
     expect(headline.textContent.trim()).toBe('Alice leads Bob 3-1');

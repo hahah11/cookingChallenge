@@ -1,5 +1,6 @@
 package at.fraihs.cookoff.auth.infrastructure.persistence.entity;
 
+import at.fraihs.cookoff.auth.domain.model.Language;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -43,4 +44,8 @@ public class AccountJpaEntity {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Set<SystemRole> roles = new HashSet<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "locale")
+    private Language language = Language.EN;
 }

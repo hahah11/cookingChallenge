@@ -2,10 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
-import { PublicApi } from '../../../core/api/generated';
+import { Locale, PublicApi } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { PublicRegistration } from './public-registration';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const meta = { requestId: 'req-1', timestamp: '2026-01-01T00:00:00Z' };
 
@@ -13,7 +14,7 @@ describe('PublicRegistration', () => {
   function setup(registerPublicly: ReturnType<typeof vi.fn>) {
     TestBed.configureTestingModule({
       imports: [PublicRegistration],
-      providers: [{ provide: PublicApi, useValue: { registerPublicly } }]
+      providers: [...provideTestI18n(), { provide: PublicApi, useValue: { registerPublicly } }]
     });
 
     const fixture = TestBed.createComponent(PublicRegistration);
@@ -29,9 +30,9 @@ describe('PublicRegistration', () => {
     fixture.detectChanges();
   }
 
-  it('renders the server message verbatim when the challenge is still open', () => {
+  it('renders its own joined text, ignoring the server message, when the challenge is still open', () => {
     const registerPublicly = vi.fn().mockReturnValue(
-      of({ data: { accountId: 'acc-1', joined: true, message: "You're registered and joined!" }, meta })
+      of({ data: { accountId: 'acc-1', joined: true, message: 'English-only server text' }, meta })
     );
     const { fixture } = setup(registerPublicly);
 
@@ -41,20 +42,21 @@ describe('PublicRegistration', () => {
       token: 'qr-token',
       firstName: 'Gina',
       lastName: 'Guest',
-      email: 'gina@example.com'
+      email: 'gina@example.com',
+      locale: Locale.EN
     });
     expect(fixture.nativeElement.querySelector('.public-registration__message').textContent.trim()).toBe(
-      "You're registered and joined!"
+      "You're registered! You'll get an email once the organizer opens scoring for this cook-off."
     );
     expect(fixture.nativeElement.querySelector('.public-registration__success-headline').textContent.trim()).toBe(
       'Welcome, Gina!'
     );
   });
 
-  it('renders the server message verbatim when the event already closed', () => {
+  it('renders its own closed text, ignoring the server message, when the event already closed', () => {
     const registerPublicly = vi.fn().mockReturnValue(
       of({
-        data: { accountId: 'acc-1', joined: false, message: "You're registered, but this event has already closed." },
+        data: { accountId: 'acc-1', joined: false, message: 'English-only server text' },
         meta
       })
     );
@@ -88,7 +90,8 @@ describe('PublicRegistration', () => {
   it('shows a duplicate-email message on ACCOUNT_ALREADY_EXISTS, keeping the form', () => {
     const apiError: ApiError = {
       code: 'ACCOUNT_ALREADY_EXISTS',
-      message: 'Account exists.',
+      // The error interceptor has already translated this from the code by the time a component sees it.
+      message: 'An account with this email already exists.',
       details: [],
       requestId: '',
       timestamp: '2026-01-01T00:00:00Z',

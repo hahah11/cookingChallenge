@@ -14,7 +14,7 @@
        no styling, and a two-line footer is not worth a fragment indirection.
 
        Parser-level comments like this one are not sent. */-->
-<html xmlns:th="http://www.thymeleaf.org" lang="en"
+<html xmlns:th="http://www.thymeleaf.org" lang="en" th:lang="${#locale.language}"
       th:fragment="page(title, heading, body, ctaLabel, footer)">
 <head>
   <meta charset="UTF-8">
@@ -49,7 +49,7 @@
           <td style="font-size:13px;line-height:20px;color:#332c2b;border-top:1px solid #c1bcbc;padding-top:24px;">
             <th:block th:replace="${footer}">Footer</th:block>
             <br><br>
-            If the button doesn't work, copy this into your browser:<br>
+            <th:block th:text="#{mail.layout.linkFallback}">If the button doesn't work, copy this into your browser:</th:block><br>
             <span th:text="${link}" style="word-break:break-all;color:#940000;">https://...</span>
           </td>
         </tr>

@@ -2,8 +2,10 @@ import { Component, inject, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Rivalry, RivalriesApi } from '../../../core/api/generated';
+import { RivalryText } from '../../../core/i18n/rivalry-text';
 import { ApiError } from '../../../core/errors/api-error';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
@@ -17,13 +19,15 @@ type LoadState = 'loading' | 'loaded' | 'error';
 /** `GET /api/v1/rivalries`, paginated — see the frontend plan's Phase 5. */
 @Component({
   selector: 'app-rivalry-list',
-  imports: [EmptyState, ErrorState, LoadingSkeleton, MatCardModule, MatPaginatorModule, PageHeader],
+  imports: [EmptyState, ErrorState, LoadingSkeleton, MatCardModule, MatPaginatorModule, PageHeader, TranslocoPipe],
   templateUrl: './rivalry-list.html',
   styleUrl: './rivalry-list.scss'
 })
 export class RivalryList {
   private readonly rivalriesApi = inject(RivalriesApi);
   private readonly router = inject(Router);
+
+  private readonly rivalryText = inject(RivalryText);
 
   protected readonly state = signal<LoadState>('loading');
   protected readonly rivalries = signal<Rivalry[]>([]);
@@ -58,5 +62,9 @@ export class RivalryList {
 
   protected openRivalry(rivalry: Rivalry): void {
     void this.router.navigate(['/rivalries', rivalry.cookAAccountId, rivalry.cookBAccountId]);
+  }
+
+  protected headline(rivalry: Rivalry): string {
+    return this.rivalryText.headline(rivalry);
   }
 }

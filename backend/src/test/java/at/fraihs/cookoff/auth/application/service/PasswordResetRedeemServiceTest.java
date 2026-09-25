@@ -8,6 +8,7 @@ import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
+import at.fraihs.cookoff.auth.domain.model.Language;
 import at.fraihs.cookoff.shared.web.openapi.model.PasswordResetRedeemRequestRestDto;
 
 import java.time.Instant;
@@ -55,7 +56,7 @@ class PasswordResetRedeemServiceTest {
     @Test
     void should_storeTheNewPasswordHash_when_tokenIsClaimed() {
         Account account = Account.reconstitute(accountId, new Email("org@example.com"), "Olga", "Organizer",
-                "old-hash", Set.of(SystemRole.ORGANIZER));
+                "old-hash", Set.of(SystemRole.ORGANIZER), Language.EN);
         when(tokenRepository.claim(eq("tok"), any(Instant.class))).thenReturn(Optional.of(claimed()));
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
         when(passwordEncoder.encode("new-password")).thenReturn("new-hash");

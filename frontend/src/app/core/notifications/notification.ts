@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslocoService } from '@jsverse/transloco';
 
 const DURATION_MS = 4000;
 
@@ -7,6 +8,7 @@ const DURATION_MS = 4000;
 @Injectable({ providedIn: 'root' })
 export class Notification {
   private readonly snackBar = inject(MatSnackBar);
+  private readonly transloco = inject(TranslocoService);
 
   success(message: string): void {
     this.show(message);
@@ -21,6 +23,6 @@ export class Notification {
   }
 
   private show(message: string): void {
-    this.snackBar.open(message, 'Dismiss', { duration: DURATION_MS });
+    this.snackBar.open(message, this.transloco.translate('common.dismiss'), { duration: DURATION_MS });
   }
 }

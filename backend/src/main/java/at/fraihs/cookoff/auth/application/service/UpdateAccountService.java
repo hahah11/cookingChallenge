@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Edits firstName/lastName/email/roles on an existing account. {@code roles} is documented as "replaces
+ * Edits firstName/lastName/email/roles/locale on an existing account. {@code roles} is documented as "replaces
  * the account's full role set" but is optional in the request schema and Jackson can't tell
  * an omitted field from an explicitly empty array here (no {@code JsonNullable} wrapper) -
  * an empty list is therefore treated as "roles not being changed", not "clear all roles";
@@ -45,6 +45,9 @@ public class UpdateAccountService {
         }
         if (request.getEmail() != null) {
             changeEmail(account, request.getEmail());
+        }
+        if (request.getLocale() != null) {
+            account.changeLanguage(accountModelMapper.toDomain(request.getLocale()));
         }
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
             applyRoles(account, request.getRoles());

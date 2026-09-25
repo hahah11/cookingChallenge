@@ -8,6 +8,7 @@ import { ApiError } from '../../../core/errors/api-error';
 import { Notification } from '../../../core/notifications/notification';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { ResetPassword } from './reset-password';
+import { provideTestI18n } from '../../../testing/i18n';
 
 function apiError(code: string, status: number, message = 'Nope'): ApiError {
   return { code, message, details: [], requestId: '', timestamp: '2026-01-01T00:00:00Z', status };
@@ -19,7 +20,7 @@ describe('ResetPassword', () => {
     const notification = { success: vi.fn(), error: vi.fn() };
     TestBed.configureTestingModule({
       imports: [ResetPassword],
-      providers: [
+      providers: [...provideTestI18n(), 
         { provide: AuthApi, useValue: { redeemPasswordReset } },
         { provide: Router, useValue: { navigateByUrl } },
         { provide: Notification, useValue: notification }

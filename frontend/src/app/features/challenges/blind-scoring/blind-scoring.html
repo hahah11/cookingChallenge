@@ -9,28 +9,28 @@
     @if (challenge(); as challenge) {
       <a mat-button type="button" routerLink="/home" class="blind-scoring__back">
         <mat-icon aria-hidden="true">arrow_back</mat-icon>
-        Home
+        {{ 'common.home' | transloco }}
       </a>
 
-      <app-page-header [kicker]="challenge.date" [title]="challenge.dishName" />
+      <app-page-header [kicker]="(challenge.date | date: 'mediumDate') ?? undefined" [title]="challenge.dishName" />
 
       @if (submitted()) {
         <div class="blind-scoring__success">
           <p class="blind-scoring__success-emoji" aria-hidden="true">🎉</p>
-          <h2 class="blind-scoring__success-headline">Thanks — scores submitted!</h2>
-          <p class="blind-scoring__success-body">Results reveal once the host closes scoring.</p>
-          <button mat-flat-button type="button" (click)="goHome()">Back to home</button>
+          <h2 class="blind-scoring__success-headline">{{ 'blindScoring.success' | transloco }}</h2>
+          <p class="blind-scoring__success-body">{{ 'blindScoring.successBody' | transloco }}</p>
+          <button mat-flat-button type="button" (click)="goHome()">{{ 'blindScoring.backHome' | transloco }}</button>
         </div>
       } @else if (revealedMidEdit()) {
-        <app-error-state message="This challenge has been revealed — scoring is closed." />
-        <button mat-flat-button type="button" (click)="viewResults()">View results</button>
+        <app-error-state [message]="'blindScoring.revealed' | transloco" />
+        <button mat-flat-button type="button" (click)="viewResults()">{{ 'blindScoring.viewResults' | transloco }}</button>
       } @else if (!challenge.canScore) {
-        <app-error-state message="You can't score this challenge." />
+        <app-error-state [message]="'blindScoring.cannotScore' | transloco" />
       } @else {
         @if (scoringClosed()) {
           <p class="blind-scoring__closed-banner" role="status">
             <mat-icon aria-hidden="true">lock</mat-icon>
-            Scoring is closed — results coming soon
+            {{ 'blindScoring.closedBanner' | transloco }}
           </p>
         } @else {
           <p class="blind-scoring__instructions">{{ instructionText() }}</p>
@@ -39,10 +39,10 @@
         <mat-divider class="blind-scoring__divider" />
 
         <div class="blind-scoring__scroll">
-          <div class="blind-scoring__grid" role="table" aria-label="Blind scoring — one row per category">
+          <div class="blind-scoring__grid" role="table" [attr.aria-label]="'blindScoring.gridLabel' | transloco">
             <div class="blind-scoring__row blind-scoring__row--header" role="row">
               <div class="blind-scoring__cell" role="columnheader">
-                <span class="cc-visually-hidden">Category</span>
+                <span class="cc-visually-hidden">{{ 'blindScoring.category' | transloco }}</span>
               </div>
               @for (label of challenge.labels; track label; let labelIndex = $index) {
                 <div
@@ -59,7 +59,7 @@
             @for (category of challenge.categories; track category; let categoryIndex = $index) {
               <div class="blind-scoring__row" role="row">
                 <div class="blind-scoring__cell blind-scoring__category" role="rowheader">
-                  {{ CATEGORY_LABELS[category] }}
+                  {{ 'category.' + category | transloco }}
                 </div>
                 @for (label of challenge.labels; track label; let labelIndex = $index) {
                   <div
@@ -68,9 +68,9 @@
                     [style.--label-index]="labelIndex"
                     [style.--category-index]="categoryIndex"
                   >
-                    <span class="blind-scoring__cell-label" aria-hidden="true">{{ CATEGORY_LABELS[category] }}</span>
+                    <span class="blind-scoring__cell-label" aria-hidden="true">{{ 'category.' + category | transloco }}</span>
                     <app-star-rating
-                      [label]="CATEGORY_LABELS[category] + ' for ' + plateLabel(label)"
+                      [label]="starLabel(category, label)"
                       [colorHex]="colorFor(label)?.hexCode"
                       [value]="scoreValues()[keyFor(category, label)] ?? null"
                       [disabled]="scoringClosed()"

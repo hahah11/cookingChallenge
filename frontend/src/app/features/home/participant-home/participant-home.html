@@ -3,22 +3,22 @@
     <app-loading-skeleton variant="card" [lines]="2" />
   }
   @case ('link-expired') {
-    <app-error-state message="This link has expired. Ask your host to resend it." />
+    <app-error-state [message]="'home.expired' | transloco" />
   }
   @case ('error') {
     <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="loadHome()" />
   }
   @case ('loaded') {
     @if (home(); as home) {
-      <app-page-header kicker="Your personalized link" [title]="'Hi, ' + home.displayName" />
+      <app-page-header
+        [kicker]="'home.kicker' | transloco"
+        [title]="'home.greeting' | transloco: { name: home.displayName }"
+      />
 
       @if (home.open.length === 0) {
-        <app-empty-state
-          icon="event_available"
-          message="Nothing open right now — check back after the next cook-off."
-        />
+        <app-empty-state icon="event_available" [message]="'home.emptyOpen' | transloco" />
       } @else {
-        <h2 class="participant-home__section-title">Open scoring requests</h2>
+        <h2 class="participant-home__section-title">{{ 'home.openRequests' | transloco }}</h2>
         <div class="participant-home__grid">
           @for (challenge of home.open; track challenge.id) {
             <app-participant-challenge-card
@@ -34,7 +34,7 @@
       }
 
       @if (home.past.length > 0) {
-        <h2 class="participant-home__section-title">Past challenges</h2>
+        <h2 class="participant-home__section-title">{{ 'home.past' | transloco }}</h2>
         <div class="participant-home__past-list">
           @for (challenge of home.past; track challenge.id) {
             <button type="button" class="participant-home__past-row" (click)="openResults(challenge.id)">

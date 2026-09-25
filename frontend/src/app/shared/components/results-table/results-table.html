@@ -1,15 +1,15 @@
 <div class="results-table__scroll">
 <table class="results-table">
-  <caption class="cc-visually-hidden">Score results by category and cook</caption>
+  <caption class="cc-visually-hidden">{{ 'resultsTable.caption' | transloco }}</caption>
   <thead>
     <tr>
-      <th scope="col"><span class="cc-visually-hidden">Category</span></th>
+      <th scope="col"><span class="cc-visually-hidden">{{ 'resultsTable.category' | transloco }}</span></th>
       @for (cook of cookAssignments(); track cook.accountId) {
         <th scope="col" class="results-table__cook plate-tint" [style.--plate-color]="hexFor(cook)">
           {{ cook.name }}
           @if (cook.accountId === overallWinnerAccountId()) {
             <mat-icon class="results-table__trophy" aria-hidden="true">emoji_events</mat-icon>
-            <span class="cc-visually-hidden">(overall winner)</span>
+            <span class="cc-visually-hidden">{{ 'resultsTable.overallWinner' | transloco }}</span>
           }
         </th>
       }
@@ -18,7 +18,7 @@
   <tbody>
     @for (row of rows(); track row.category) {
       <tr>
-        <th scope="row">{{ row.label }}</th>
+        <th scope="row">{{ 'category.' + row.category | transloco }}</th>
         @for (cook of cookAssignments(); track cook.accountId) {
           <td
             class="results-table__value plate-tint"
@@ -28,7 +28,7 @@
             {{ row.totalByLabel[cook.label] ?? 0 }}
             @if (cook.accountId === row.winnerAccountId) {
               <mat-icon class="results-table__check" aria-hidden="true">check_circle</mat-icon>
-              <span class="cc-visually-hidden">(category winner)</span>
+              <span class="cc-visually-hidden">{{ 'resultsTable.categoryWinner' | transloco }}</span>
             }
           </td>
         }
@@ -37,7 +37,7 @@
   </tbody>
   <tfoot>
     <tr>
-      <th scope="row">Total</th>
+      <th scope="row">{{ 'resultsTable.total' | transloco }}</th>
       @for (cook of cookAssignments(); track cook.accountId) {
         <td
           class="results-table__value results-table__value--total"
@@ -50,11 +50,13 @@
       }
     </tr>
     <tr>
-      <th scope="row">Head-to-head wins</th>
+      <th scope="row">{{ 'resultsTable.headToHead' | transloco }}</th>
       @for (cook of cookAssignments(); track cook.accountId) {
         <td class="results-table__crowns plate-tint" [style.--plate-color]="hexFor(cook)">
           <span aria-hidden="true">{{ crownsFor(cook) }}</span>
-          <span class="cc-visually-hidden">{{ winsFor(cook) }} head-to-head win{{ winsFor(cook) === 1 ? '' : 's' }}</span>
+          <span class="cc-visually-hidden">{{
+            (winsFor(cook) === 1 ? 'resultsTable.winsOne' : 'resultsTable.winsOther') | transloco: { count: winsFor(cook) }
+          }}</span>
         </td>
       }
     </tr>
@@ -62,4 +64,4 @@
 </table>
 </div>
 
-<p class="results-table__headline">{{ rivalry().headline }}</p>
+<p class="results-table__headline">{{ headline() }}</p>

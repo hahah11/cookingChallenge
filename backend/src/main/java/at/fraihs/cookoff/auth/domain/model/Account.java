@@ -16,15 +16,17 @@ public class Account {
     private String lastName;
     private String passwordHash;
     private final Set<SystemRole> roles;
+    private Language language;
 
     private Account(AccountId id, Email email, String firstName, String lastName, String passwordHash,
-                     Set<SystemRole> roles) {
+                     Set<SystemRole> roles, Language language) {
         this.id = id;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
         this.passwordHash = passwordHash;
         this.roles = roles.isEmpty() ? EnumSet.noneOf(SystemRole.class) : EnumSet.copyOf(roles);
+        this.language = language;
     }
 
     /**
@@ -42,12 +44,12 @@ public class Account {
         Set<SystemRole> roles = initialRoles.length == 0
                 ? EnumSet.of(SystemRole.USER)
                 : EnumSet.copyOf(Set.of(initialRoles));
-        return new Account(AccountId.generate(), email, firstName, lastName, null, roles);
+        return new Account(AccountId.generate(), email, firstName, lastName, null, roles, Language.EN);
     }
 
     public static Account reconstitute(AccountId id, Email email, String firstName, String lastName,
-                                        String passwordHash, Set<SystemRole> roles) {
-        return new Account(id, email, firstName, lastName, passwordHash, roles);
+                                        String passwordHash, Set<SystemRole> roles, Language language) {
+        return new Account(id, email, firstName, lastName, passwordHash, roles, language);
     }
 
     public void grantRole(SystemRole role) {
@@ -96,6 +98,13 @@ public class Account {
         this.passwordHash = newPasswordHash;
     }
 
+    public void changeLanguage(Language newLanguage) {
+        if (newLanguage == null) {
+            throw new IllegalArgumentException("Language must not be null");
+        }
+        this.language = newLanguage;
+    }
+
     public AccountId getId() {
         return id;
     }
@@ -122,5 +131,9 @@ public class Account {
 
     public Set<SystemRole> getRoles() {
         return Set.copyOf(roles);
+    }
+
+    public Language getLanguage() {
+        return language;
     }
 }

@@ -1,4 +1,4 @@
-<nav class="nav-bar" aria-label="Primary">
+<nav class="nav-bar" [attr.aria-label]="'nav.primary' | transloco">
   @for (item of items(); track item.route) {
     <a
       class="nav-bar__item"

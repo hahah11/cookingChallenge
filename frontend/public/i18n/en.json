@@ -1,0 +1,343 @@
+{
+  "app": {
+    "title": "CookOff"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "tryAgain": "Try again",
+    "loading": "Loading…",
+    "dismiss": "Dismiss",
+    "home": "Home",
+    "saveChanges": "Save changes",
+    "close": "Close"
+  },
+  "route": {
+    "login": "Organizer log in",
+    "register": "Register",
+    "resetPassword": "Reset password",
+    "linkExpired": "Link expired",
+    "challenges": "Challenges",
+    "challenge": "Challenge",
+    "accounts": "Accounts",
+    "rivalries": "Rivalries",
+    "rivalry": "Rivalry",
+    "home": "Home",
+    "score": "Score",
+    "results": "Results",
+    "notFound": "Not found"
+  },
+  "nav": {
+    "primary": "Primary",
+    "history": "History",
+    "accounts": "Accounts",
+    "rivalries": "Rivalries",
+    "logOut": "Log out"
+  },
+  "status": {
+    "OPEN": "Open",
+    "CLOSED": "Scoring closed",
+    "REVEALED": "Revealed"
+  },
+  "category": {
+    "MUNDGEFUEHL": "Mouthfeel",
+    "TELLERSPRACHE": "Plating",
+    "GESCHMACK": "Taste"
+  },
+  "plateColor": {
+    "red": "Red",
+    "yellow": "Yellow"
+  },
+  "starRating": {
+    "one": "{{count}} star",
+    "other": "{{count}} stars"
+  },
+  "qrCode": {
+    "label": "Registration QR code"
+  },
+  "notFound": {
+    "message": "We can't find that page.",
+    "back": "Back to safety"
+  },
+  "challengeCard": {
+    "open": "Open {{dish}}",
+    "winner": "Winner:",
+    "submitted": "{{submitted}}/{{total}} submitted",
+    "submittedClosed": "{{submitted}}/{{total}} submitted · Scoring closed",
+    "resultsReady": "Results ready"
+  },
+  "resultsTable": {
+    "caption": "Score results by category and cook",
+    "category": "Category",
+    "overallWinner": "(overall winner)",
+    "categoryWinner": "(category winner)",
+    "total": "Total",
+    "headToHead": "Head-to-head wins",
+    "winsOne": "{{count}} head-to-head win",
+    "winsOther": "{{count}} head-to-head wins"
+  },
+  "errors": {
+    "VALIDATION_ERROR": "Some of the information you entered isn't valid. Please check it and try again.",
+    "INVALID_ARGUMENT": "That request wasn't valid. Please check your input and try again.",
+    "INVALID_CREDENTIALS": "Invalid email or password.",
+    "INVALID_OR_EXPIRED_LINK": "This link is invalid or has expired.",
+    "UNAUTHENTICATED": "Please log in to continue.",
+    "FORBIDDEN": "You don't have permission to do that.",
+    "NOT_A_PARTICIPANT": "You're not taking part in this challenge.",
+    "NOT_FOUND": "We couldn't find what you were looking for.",
+    "ACCOUNT_ALREADY_EXISTS": "An account with this email already exists.",
+    "CHALLENGE_NOT_OPEN": "This challenge isn't open for scoring.",
+    "DUPLICATE_SUBMISSION": "You've already submitted scores for this challenge.",
+    "INVALID_STATE": "That isn't possible in the challenge's current state.",
+    "PASSWORD_RESET_NOT_ELIGIBLE": "This account has no password to reset.",
+    "INTERNAL_ERROR": "Something went wrong on our side. Please try again.",
+    "UNKNOWN_ERROR": "Something went wrong. Please try again."
+  },
+  "fields": {
+    "email": "Email",
+    "password": "Password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "language": "Language"
+  },
+  "validation": {
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Enter a valid email address.",
+    "passwordRequired": "Password is required.",
+    "newPasswordRequired": "New password is required.",
+    "passwordMin": "Use at least {{min}} characters.",
+    "confirmRequired": "Please confirm your new password.",
+    "passwordMismatch": "Passwords do not match.",
+    "firstNameRequired": "First name is required.",
+    "lastNameRequired": "Last name is required.",
+    "titleRequired": "Title is required.",
+    "dateRequired": "Date is required.",
+    "dishNameRequired": "Dish name is required.",
+    "cookARequired": "Choose Cook A.",
+    "cookBRequired": "Choose Cook B."
+  },
+  "login": {
+    "title": "Organizer log in",
+    "submit": "Log in",
+    "version": "Version {{version}}",
+    "note": "Cooks and guests don't log in here — they get a personalized link by email for each challenge.",
+    "incorrectCredentials": "Incorrect email or password."
+  },
+  "resetPassword": {
+    "title": "Set a new password",
+    "hint": "At least {{min}} characters.",
+    "submit": "Save password",
+    "success": "Password changed. Log in with your new password."
+  },
+  "linkExpired": {
+    "back": "Back to start",
+    "link": {
+      "kicker": "Link expired",
+      "headline": "This link is no longer valid",
+      "body": "Your personalized access link has expired. Contact the organizer and ask them to resend your link for this challenge."
+    },
+    "qr": {
+      "kicker": "QR code expired",
+      "headline": "This QR code is no longer valid",
+      "body": "The registration QR code for this cook-off has expired. Ask the organizer to show a fresh code or send you a personalized link by email."
+    },
+    "reset": {
+      "kicker": "Reset link expired",
+      "headline": "This reset link is no longer valid",
+      "body": "Password reset links work once and expire after 2 hours, and a newer reset replaces older ones. Ask an admin to send you a new link."
+    }
+  },
+  "register": {
+    "title": "Register",
+    "submit": "Register",
+    "expired": "This code has expired. Ask your host for a new QR code.",
+    "welcome": "Welcome, {{name}}!",
+    "joined": "You're registered! You'll get an email once the organizer opens scoring for this cook-off.",
+    "closed": "You're registered, but this event has already closed."
+  },
+  "home": {
+    "expired": "This link has expired. Ask your host to resend it.",
+    "kicker": "Your personalized link",
+    "greeting": "Hi, {{name}}",
+    "emptyOpen": "Nothing open right now — check back after the next cook-off.",
+    "openRequests": "Open scoring requests",
+    "past": "Past challenges",
+    "pickColor": {
+      "title": "Plate under {{color}}?",
+      "confirm": "Yes, choose {{color}}",
+      "message": "This locks your plate color for this challenge and assigns the other cook the remaining color automatically. This can't be changed afterward."
+    }
+  },
+  "participantCard": {
+    "pickGroup": "Pick your plate color",
+    "pick": "Pick {{color}}",
+    "ownColorBefore": "You're plating",
+    "ownColorAfter": "— noted for guests once scoring opens.",
+    "scoringClosed": "Scoring closed",
+    "viewMyScores": "View my scores",
+    "view": "View",
+    "scoreNow": "Score now",
+    "submitted": "Submitted — editable until reveal",
+    "editScores": "Edit scores"
+  },
+  "rivalry": {
+    "kicker": "Head-to-head",
+    "listTitle": "Cook rivalries",
+    "title": "Rivalry",
+    "count": {
+      "one": "{{count}} challenge",
+      "other": "{{count}} challenges"
+    },
+    "vs": "{{a}} vs {{b}}",
+    "open": "Open {{a}} vs {{b}}",
+    "empty": "No revealed challenges yet — rivalries build up once results come in.",
+    "all": "All rivalries",
+    "draws": {
+      "one": "{{count}} draw",
+      "other": "{{count}} draws"
+    },
+    "drawsLabel": "Draws",
+    "headline": {
+      "none": "{{a}} and {{b}} haven't faced off yet.",
+      "tied": "{{a}} and {{b}} are tied {{wins}}-{{wins}}",
+      "leads": "{{leader}} leads {{trailer}} {{high}}-{{low}}"
+    },
+    "outcome": {
+      "pending": "Pending",
+      "draw": "Draw",
+      "won": "{{name}} won"
+    }
+  },
+  "paginator": {
+    "itemsPerPage": "Items per page:",
+    "next": "Next page",
+    "previous": "Previous page",
+    "first": "First page",
+    "last": "Last page",
+    "range": "{{start}} – {{end}} of {{length}}"
+  },
+  "blindScoring": {
+    "success": "Thanks — scores submitted!",
+    "successBody": "Results reveal once the host closes scoring.",
+    "backHome": "Back to home",
+    "revealed": "This challenge has been revealed — scoring is closed.",
+    "viewResults": "View results",
+    "cannotScore": "You can't score this challenge.",
+    "closedBanner": "Scoring is closed — results coming soon",
+    "instructions": "Blind tasting — rate the {{firstLower}} plate and the {{secondLower}} plate, 1–5 stars each, without knowing who cooked which.",
+    "gridLabel": "Blind scoring — one row per category",
+    "category": "Category",
+    "starsFor": "{{category}} for {{plate}}",
+    "dish": "Dish {{label}}",
+    "submit": "Submit scores"
+  },
+  "results": {
+    "title": "Results",
+    "photoAlt": "Challenge photo"
+  },
+  "history": {
+    "kicker": "Cook-off history",
+    "title": "Challenges",
+    "new": "New challenge",
+    "empty": "No challenges yet — start your first cook-off."
+  },
+  "challengeDetail": {
+    "back": "Back to challenges",
+    "revealed": "Revealed!",
+    "guestList": "Guest list",
+    "guestCaption": "Guest submission status",
+    "guest": "Guest",
+    "status": "Status",
+    "submitted": "Submitted",
+    "pending": "Pending",
+    "sendLinks": "Send links",
+    "editParticipants": "Edit cooks & guests",
+    "qr": "Registration QR code",
+    "closeScoring": "Close scoring",
+    "reopenScoring": "Reopen scoring",
+    "revealResults": "Reveal results",
+    "linksSent": "Links sent",
+    "unrevealHint": "Made a mistake? You can hide the results again (scoring stays closed).",
+    "unreveal": "Unreveal challenge",
+    "closeDialog": {
+      "title": "Close scoring?",
+      "message": "Guests can no longer submit or edit scores.",
+      "confirm": "Yes, close scoring"
+    },
+    "revealDialog": {
+      "title": "Reveal this challenge?",
+      "message": "Revealing shows cook identities and computes results. You can hide them again later if you need to.",
+      "confirm": "Yes, reveal"
+    },
+    "unrevealDialog": {
+      "title": "Unreveal this challenge?",
+      "message": "This hides the cook-to-dish mapping again. Scoring stays closed — guests will see it as pending until you reveal it again.",
+      "confirm": "Yes, unreveal"
+    }
+  },
+  "participants": {
+    "cookA": "Cook A",
+    "cookB": "Cook B",
+    "guests": "Guests",
+    "role": {
+      "cookA": "Cook A",
+      "cookB": "Cook B",
+      "guest": "Guest"
+    }
+  },
+  "sendLinks": {
+    "title": "Send / resend links",
+    "hint": "Choose who should get (or re-get) their personalized access link by email.",
+    "alreadySubmitted": "already submitted",
+    "submit": "Send links"
+  },
+  "editParticipants": {
+    "title": "Edit cooks & guests"
+  },
+  "newChallenge": {
+    "title": "New challenge",
+    "photoLabel": "Rivalry photo",
+    "changePhoto": "Change photo",
+    "addPhoto": "Add a photo",
+    "removePhoto": "Remove photo",
+    "drop": "Drop a 4:3 photo for this rivalry",
+    "titleField": "Title",
+    "date": "Date",
+    "dishName": "Dish name",
+    "submit": "Create challenge"
+  },
+  "qrDialog": {
+    "title": "Scan to register",
+    "hint": "Guests scan this to register for the app and join {{name}}."
+  },
+  "roles": {
+    "ADMIN": "Admin",
+    "ORGANIZER": "Organizer",
+    "USER": "User"
+  },
+  "accounts": {
+    "kicker": "Admin",
+    "title": "Accounts",
+    "new": "New account",
+    "empty": "No accounts yet.",
+    "name": "Name",
+    "roles": "Roles",
+    "actions": "Actions",
+    "edit": "Edit",
+    "resetPassword": "Reset password",
+    "resetSent": "Reset link sent to {{email}}.",
+    "resetDialog": {
+      "title": "Reset password?",
+      "message": "{{name}} gets an email with a link to set a new password. The link works once, for 2 hours, and replaces any earlier reset link.",
+      "confirm": "Send reset link"
+    }
+  },
+  "editAccount": {
+    "titleNew": "New account",
+    "titleEdit": "Edit account",
+    "submitNew": "Create account",
+    "passwordHint": "Required for Organizer/Admin roles; ignored otherwise."
+  }
+}

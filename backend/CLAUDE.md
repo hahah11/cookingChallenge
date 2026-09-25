@@ -7,6 +7,7 @@
 | [`docs/backend/01-architecture.md`](../docs/backend/01-architecture.md) | **Backend Architecture**: Layer responsibilities, package structure, anti-patterns |
 | [`docs/backend/02-ddd-modulith.md`](../docs/backend/02-ddd-modulith.md) | **DDD + Spring Modulith**: Module structure, domain modeling, ports & adapters, module communication |
 | [`docs/backend/03-code-style.md`](../docs/backend/03-code-style.md) | **Java Code Style**: Naming, Lombok, records vs classes, exceptions, logging, JPA patterns |
+| [`docs/backend/04-mail-localization.md`](../docs/backend/04-mail-localization.md) | **Mail Localization**: recipient language on the account, message bundles, adding text/languages |
 
 ## Quick Reference: When Starting a Task
 

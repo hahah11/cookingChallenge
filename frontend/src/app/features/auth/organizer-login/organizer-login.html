@@ -1,10 +1,10 @@
 <mat-card appearance="raised" class="organizer-login__card">
   <mat-card-content>
-    <app-page-header kicker="CookOff" title="Organizer log in" size="small" />
+    <app-page-header kicker="CookOff" [title]="'login.title' | transloco" size="small" />
 
     <form class="organizer-login__form" (submit)="$event.preventDefault(); onSubmit()" novalidate>
       <mat-form-field appearance="outline">
-        <mat-label>Email</mat-label>
+        <mat-label>{{ 'fields.email' | transloco }}</mat-label>
         <input
           matInput
           type="email"
@@ -18,7 +18,7 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Password</mat-label>
+        <mat-label>{{ 'fields.password' | transloco }}</mat-label>
         <input
           matInput
           type="password"
@@ -44,19 +44,19 @@
         @if (submitting()) {
           <mat-spinner diameter="20" />
         } @else {
-          Log in
+          {{ 'login.submit' | transloco }}
         }
       </button>
     </form>
 
     <p class="organizer-login__note">
-      Cooks and guests don't log in here — they get a personalized link by email for each challenge.
+      {{ 'login.note' | transloco }}
     </p>
 
     <mat-divider />
 
     @if (version()) {
-      <p class="organizer-login__version">Version {{ version() }}</p>
+      <p class="organizer-login__version">{{ 'login.version' | transloco: { version: version() } }}</p>
     }
   </mat-card-content>
 </mat-card>

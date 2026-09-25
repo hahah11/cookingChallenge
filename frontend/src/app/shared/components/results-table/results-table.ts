@@ -1,5 +1,6 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   Category,
@@ -8,16 +9,10 @@ import {
   DishLabel,
   RivalrySummary
 } from '../../../core/api/generated';
-
-const CATEGORY_LABELS: Record<Category, string> = {
-  [Category.MUNDGEFUEHL]: 'Mundgefühl',
-  [Category.TELLERSPRACHE]: 'Tellersprache',
-  [Category.GESCHMACK]: 'Geschmack'
-};
+import { RivalryText } from '../../../core/i18n/rivalry-text';
 
 interface ResultsTableRow {
   category: Category;
-  label: string;
   winnerAccountId: string | null;
   totalByLabel: Partial<Record<DishLabel, number>>;
 }
@@ -30,7 +25,7 @@ interface ResultsTableRow {
  */
 @Component({
   selector: 'app-results-table',
-  imports: [MatIconModule],
+  imports: [MatIconModule, TranslocoPipe],
   templateUrl: './results-table.html',
   styleUrl: './results-table.scss'
 })
@@ -42,10 +37,23 @@ export class ResultsTable {
   readonly rivalry = input.required<RivalrySummary>();
   readonly plateColorHex = input.required<Record<string, string>>();
 
+  private readonly rivalryText = inject(RivalryText);
+
+  protected readonly headline = computed(() => {
+    const rivalry = this.rivalry();
+    const nameOf = (accountId: string) => this.cookAssignments().find((cook) => cook.accountId === accountId)?.name ?? '';
+    return this.rivalryText.headline({
+      cookAName: nameOf(rivalry.cookAAccountId),
+      cookBName: nameOf(rivalry.cookBAccountId),
+      cookAWins: rivalry.cookAWins,
+      cookBWins: rivalry.cookBWins,
+      draws: rivalry.draws
+    });
+  });
+
   protected readonly rows = computed<ResultsTableRow[]>(() =>
     this.categoryTotals().map((categoryTotal) => ({
       category: categoryTotal.category,
-      label: CATEGORY_LABELS[categoryTotal.category],
       winnerAccountId: this.categoryWinners()[categoryTotal.category] ?? null,
       totalByLabel: Object.fromEntries(
         categoryTotal.dishTotals.map((dishTotal) => [dishTotal.label, dishTotal.total])

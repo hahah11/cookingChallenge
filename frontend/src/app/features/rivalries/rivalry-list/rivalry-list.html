@@ -1,4 +1,4 @@
-<app-page-header kicker="Head-to-head" title="Cook rivalries" />
+<app-page-header [kicker]="'rivalry.kicker' | transloco" [title]="'rivalry.listTitle' | transloco" />
 
 @switch (state()) {
   @case ('loading') {
@@ -9,10 +9,7 @@
   }
   @case ('loaded') {
     @if (rivalries().length === 0) {
-      <app-empty-state
-        icon="social_leaderboard"
-        message="No revealed challenges yet — rivalries build up once results come in."
-      />
+      <app-empty-state icon="social_leaderboard" [message]="'rivalry.empty' | transloco" />
     } @else {
       <div class="rivalry-list__grid">
         @for (rivalry of rivalries(); track rivalry.cookAAccountId + rivalry.cookBAccountId) {
@@ -21,15 +18,18 @@
             class="rivalry-list__card"
             role="button"
             tabindex="0"
-            [attr.aria-label]="'Open ' + rivalry.cookAName + ' vs ' + rivalry.cookBName"
+            [attr.aria-label]="'rivalry.open' | transloco: { a: rivalry.cookAName, b: rivalry.cookBName }"
             (click)="openRivalry(rivalry)"
             (keydown.enter)="openRivalry(rivalry)"
             (keydown.space)="$event.preventDefault(); openRivalry(rivalry)"
           >
             <mat-card-content>
-              <p class="rivalry-list__kicker">{{ rivalry.totalChallenges }} challenges</p>
-              <p class="rivalry-list__names">{{ rivalry.cookAName }} vs {{ rivalry.cookBName }}</p>
-              <p class="rivalry-list__headline">{{ rivalry.headline }}</p>
+              <p class="rivalry-list__kicker">{{
+                (rivalry.totalChallenges === 1 ? 'rivalry.count.one' : 'rivalry.count.other')
+                  | transloco: { count: rivalry.totalChallenges }
+              }}</p>
+              <p class="rivalry-list__names">{{ 'rivalry.vs' | transloco: { a: rivalry.cookAName, b: rivalry.cookBName } }}</p>
+              <p class="rivalry-list__headline">{{ headline(rivalry) }}</p>
             </mat-card-content>
           </mat-card>
         }

@@ -1,4 +1,5 @@
 import { Component, ElementRef, effect, input, viewChild } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import * as QRCode from 'qrcode';
 
 /**
@@ -8,8 +9,9 @@ import * as QRCode from 'qrcode';
  * the frontend plan's "Deliberate deviations from the prototype".
  */
 @Component({
+  imports: [TranslocoPipe],
   selector: 'app-qr-code',
-  template: `<canvas #canvas class="qr-code" role="img" [attr.aria-label]="label()"></canvas>`,
+  template: `<canvas #canvas class="qr-code" role="img" [attr.aria-label]="label() ?? ('qrCode.label' | transloco)"></canvas>`,
   styles: `
     :host {
       display: inline-block;
@@ -27,7 +29,7 @@ export class QrCode {
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
 
   readonly value = input.required<string>();
-  readonly label = input('Registration QR code');
+  readonly label = input<string>();
   readonly size = input(240);
 
   constructor() {

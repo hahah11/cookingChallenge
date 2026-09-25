@@ -5,6 +5,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Account, AccountsApi, Challenge, ChallengesApi } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
@@ -36,7 +37,8 @@ const ACCOUNTS_PAGE_SIZE = 100;
     MatDialogModule,
     MatFormFieldModule,
     MatProgressSpinnerModule,
-    MatSelectModule
+    MatSelectModule,
+    TranslocoPipe
   ],
   templateUrl: './edit-participants-dialog.html',
   styleUrl: './edit-participants-dialog.scss'

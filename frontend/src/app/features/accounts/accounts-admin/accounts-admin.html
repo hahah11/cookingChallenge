@@ -1,7 +1,7 @@
-<app-page-header kicker="Admin" title="Accounts">
+<app-page-header [kicker]="'accounts.kicker' | transloco" [title]="'accounts.title' | transloco">
   <button actions mat-flat-button type="button" (click)="openCreateDialog()">
     <mat-icon aria-hidden="true">add</mat-icon>
-    New account
+    {{ 'accounts.new' | transloco }}
   </button>
 </app-page-header>
 
@@ -14,34 +14,36 @@
   }
   @case ('loaded') {
     @if (accounts().length === 0) {
-      <app-empty-state icon="group" message="No accounts yet." />
+      <app-empty-state icon="group" [message]="'accounts.empty' | transloco" />
     } @else {
       <table class="accounts-admin__table">
-        <caption class="cc-visually-hidden">Accounts</caption>
+        <caption class="cc-visually-hidden">{{ 'accounts.title' | transloco }}</caption>
         <thead>
           <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Email</th>
-            <th scope="col">Roles</th>
-            <th scope="col"><span class="cc-visually-hidden">Actions</span></th>
+            <th scope="col">{{ 'accounts.name' | transloco }}</th>
+            <th scope="col">{{ 'fields.email' | transloco }}</th>
+            <th scope="col">{{ 'accounts.roles' | transloco }}</th>
+            <th scope="col"><span class="cc-visually-hidden">{{ 'accounts.actions' | transloco }}</span></th>
           </tr>
         </thead>
         <tbody>
           @for (account of accounts(); track account.id) {
             <tr>
-              <td data-label="Name">{{ account.name }}</td>
-              <td data-label="Email">{{ account.email }}</td>
-              <td data-label="Roles">
+              <td [attr.data-label]="'accounts.name' | transloco">{{ account.name }}</td>
+              <td [attr.data-label]="'fields.email' | transloco">{{ account.email }}</td>
+              <td [attr.data-label]="'accounts.roles' | transloco">
                 <mat-chip-set>
                   @for (role of account.roles; track role) {
-                    <mat-chip [highlighted]="role === SystemRole.ADMIN" disableRipple>{{ role }}</mat-chip>
+                    <mat-chip [highlighted]="role === SystemRole.ADMIN" disableRipple>{{ 'roles.' + role | transloco }}</mat-chip>
                   }
                 </mat-chip-set>
               </td>
               <td data-label="">
-                <button mat-button type="button" (click)="openEditDialog(account.id)">Edit</button>
+                <button mat-button type="button" (click)="openEditDialog(account.id)">{{ 'accounts.edit' | transloco }}</button>
                 @if (canResetPassword(account)) {
-                  <button mat-button type="button" (click)="confirmPasswordReset(account)">Reset password</button>
+                  <button mat-button type="button" (click)="confirmPasswordReset(account)">
+                    {{ 'accounts.resetPassword' | transloco }}
+                  </button>
                 }
               </td>
             </tr>

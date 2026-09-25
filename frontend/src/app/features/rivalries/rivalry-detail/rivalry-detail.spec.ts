@@ -11,6 +11,7 @@ import {
 } from '../../../core/api/generated';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { RivalryDetail } from './rivalry-detail';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const rivalryDetail: RivalryDetailModel = {
   cookAAccountId: 'cook-a',
@@ -50,7 +51,7 @@ describe('RivalryDetail', () => {
   function setup(getRivalryDetail: ReturnType<typeof vi.fn>) {
     TestBed.configureTestingModule({
       imports: [RivalryDetail],
-      providers: [
+      providers: [...provideTestI18n(), 
         provideRouter([]),
         { provide: RivalriesApi, useValue: { getRivalryDetail } },
         { provide: ChallengesApi, useValue: { getChallengeImage: () => of(new Blob()) } }

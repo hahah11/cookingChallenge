@@ -35,6 +35,9 @@ public class CreateAccountService {
         at.fraihs.cookoff.auth.domain.model.Account account =
                 at.fraihs.cookoff.auth.domain.model.Account.create(
                         email, request.getFirstName(), request.getLastName(), initialRoles);
+        if (request.getLocale() != null) {
+            account.changeLanguage(accountModelMapper.toDomain(request.getLocale()));
+        }
         applyPassword(request.getPassword(), account);
         accountRepository.save(account);
         log.info("Account created: {}", account.getId());

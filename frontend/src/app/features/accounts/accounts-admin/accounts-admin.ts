@@ -4,6 +4,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { Account, AccountsApi, SystemRole } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
@@ -30,12 +31,14 @@ type LoadState = 'loading' | 'loaded' | 'error';
     MatChipsModule,
     MatIconModule,
     MatPaginatorModule,
-    PageHeader
+    PageHeader,
+    TranslocoPipe
   ],
   templateUrl: './accounts-admin.html',
   styleUrl: './accounts-admin.scss'
 })
 export class AccountsAdmin {
+  private readonly transloco = inject(TranslocoService);
   protected readonly SystemRole = SystemRole;
 
   private readonly accountsApi = inject(AccountsApi);
@@ -90,9 +93,9 @@ export class AccountsAdmin {
 
   protected confirmPasswordReset(account: Account): void {
     const data: ConfirmDialogData = {
-      title: 'Reset password?',
-      message: `${account.name} gets an email with a link to set a new password. The link works once, for 2 hours, and replaces any earlier reset link.`,
-      confirmLabel: 'Send reset link'
+      title: this.transloco.translate('accounts.resetDialog.title'),
+      message: this.transloco.translate('accounts.resetDialog.message', { name: account.name }),
+      confirmLabel: this.transloco.translate('accounts.resetDialog.confirm')
     };
     this.dialog
       .open(ConfirmDialog, { data, width: '360px' })
@@ -107,7 +110,7 @@ export class AccountsAdmin {
   /** Nothing on the page changes, so the snackbar carries all the feedback. */
   private resetPassword(account: Account): void {
     this.accountsApi.triggerPasswordReset(account.id).subscribe({
-      next: () => this.notification.success(`Reset link sent to ${account.email}.`),
+      next: () => this.notification.success(this.transloco.translate('accounts.resetSent', { email: account.email })),
       error: (error: ApiError) => this.notification.error(error.message)
     });
   }

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { PageHeader } from './page-header';
+import { provideTestI18n } from '../../../testing/i18n';
 
 @Component({
   imports: [PageHeader],
@@ -15,7 +16,8 @@ class HostComponent {}
 
 describe('PageHeader', () => {
   it('renders the kicker, title, and projected actions', async () => {
-    await TestBed.configureTestingModule({ imports: [HostComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      providers: [...provideTestI18n()], imports: [HostComponent] }).compileComponents();
     const fixture = TestBed.createComponent(HostComponent);
     fixture.detectChanges();
 
@@ -26,7 +28,8 @@ describe('PageHeader', () => {
   });
 
   it('omits the kicker element when none is provided', async () => {
-    await TestBed.configureTestingModule({ imports: [PageHeader] }).compileComponents();
+    await TestBed.configureTestingModule({
+      providers: [...provideTestI18n()], imports: [PageHeader] }).compileComponents();
     const fixture = TestBed.createComponent(PageHeader);
     fixture.componentRef.setInput('title', 'Accounts');
     fixture.detectChanges();

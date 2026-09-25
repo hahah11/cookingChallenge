@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 import { SystemRole } from '../../core/api/generated';
 import { Auth } from '../../core/auth/auth';
 import { OrganizerShell } from './organizer-shell';
+import { provideTestI18n } from '../../testing/i18n';
 
 describe('OrganizerShell', () => {
   function setup(roles: SystemRole[]) {
@@ -15,7 +16,7 @@ describe('OrganizerShell', () => {
 
     TestBed.configureTestingModule({
       imports: [OrganizerShell],
-      providers: [provideRouter([]), { provide: Auth, useValue: auth }]
+      providers: [...provideTestI18n(), provideRouter([]), { provide: Auth, useValue: auth }]
     });
 
     const fixture = TestBed.createComponent(OrganizerShell);

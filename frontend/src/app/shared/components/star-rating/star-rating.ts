@@ -1,4 +1,5 @@
 import { Component, computed, input, model } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * Native `<input type="radio">` in a `<fieldset>`, visually hidden, stars as
@@ -7,6 +8,7 @@ import { Component, computed, input, model } from '@angular/core';
  * Fill color is the plate color via `--plate-color`.
  */
 @Component({
+  imports: [TranslocoPipe],
   selector: 'app-star-rating',
   templateUrl: './star-rating.html',
   styleUrl: './star-rating.scss'

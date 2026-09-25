@@ -21,6 +21,7 @@ import { ApiError } from '../../../core/errors/api-error';
 import { Notification } from '../../../core/notifications/notification';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { ParticipantHome } from './participant-home';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const openChallenge: ParticipantChallenge = {
   id: 'chal-open',
@@ -72,7 +73,7 @@ describe('ParticipantHome', () => {
 
     TestBed.configureTestingModule({
       imports: [ParticipantHome],
-      providers: [
+      providers: [...provideTestI18n(), 
         provideRouter([]),
         { provide: HomeApi, useValue: options.homeApi ?? { getMyHome: () => of({ data: home, meta }) } },
         { provide: Auth, useValue: options.auth ?? {} },

@@ -11,6 +11,7 @@ import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationRequestRestD
 import at.fraihs.cookoff.shared.web.openapi.model.PublicRegistrationResultRestDto;
 
 import java.util.List;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,8 @@ public class PublicRegistrationService {
     @Transactional
     public PublicRegistrationResultRestDto execute(PublicRegistrationRequestRestDto request) {
         RegistrationResult result = registrationInvites.register(
-                request.getToken(), request.getFirstName(), request.getLastName(), request.getEmail());
+                request.getToken(), request.getFirstName(), request.getLastName(), request.getEmail(),
+                toLocale(request));
 
         ChallengeId challengeId = new ChallengeId(result.challengeId());
         Challenge challenge = challengeRepository.findById(challengeId)
@@ -50,5 +52,9 @@ public class PublicRegistrationService {
                 ? "You're registered! You'll get an email once the organizer opens scoring for this cook-off."
                 : "You're registered, but this event has already closed.";
         return new PublicRegistrationResultRestDto(result.accountId().toString(), joined, message);
+    }
+
+    private Locale toLocale(PublicRegistrationRequestRestDto request) {
+        return request.getLocale() == null ? Locale.ENGLISH : Locale.forLanguageTag(request.getLocale().getValue());
     }
 }

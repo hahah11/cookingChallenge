@@ -10,6 +10,7 @@ import { ApiError } from '../../../core/errors/api-error';
 import { Notification } from '../../../core/notifications/notification';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { OrganizerLogin } from './organizer-login';
+import { provideTestI18n } from '../../../testing/i18n';
 
 describe('OrganizerLogin', () => {
   function setup(auth: Partial<Auth>, version = '') {
@@ -17,7 +18,7 @@ describe('OrganizerLogin', () => {
 
     TestBed.configureTestingModule({
       imports: [OrganizerLogin],
-      providers: [
+      providers: [...provideTestI18n(), 
         provideRouter([]),
         { provide: Auth, useValue: auth },
         { provide: Notification, useValue: notification },

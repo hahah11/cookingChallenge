@@ -8,6 +8,7 @@ import { ApiError } from '../../../core/errors/api-error';
 import { Notification } from '../../../core/notifications/notification';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { AccountsAdmin } from './accounts-admin';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const account: Account = {
   id: 'acc-1',
@@ -27,7 +28,7 @@ describe('AccountsAdmin', () => {
     const notification = { success: vi.fn(), error: vi.fn() };
     TestBed.configureTestingModule({
       imports: [AccountsAdmin],
-      providers: [
+      providers: [...provideTestI18n(), 
         { provide: AccountsApi, useValue: { listAccounts, triggerPasswordReset } },
         { provide: MatDialog, useValue: dialog },
         { provide: Notification, useValue: notification }
@@ -65,7 +66,7 @@ describe('AccountsAdmin', () => {
     const row = fixture.nativeElement.querySelector('tbody tr');
     expect(row.textContent).toContain('Alice Anderson');
     expect(row.textContent).toContain('alice@example.com');
-    expect(row.textContent).toContain('USER');
+    expect(row.textContent).toContain('User');
   });
 
   it('shows an empty state when there are no accounts', () => {

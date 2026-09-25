@@ -3,12 +3,13 @@ import { provideRouter } from '@angular/router';
 
 import { expectNoAxeViolations } from '../../testing/axe';
 import { NotFound } from './not-found';
+import { provideTestI18n } from '../../testing/i18n';
 
 describe('NotFound', () => {
   it('renders a message and a link back to the root', async () => {
     await TestBed.configureTestingModule({
       imports: [NotFound],
-      providers: [provideRouter([])]
+      providers: [...provideTestI18n(), provideRouter([])]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(NotFound);
@@ -24,7 +25,7 @@ describe('NotFound', () => {
     async () => {
       await TestBed.configureTestingModule({
         imports: [NotFound],
-        providers: [provideRouter([])]
+        providers: [...provideTestI18n(), provideRouter([])]
       }).compileComponents();
 
       const fixture = TestBed.createComponent(NotFound);

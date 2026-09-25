@@ -1,9 +1,9 @@
 <a mat-button type="button" routerLink="/home" class="challenge-results__back">
   <mat-icon aria-hidden="true">arrow_back</mat-icon>
-  Home
+  {{ 'common.home' | transloco }}
 </a>
 
-<app-page-header kicker="CookOff" title="Results">
+<app-page-header kicker="CookOff" [title]="'results.title' | transloco">
   <app-status-tag actions [status]="ChallengeStatus.REVEALED" />
 </app-page-header>
 
@@ -20,7 +20,7 @@
         class="challenge-results__photo"
         [challengeId]="result.challengeId"
         [hasImage]="true"
-        alt="Challenge photo"
+        [alt]="'results.photoAlt' | transloco"
       />
       <app-results-table
         [cookAssignments]="result.cookAssignments"

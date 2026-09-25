@@ -4,8 +4,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
-import { RivalriesApi, RivalryDetail as RivalryDetailModel } from '../../../core/api/generated';
+import { RivalriesApi, RivalryChallengeSummary, RivalryDetail as RivalryDetailModel } from '../../../core/api/generated';
+import { RivalryText } from '../../../core/i18n/rivalry-text';
 import { ApiError } from '../../../core/errors/api-error';
 import { ChallengePhoto } from '../../../shared/components/challenge-photo/challenge-photo';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
@@ -28,13 +30,15 @@ type LoadState = 'loading' | 'loaded' | 'error';
     MatIconModule,
     PageHeader,
     RouterLink,
-    StatusTag
+    StatusTag,
+    TranslocoPipe
   ],
   templateUrl: './rivalry-detail.html',
   styleUrl: './rivalry-detail.scss'
 })
 export class RivalryDetail {
   private readonly rivalriesApi = inject(RivalriesApi);
+  private readonly rivalryText = inject(RivalryText);
 
   readonly cookA = input.required<string>();
   readonly cookB = input.required<string>();
@@ -63,5 +67,18 @@ export class RivalryDetail {
         this.state.set('error');
       }
     });
+  }
+
+  protected headline(rivalry: RivalryDetailModel): string {
+    return this.rivalryText.headline(rivalry);
+  }
+
+  protected outcome(rivalry: RivalryDetailModel, challenge: RivalryChallengeSummary): string {
+    return this.rivalryText.outcome(
+      challenge.status,
+      challenge.overallWinnerAccountId,
+      { accountId: rivalry.cookAAccountId, name: rivalry.cookAName },
+      { accountId: rivalry.cookBAccountId, name: rivalry.cookBName }
+    );
   }
 }

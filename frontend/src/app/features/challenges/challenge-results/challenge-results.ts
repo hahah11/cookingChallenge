@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ChallengeResult, ChallengesApi, ChallengeStatus } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
@@ -32,7 +33,8 @@ type LoadState = 'loading' | 'loaded' | 'error';
     PageHeader,
     ResultsTable,
     RouterLink,
-    StatusTag
+    StatusTag,
+    TranslocoPipe
   ],
   templateUrl: './challenge-results.html',
   styles: `

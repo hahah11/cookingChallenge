@@ -5,9 +5,10 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 
-import { Account, AccountsApi, Config, ConfigApi, SystemRole } from '../../../core/api/generated';
+import { Account, AccountsApi, Config, ConfigApi, Locale, SystemRole } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
 import { EditAccountDialog, EditAccountDialogData } from './edit-account-dialog';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const account: Account = {
   id: 'acc-1',
@@ -34,7 +35,7 @@ describe('EditAccountDialog', () => {
 
     await TestBed.configureTestingModule({
       imports: [EditAccountDialog, MatDialogModule],
-      providers: [
+      providers: [...provideTestI18n(), 
         Overlay,
         { provide: MatDialogRef, useValue: dialogRef },
         { provide: MAT_DIALOG_DATA, useValue: { accountId } satisfies EditAccountDialogData },
@@ -61,7 +62,8 @@ describe('EditAccountDialog', () => {
       firstName: 'Alice',
       lastName: 'Anderson',
       email: 'alice@example.com',
-      password: ''
+      password: '',
+      locale: Locale.EN
     });
     expect(component['roles']().has(SystemRole.ORGANIZER)).toBe(true);
   });
@@ -76,7 +78,13 @@ describe('EditAccountDialog', () => {
     const { fixture, dialogRef, updateAccount } = await setup();
     const component = fixture.componentInstance;
 
-    component['model'].set({ firstName: 'Alice', lastName: 'Anderson', email: 'alice@example.com', password: '' });
+    component['model'].set({
+      firstName: 'Alice',
+      lastName: 'Anderson',
+      email: 'alice@example.com',
+      password: '',
+      locale: Locale.DE
+    });
     component['toggleRole'](SystemRole.ADMIN, true);
     component['onSubmit']();
 
@@ -84,7 +92,8 @@ describe('EditAccountDialog', () => {
       firstName: 'Alice',
       lastName: 'Anderson',
       email: 'alice@example.com',
-      roles: [SystemRole.USER, SystemRole.ORGANIZER, SystemRole.ADMIN]
+      roles: [SystemRole.USER, SystemRole.ORGANIZER, SystemRole.ADMIN],
+      locale: Locale.DE
     });
     expect(dialogRef.close).toHaveBeenCalledWith(account);
   });
@@ -93,7 +102,7 @@ describe('EditAccountDialog', () => {
     const { fixture } = await setup(null);
     const component = fixture.componentInstance;
 
-    expect(component['model']()).toEqual({ firstName: '', lastName: '', email: '', password: '' });
+    expect(component['model']()).toEqual({ firstName: '', lastName: '', email: '', password: '', locale: Locale.EN });
     expect(fixture.nativeElement.querySelector('h2').textContent.trim()).toBe('New account');
   });
 
@@ -101,7 +110,13 @@ describe('EditAccountDialog', () => {
     const { fixture, dialogRef, createAccount } = await setup(null);
     const component = fixture.componentInstance;
 
-    component['model'].set({ firstName: 'Nia', lastName: 'New', email: 'nia@example.com', password: 'secret123' });
+    component['model'].set({
+      firstName: 'Nia',
+      lastName: 'New',
+      email: 'nia@example.com',
+      password: 'secret123',
+      locale: Locale.EN
+    });
     component['onSubmit']();
 
     expect(createAccount).toHaveBeenCalledWith({
@@ -109,6 +124,7 @@ describe('EditAccountDialog', () => {
       lastName: 'New',
       email: 'nia@example.com',
       roles: [SystemRole.USER],
+      locale: Locale.EN,
       password: 'secret123'
     });
     expect(dialogRef.close).toHaveBeenCalledWith(account);

@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 
 import { Account, AccountsApi, Challenge, ChallengeStatus, ChallengesApi, DishLabel, SystemRole } from '../../../core/api/generated';
 import { EditParticipantsDialog, EditParticipantsDialogData } from './edit-participants-dialog';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const accounts: Account[] = [
   { id: 'acc-1', email: 'a@example.com', firstName: 'Alice', lastName: 'A', name: 'Alice A', roles: [SystemRole.USER] },
@@ -45,7 +46,7 @@ describe('EditParticipantsDialog', () => {
 
     await TestBed.configureTestingModule({
       imports: [EditParticipantsDialog, MatDialogModule],
-      providers: [
+      providers: [...provideTestI18n(), 
         Overlay,
         { provide: MatDialogRef, useValue: dialogRef },
         { provide: MAT_DIALOG_DATA, useValue: data },

@@ -3,13 +3,16 @@ package at.fraihs.cookoff.auth.application.mapper;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
+import at.fraihs.cookoff.auth.domain.model.Language;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
 import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.LocaleRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
 
 import java.util.List;
 import java.util.Set;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
  * Domain -> generated-OpenAPI-model mapping, shared by every account use case that returns
@@ -23,7 +26,16 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface AccountModelMapper {
 
+    @Mapping(target = "locale", source = "language")
     AccountRestDto toGenerated(Account account);
+
+    default LocaleRestDto map(Language language) {
+        return LocaleRestDto.valueOf(language.name());
+    }
+
+    default Language toDomain(LocaleRestDto locale) {
+        return Language.valueOf(locale.name());
+    }
 
     default String map(AccountId id) {
         return id.toString();

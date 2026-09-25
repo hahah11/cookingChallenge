@@ -7,6 +7,7 @@ import { Challenge, ChallengeStatus, ChallengesApi, DishLabel } from '../../../c
 import { ApiError } from '../../../core/errors/api-error';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { ChallengeHistory } from './challenge-history';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const challenge: Challenge = {
   id: 'chal-1',
@@ -30,7 +31,7 @@ describe('ChallengeHistory', () => {
   function setup(listChallenges: ReturnType<typeof vi.fn>) {
     TestBed.configureTestingModule({
       imports: [ChallengeHistory],
-      providers: [provideRouter([]), { provide: ChallengesApi, useValue: { listChallenges } }]
+      providers: [...provideTestI18n(), provideRouter([]), { provide: ChallengesApi, useValue: { listChallenges } }]
     });
 
     const fixture = TestBed.createComponent(ChallengeHistory);

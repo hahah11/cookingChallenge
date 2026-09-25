@@ -4,12 +4,13 @@ import { RouterTestingHarness } from '@angular/router/testing';
 
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { LinkExpired } from './link-expired';
+import { provideTestI18n } from '../../../testing/i18n';
 
 describe('LinkExpired', () => {
   function setup() {
     TestBed.configureTestingModule({
       imports: [LinkExpired],
-      providers: [provideRouter([])]
+      providers: [...provideTestI18n(), provideRouter([])]
     });
 
     const fixture = TestBed.createComponent(LinkExpired);
@@ -51,7 +52,7 @@ describe('LinkExpired', () => {
 
   it('shows the access-link copy when reached via router navigation with no kind param, exactly how errorInterceptor reaches it', async () => {
     TestBed.configureTestingModule({
-      providers: [
+      providers: [...provideTestI18n(), 
         provideRouter([{ path: 'link-expired', component: LinkExpired }], withComponentInputBinding())
       ]
     });

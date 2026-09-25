@@ -7,8 +7,10 @@ import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
+import at.fraihs.cookoff.auth.domain.model.Language;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
 import at.fraihs.cookoff.shared.web.openapi.model.AccountRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.LocaleRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.SystemRoleRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.UpdateAccountRequestRestDto;
 
@@ -50,6 +52,29 @@ class UpdateAccountServiceTest {
         assertEquals("New Name", result.getName());
         assertEquals("host@example.com", result.getEmail());
         verify(accountRepository).save(account);
+    }
+
+    @Test
+    void should_changeLanguage_when_localeIsGiven() {
+        Account account = Account.create(new Email("host@example.com"), "Host", "Original", SystemRole.ORGANIZER);
+        when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
+
+        AccountRestDto result =
+                service.execute(account.getId(), new UpdateAccountRequestRestDto().locale(LocaleRestDto.DE));
+
+        assertEquals(LocaleRestDto.DE, result.getLocale());
+        verify(accountRepository).save(account);
+    }
+
+    @Test
+    void should_keepLanguage_when_localeIsOmitted() {
+        Account account = Account.create(new Email("host@example.com"), "Host", "Original", SystemRole.ORGANIZER);
+        account.changeLanguage(Language.DE);
+        when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
+
+        AccountRestDto result = service.execute(account.getId(), new UpdateAccountRequestRestDto().firstName("New"));
+
+        assertEquals(LocaleRestDto.DE, result.getLocale());
     }
 
     @Test

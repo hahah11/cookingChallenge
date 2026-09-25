@@ -70,7 +70,7 @@ public class SendChallengeInvitationsService {
             notificationPort.sendAccessLink(new InvitationNotification(
                     account.email(), account.firstName(), challenge.getTitle(),
                     frontendBaseUrl + "/home?token=" + token,
-                    challenge.canScore(accountId), challenge.isCook(accountId)));
+                    challenge.canScore(accountId), challenge.isCook(accountId), account.locale()));
         }
 
         log.info("Sent {} invitation(s) for challenge {}", targets.size(), challengeId);

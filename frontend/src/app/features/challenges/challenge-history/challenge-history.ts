@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Challenge, ChallengesApi } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
@@ -20,7 +21,7 @@ type LoadState = 'loading' | 'loaded' | 'error';
 /** `GET /api/v1/challenges` — fetches every page and renders one unpaginated grid, see the frontend plan's Phase 5. */
 @Component({
   selector: 'app-challenge-history',
-  imports: [ChallengeCard, EmptyState, ErrorState, LoadingSkeleton, MatButtonModule, MatIconModule, PageHeader],
+  imports: [ChallengeCard, EmptyState, ErrorState, LoadingSkeleton, MatButtonModule, MatIconModule, PageHeader, TranslocoPipe],
   templateUrl: './challenge-history.html',
   styleUrl: './challenge-history.scss'
 })

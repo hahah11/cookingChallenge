@@ -73,7 +73,7 @@ public class MailDispatcher {
     }
 
     private MimeMessage render(MailRequest request) throws MessagingException {
-        Context context = new Context();
+        Context context = new Context(request.locale());
         context.setVariables(request.model());
 
         MimeMessage message = mailTransport.createMessage();

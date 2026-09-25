@@ -3,30 +3,40 @@ package at.fraihs.cookoff.auth.interfaces.rest;
 import at.fraihs.cookoff.auth.application.exception.InvalidCredentialsException;
 import at.fraihs.cookoff.auth.application.exception.InvalidOrExpiredLinkException;
 import at.fraihs.cookoff.auth.application.service.AccessLinkLoginService;
+import at.fraihs.cookoff.auth.application.service.ChangeAccountLocaleService;
 import at.fraihs.cookoff.auth.application.service.LoginService;
 import at.fraihs.cookoff.auth.application.service.PasswordResetRedeemService;
+import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.shared.config.JacksonConfig;
 import at.fraihs.cookoff.shared.web.GlobalExceptionHandler;
 import at.fraihs.cookoff.shared.web.openapi.model.AccessLinkLoginRequestRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.AuthTokenRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.LocaleRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.LoginRequestRestDto;
 import at.fraihs.cookoff.shared.web.openapi.model.PasswordResetRedeemRequestRestDto;
+import at.fraihs.cookoff.shared.web.openapi.model.UpdateLocaleRequestRestDto;
 
 import java.time.OffsetDateTime;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -54,6 +64,47 @@ class AuthControllerTest {
 
     @MockitoBean
     private PasswordResetRedeemService passwordResetRedeemService;
+
+    @MockitoBean
+    private ChangeAccountLocaleService changeAccountLocaleService;
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    /** The filter chain is off in this slice, so the caller's JWT is placed the way CurrentAccount reads it back. */
+    private AccountId authenticateAsNewAccount() {
+        AccountId accountId = AccountId.generate();
+        Jwt jwt = Jwt.withTokenValue("test-token").header("alg", "none").claim("sub", accountId.toString()).build();
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(jwt, null));
+        return accountId;
+    }
+
+    @Test
+    void should_return204AndStoreTheLocaleForTheCaller_when_localeIsSupported() throws Exception {
+        AccountId accountId = authenticateAsNewAccount();
+
+        mockMvc.perform(put("/api/v1/me/locale")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new UpdateLocaleRequestRestDto(LocaleRestDto.DE))))
+                .andExpect(status().isNoContent());
+
+        verify(changeAccountLocaleService).execute(accountId, new UpdateLocaleRequestRestDto(LocaleRestDto.DE));
+    }
+
+    @Test
+    void should_return400WithoutStoring_when_localeIsNotSupported() throws Exception {
+        authenticateAsNewAccount();
+
+        mockMvc.perform(put("/api/v1/me/locale")
+                        .contentType("application/json")
+                        .content("{\"locale\":\"fr\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"));
+
+        verifyNoInteractions(changeAccountLocaleService);
+    }
 
     @Test
     void should_return200_when_credentialsValid() throws Exception {

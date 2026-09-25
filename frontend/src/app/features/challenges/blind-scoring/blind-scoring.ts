@@ -1,8 +1,10 @@
+import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import {
   Category,
@@ -13,18 +15,13 @@ import {
   PlateColor,
   ScoreEntry
 } from '../../../core/api/generated';
+import { translatePlateColor } from '../../../core/i18n/plate-color-name';
 import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { StarRating } from '../../../shared/components/star-rating/star-rating';
-
-const CATEGORY_LABELS: Record<Category, string> = {
-  [Category.MUNDGEFUEHL]: 'Mundgefühl',
-  [Category.TELLERSPRACHE]: 'Tellersprache',
-  [Category.GESCHMACK]: 'Geschmack'
-};
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
@@ -37,6 +34,7 @@ type LoadState = 'loading' | 'loaded' | 'error';
 @Component({
   selector: 'app-blind-scoring',
   imports: [
+    DatePipe,
     ErrorState,
     LoadingSkeleton,
     MatButtonModule,
@@ -44,19 +42,19 @@ type LoadState = 'loading' | 'loaded' | 'error';
     MatIconModule,
     PageHeader,
     RouterLink,
-    StarRating
+    StarRating,
+    TranslocoPipe
   ],
   templateUrl: './blind-scoring.html',
   styleUrl: './blind-scoring.scss'
 })
 export class BlindScoring {
+  private readonly transloco = inject(TranslocoService);
   private readonly challengesApi = inject(ChallengesApi);
   private readonly appConfig = inject(AppConfig);
   private readonly router = inject(Router);
 
   readonly id = input.required<string>();
-
-  protected readonly CATEGORY_LABELS = CATEGORY_LABELS;
 
   protected readonly loadState = signal<LoadState>('loading');
   protected readonly loadErrorMessage = signal('');
@@ -71,17 +69,21 @@ export class BlindScoring {
   protected readonly scoringClosed = computed(() => this.challenge()?.status === ChallengeStatus.CLOSED);
 
   protected readonly submitButtonLabel = computed(() =>
-    this.challenge()?.mySubmission ? 'Save changes' : 'Submit scores'
+    this.transloco.translate(this.challenge()?.mySubmission ? 'common.saveChanges' : 'blindScoring.submit')
   );
 
   protected readonly instructionText = computed<string>(() => {
     const challenge = this.challenge();
     if (!challenge || challenge.labels.length < 2) return '';
     const [first, second] = challenge.labels;
-    return (
-      `Blind tasting — rate the ${this.plateLabel(first).toLowerCase()} plate and the ` +
-      `${this.plateLabel(second).toLowerCase()} plate, 1–5 stars each, without knowing who cooked which.`
-    );
+    const firstLabel = this.plateLabel(first);
+    const secondLabel = this.plateLabel(second);
+    return this.transloco.translate('blindScoring.instructions', {
+      first: firstLabel,
+      second: secondLabel,
+      firstLower: firstLabel.toLowerCase(),
+      secondLower: secondLabel.toLowerCase()
+    });
   });
 
   constructor() {
@@ -136,7 +138,15 @@ export class BlindScoring {
   }
 
   protected plateLabel(label: DishLabel): string {
-    return this.colorFor(label)?.name ?? `Dish ${label}`;
+    const color = this.colorFor(label);
+    return color ? translatePlateColor(this.transloco, color.name) : this.transloco.translate('blindScoring.dish', { label });
+  }
+
+  protected starLabel(category: Category, label: DishLabel): string {
+    return this.transloco.translate('blindScoring.starsFor', {
+      category: this.transloco.translate(`category.${category}`),
+      plate: this.plateLabel(label)
+    });
   }
 
   protected canSubmit(): boolean {

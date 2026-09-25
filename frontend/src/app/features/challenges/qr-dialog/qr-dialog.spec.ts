@@ -8,12 +8,13 @@ import { vi } from 'vitest';
 import { ChallengesApi } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
 import { QrDialog, QrDialogData } from './qr-dialog';
+import { provideTestI18n } from '../../../testing/i18n';
 
 describe('QrDialog', () => {
   async function setup(createRegistrationInvite: ReturnType<typeof vi.fn>) {
     await TestBed.configureTestingModule({
       imports: [QrDialog, MatDialogModule],
-      providers: [
+      providers: [...provideTestI18n(), 
         Overlay,
         { provide: MatDialogRef, useValue: { close: vi.fn() } },
         {

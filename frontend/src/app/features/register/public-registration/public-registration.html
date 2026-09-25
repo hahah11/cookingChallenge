@@ -1,21 +1,21 @@
 @if (linkExpired()) {
-  <app-error-state message="This code has expired. Ask your host for a new QR code." />
+  <app-error-state [message]="'register.expired' | transloco" />
 } @else if (result(); as result) {
   <mat-card appearance="raised" class="public-registration__success" role="status">
     <mat-card-content>
       <p class="public-registration__success-emoji" aria-hidden="true">🎉</p>
-      <h2 class="public-registration__success-headline">Welcome, {{ model().firstName }}!</h2>
-      <p class="public-registration__message">{{ result.message }}</p>
+      <h2 class="public-registration__success-headline">{{ 'register.welcome' | transloco: { name: model().firstName } }}</h2>
+      <p class="public-registration__message">{{ (result.joined ? 'register.joined' : 'register.closed') | transloco }}</p>
     </mat-card-content>
   </mat-card>
 } @else {
   <mat-card appearance="raised" class="public-registration__card">
     <mat-card-content>
-      <app-page-header kicker="CookOff" title="Register" />
+      <app-page-header kicker="CookOff" [title]="'register.title' | transloco" />
 
       <form class="public-registration__form" (submit)="$event.preventDefault(); onSubmit()" novalidate>
         <mat-form-field appearance="outline">
-          <mat-label>First name</mat-label>
+          <mat-label>{{ 'fields.firstName' | transloco }}</mat-label>
           <input matInput autocomplete="given-name" [formField]="registerForm.firstName" />
           @if (registerForm.firstName().touched() && registerForm.firstName().invalid()) {
             <mat-error>{{ registerForm.firstName().errors()[0]?.message }}</mat-error>
@@ -23,7 +23,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Last name</mat-label>
+          <mat-label>{{ 'fields.lastName' | transloco }}</mat-label>
           <input matInput autocomplete="family-name" [formField]="registerForm.lastName" />
           @if (registerForm.lastName().touched() && registerForm.lastName().invalid()) {
             <mat-error>{{ registerForm.lastName().errors()[0]?.message }}</mat-error>
@@ -31,7 +31,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Email</mat-label>
+          <mat-label>{{ 'fields.email' | transloco }}</mat-label>
           <input matInput type="email" autocomplete="email" [formField]="registerForm.email" />
           @if (registerForm.email().touched() && registerForm.email().invalid()) {
             <mat-error>{{ registerForm.email().errors()[0]?.message }}</mat-error>
@@ -46,7 +46,7 @@
           @if (submitting()) {
             <mat-spinner diameter="20" />
           } @else {
-            Register
+            {{ 'register.submit' | transloco }}
           }
         </button>
       </form>

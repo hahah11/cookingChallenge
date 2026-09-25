@@ -1,5 +1,8 @@
 package at.fraihs.cookoff.shared.config;
 
+import at.fraihs.cookoff.shared.mail.MailMessageResolver;
+import at.fraihs.cookoff.shared.mail.MailMessages;
+
 import java.util.Set;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,10 +30,14 @@ public class MailConfig {
      * one resolver per {@link TemplateMode}. Selection is by {@code resolvablePatterns} on the
      * full template name; the suffix is therefore empty, or Thymeleaf would look for
      * {@code mail/x.txt.txt}.
+     *
+     * <p>Wording comes from {@code mail/messages*.properties} via {@link MailMessageResolver}; the
+     * template context's locale (the recipient's language) picks the bundle.
      */
     @Bean
-    public TemplateEngine mailTemplateEngine() {
+    public TemplateEngine mailTemplateEngine(MailMessages mailMessages) {
         TemplateEngine engine = new TemplateEngine();
+        engine.setMessageResolver(new MailMessageResolver(mailMessages));
         engine.addTemplateResolver(resolver(TemplateMode.HTML, "mail/*.html", 1));
         engine.addTemplateResolver(resolver(TemplateMode.TEXT, "mail/*.txt", 2));
         return engine;

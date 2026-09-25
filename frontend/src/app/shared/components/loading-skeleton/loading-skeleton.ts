@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * Invented in the M3 idiom — the prototype has no loading states at all, see
@@ -6,10 +7,11 @@ import { Component, computed, input } from '@angular/core';
  * via `_overrides.scss`, not re-implemented here.
  */
 @Component({
+  imports: [TranslocoPipe],
   selector: 'app-loading-skeleton',
   template: `
     <div class="loading-skeleton" role="status" aria-live="polite">
-      <span class="cc-visually-hidden">Loading…</span>
+      <span class="cc-visually-hidden">{{ 'common.loading' | transloco }}</span>
       @for (line of lineIndexes(); track line) {
         <div class="loading-skeleton__line" [class.loading-skeleton__line--card]="variant() === 'card'" aria-hidden="true"></div>
       }

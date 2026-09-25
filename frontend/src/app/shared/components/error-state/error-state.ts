@@ -1,6 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * Invented in the M3 idiom — the prototype has no error states at all, see
@@ -8,13 +9,13 @@ import { MatIconModule } from '@angular/material/icon';
  */
 @Component({
   selector: 'app-error-state',
-  imports: [MatButtonModule, MatIconModule],
+  imports: [MatButtonModule, MatIconModule, TranslocoPipe],
   template: `
     <div class="error-state" role="alert">
       <mat-icon class="error-state__icon" aria-hidden="true">error</mat-icon>
       <p class="error-state__message">{{ message() }}</p>
       @if (retryable()) {
-        <button mat-tonal-button type="button" (click)="retry.emit()">Try again</button>
+        <button mat-tonal-button type="button" (click)="retry.emit()">{{ 'common.tryAgain' | transloco }}</button>
       }
     </div>
   `,

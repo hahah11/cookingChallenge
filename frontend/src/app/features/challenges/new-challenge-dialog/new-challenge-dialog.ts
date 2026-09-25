@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { of, switchMap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -43,12 +44,14 @@ const ACCOUNTS_PAGE_SIZE = 100;
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatSelectModule
+    MatSelectModule,
+    TranslocoPipe
   ],
   templateUrl: './new-challenge-dialog.html',
   styleUrl: './new-challenge-dialog.scss'
 })
 export class NewChallengeDialog {
+  private readonly transloco = inject(TranslocoService);
   private readonly dialogRef = inject(MatDialogRef<NewChallengeDialog, Challenge | undefined>);
   private readonly accountsApi = inject(AccountsApi);
   private readonly challengesApi = inject(ChallengesApi);
@@ -64,11 +67,11 @@ export class NewChallengeDialog {
     cookBAccountId: ''
   });
   protected readonly challengeForm = form(this.model, (path) => {
-    required(path.title, { message: 'Title is required.' });
-    required(path.date, { message: 'Date is required.' });
-    required(path.dishName, { message: 'Dish name is required.' });
-    required(path.cookAAccountId, { message: 'Choose Cook A.' });
-    required(path.cookBAccountId, { message: 'Choose Cook B.' });
+    required(path.title, { message: this.transloco.translate('validation.titleRequired') });
+    required(path.date, { message: this.transloco.translate('validation.dateRequired') });
+    required(path.dishName, { message: this.transloco.translate('validation.dishNameRequired') });
+    required(path.cookAAccountId, { message: this.transloco.translate('validation.cookARequired') });
+    required(path.cookBAccountId, { message: this.transloco.translate('validation.cookBRequired') });
   });
 
   protected readonly cookBOptions = computed(() =>

@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { AuthApi } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
@@ -37,32 +38,36 @@ const EXPIRED_URL = '/link-expired?kind=reset';
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    PageHeader
+    PageHeader,
+    TranslocoPipe
   ],
   templateUrl: './reset-password.html',
   styleUrl: './reset-password.scss'
 })
 export class ResetPassword implements OnInit {
+  private readonly transloco = inject(TranslocoService);
   private readonly authApi = inject(AuthApi);
   private readonly router = inject(Router);
   private readonly notification = inject(Notification);
 
   readonly token = input<string>();
 
+  protected readonly minPasswordLength = MIN_PASSWORD_LENGTH;
+
   protected readonly model = signal<ResetPasswordFormModel>({
     newPassword: '',
     confirmPassword: ''
   });
   protected readonly resetForm = form(this.model, (path) => {
-    required(path.newPassword, { message: 'New password is required.' });
+    required(path.newPassword, { message: this.transloco.translate('validation.newPasswordRequired') });
     minLength(path.newPassword, MIN_PASSWORD_LENGTH, {
-      message: `Use at least ${MIN_PASSWORD_LENGTH} characters.`
+      message: this.transloco.translate('validation.passwordMin', { min: MIN_PASSWORD_LENGTH })
     });
-    required(path.confirmPassword, { message: 'Please confirm your new password.' });
+    required(path.confirmPassword, { message: this.transloco.translate('validation.confirmRequired') });
     // On the confirm field, not the first one: that is where the user is looking when it fails.
     validate(path.confirmPassword, ({ value, valueOf }) =>
       value() && value() !== valueOf(path.newPassword)
-        ? { kind: 'passwordMismatch', message: 'Passwords do not match.' }
+        ? { kind: 'passwordMismatch', message: this.transloco.translate('validation.passwordMismatch') }
         : undefined
     );
   });
@@ -89,7 +94,7 @@ export class ResetPassword implements OnInit {
     this.authApi.redeemPasswordReset({ token, newPassword: this.model().newPassword }).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.notification.success('Password changed. Log in with your new password.');
+        this.notification.success(this.transloco.translate('resetPassword.success'));
         void this.router.navigateByUrl('/login');
       },
       error: (error: ApiError) => {

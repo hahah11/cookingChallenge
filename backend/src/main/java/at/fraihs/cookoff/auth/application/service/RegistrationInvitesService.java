@@ -6,6 +6,7 @@ import at.fraihs.cookoff.auth.application.exception.AccountAlreadyExistsExceptio
 import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
+import at.fraihs.cookoff.auth.domain.model.Language;
 import at.fraihs.cookoff.auth.application.port.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.Locale;
 
 @Slf4j
 @Service
@@ -30,7 +32,8 @@ public class RegistrationInvitesService implements RegistrationInvites {
 
     @Override
     @Transactional
-    public RegistrationResult register(String token, String firstName, String lastName, String email) {
+    public RegistrationResult register(String token, String firstName, String lastName, String email,
+                                       Locale locale) {
         long challengeId = registrationInviteService.verify(token);
 
         Email accountEmail = new Email(email);
@@ -40,6 +43,7 @@ public class RegistrationInvitesService implements RegistrationInvites {
         }
 
         Account account = Account.create(accountEmail, firstName, lastName);
+        account.changeLanguage(Language.fromLocale(locale));
         accountRepository.save(account);
         log.info("Account self-registered via QR invite: {} for challenge {}", account.getId(), challengeId);
         return new RegistrationResult(account.getId(), challengeId);

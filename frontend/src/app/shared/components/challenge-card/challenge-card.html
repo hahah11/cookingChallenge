@@ -4,7 +4,7 @@
   role="button"
   tabindex="0"
   matRipple
-  [attr.aria-label]="'Open ' + challenge().dishName"
+  [attr.aria-label]="'challengeCard.open' | transloco: { dish: challenge().dishName }"
   (click)="onOpen()"
   (keydown.enter)="onOpen()"
   (keydown.space)="$event.preventDefault(); onOpen()"
@@ -28,7 +28,7 @@
         >
           @if (cook.accountId === challenge().overallWinnerAccountId) {
             <mat-icon class="challenge-card__winner-icon" aria-hidden="true">emoji_events</mat-icon>
-            <span class="cc-visually-hidden">Winner: </span>
+            <span class="cc-visually-hidden">{{ 'challengeCard.winner' | transloco }} </span>
           }
           {{ cook.name }}
         </span>
@@ -41,14 +41,20 @@
       <app-status-tag [status]="challenge().status" />
       @if (challenge().status === ChallengeStatus.OPEN) {
         <span class="challenge-card__progress-text">
-          {{ challenge().submittedGuestCount }}/{{ challenge().totalGuestCount }} submitted
+          {{
+            'challengeCard.submitted'
+              | transloco: { submitted: challenge().submittedGuestCount, total: challenge().totalGuestCount }
+          }}
         </span>
       } @else if (challenge().status === ChallengeStatus.CLOSED) {
         <span class="challenge-card__progress-text">
-          {{ challenge().submittedGuestCount }}/{{ challenge().totalGuestCount }} submitted · Scoring closed
+          {{
+            'challengeCard.submittedClosed'
+              | transloco: { submitted: challenge().submittedGuestCount, total: challenge().totalGuestCount }
+          }}
         </span>
       } @else {
-        <span class="challenge-card__progress-text">Results ready</span>
+        <span class="challenge-card__progress-text">{{ 'challengeCard.resultsReady' | transloco }}</span>
       }
     </div>
   </mat-card-content>

@@ -2,9 +2,9 @@
   <mat-toolbar class="organizer-shell__toolbar">
     <span class="organizer-shell__brand">CookOff</span>
     <span class="organizer-shell__spacer"></span>
-    <button mat-button type="button" (click)="logOut()">Log out</button>
+    <button mat-button type="button" (click)="logOut()">{{ 'nav.logOut' | transloco }}</button>
   </mat-toolbar>
-  <nav mat-tab-nav-bar class="organizer-shell__nav" [tabPanel]="tabPanel" aria-label="Primary">
+  <nav mat-tab-nav-bar class="organizer-shell__nav" [tabPanel]="tabPanel" [attr.aria-label]="'nav.primary' | transloco">
     @for (link of links(); track link.route) {
       <a
         mat-tab-link
@@ -13,7 +13,7 @@
         #rla="routerLinkActive"
         [active]="rla.isActive"
       >
-        {{ link.label }}
+        {{ link.labelKey | transloco }}
       </a>
     }
   </nav>

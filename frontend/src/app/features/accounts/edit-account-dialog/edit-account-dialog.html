@@ -9,7 +9,7 @@
     }
     @case ('loaded') {
       <mat-form-field appearance="outline">
-        <mat-label>First name</mat-label>
+        <mat-label>{{ 'fields.firstName' | transloco }}</mat-label>
         <input matInput placeholder="Sophie" [formField]="accountForm.firstName" />
         @if (accountForm.firstName().touched() && accountForm.firstName().invalid()) {
           <mat-error>{{ accountForm.firstName().errors()[0]?.message }}</mat-error>
@@ -17,7 +17,7 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Last name</mat-label>
+        <mat-label>{{ 'fields.lastName' | transloco }}</mat-label>
         <input matInput placeholder="Lang" [formField]="accountForm.lastName" />
         @if (accountForm.lastName().touched() && accountForm.lastName().invalid()) {
           <mat-error>{{ accountForm.lastName().errors()[0]?.message }}</mat-error>
@@ -25,7 +25,7 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Email</mat-label>
+        <mat-label>{{ 'fields.email' | transloco }}</mat-label>
         <input matInput type="email" placeholder="sophie@example.com" [formField]="accountForm.email" />
         @if (accountForm.email().touched() && accountForm.email().invalid()) {
           <mat-error>{{ accountForm.email().errors()[0]?.message }}</mat-error>
@@ -34,21 +34,30 @@
 
       @if (isCreate) {
         <mat-form-field appearance="outline">
-          <mat-label>Password</mat-label>
+          <mat-label>{{ 'fields.password' | transloco }}</mat-label>
           <input matInput type="password" [formField]="accountForm.password" />
-          <mat-hint>Required for Organizer/Admin roles; ignored otherwise.</mat-hint>
+          <mat-hint>{{ 'editAccount.passwordHint' | transloco }}</mat-hint>
         </mat-form-field>
       }
 
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'fields.language' | transloco }}</mat-label>
+        <mat-select [formField]="accountForm.locale">
+          @for (language of languages; track language.value) {
+            <mat-option [value]="language.value">{{ language.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
       <fieldset class="edit-account-dialog__roles">
-        <legend>Roles</legend>
+        <legend>{{ 'accounts.roles' | transloco }}</legend>
         @for (role of availableRoles(); track role) {
           <mat-checkbox
             [checked]="roles().has(role) || role === SystemRole.USER"
             [disabled]="role === SystemRole.USER"
             (change)="toggleRole(role, $event.checked)"
           >
-            {{ role }}
+            {{ 'roles.' + role | transloco }}
           </mat-checkbox>
         }
       </fieldset>
@@ -56,7 +65,7 @@
   }
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="onCancel()">Cancel</button>
+  <button mat-button type="button" (click)="onCancel()">{{ 'common.cancel' | transloco }}</button>
   <button mat-flat-button type="button" [disabled]="state() !== 'loaded' || submitting()" (click)="onSubmit()">
     @if (submitting()) {
       <mat-spinner diameter="20" />

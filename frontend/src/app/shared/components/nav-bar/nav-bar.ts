@@ -2,6 +2,7 @@ import { Component, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 export interface NavBarItem {
   icon: string;
@@ -17,7 +18,7 @@ export interface NavBarItem {
  */
 @Component({
   selector: 'app-nav-bar',
-  imports: [MatIconModule, MatRippleModule, RouterLink, RouterLinkActive],
+  imports: [MatIconModule, MatRippleModule, RouterLink, RouterLinkActive, TranslocoPipe],
   templateUrl: './nav-bar.html',
   styleUrl: './nav-bar.scss'
 })

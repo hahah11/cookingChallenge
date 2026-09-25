@@ -9,6 +9,7 @@
 | [`docs/frontend/03-services-state.md`](../docs/frontend/03-services-state.md) | **Services & State**: Service patterns, signals, RxJS, HTTP interceptors, state management |
 | [`docs/frontend/04-routing-forms-http.md`](../docs/frontend/04-routing-forms-http.md) | **Routing, Forms & HTTP**: Guards, resolvers, reactive forms, HTTP client setup, API services |
 | [`docs/frontend/05-performance-testing.md`](../docs/frontend/05-performance-testing.md) | **Performance & Testing**: Optimization techniques, component/service testing, best practices |
+| [`docs/frontend/06-i18n.md`](../docs/frontend/06-i18n.md) | **Internationalization**: English/German via Transloco, language detection, adding keys, backend text rules |
 
 ## Quick Reference: When Starting a Task
 
@@ -19,3 +20,4 @@
 5. Build container components with state management
 6. Add route configuration and guards if needed
 7. Write component tests and service tests
+8. All user-facing text goes through Transloco (`public/i18n/en.json` + `de.json`), never hardcoded

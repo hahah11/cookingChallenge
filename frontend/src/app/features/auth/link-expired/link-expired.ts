@@ -3,30 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
-
-interface ExpiredCopy {
-  kicker: string;
-  headline: string;
-  body: string;
-}
-
-const COPY: Record<'link' | 'qr' | 'reset', ExpiredCopy> = {
-  link: {
-    kicker: 'Link expired',
-    headline: 'This link is no longer valid',
-    body: 'Your personalized access link has expired. Contact the organizer and ask them to resend your link for this challenge.'
-  },
-  qr: {
-    kicker: 'QR code expired',
-    headline: 'This QR code is no longer valid',
-    body: 'The registration QR code for this cook-off has expired. Ask the organizer to show a fresh code or send you a personalized link by email.'
-  },
-  reset: {
-    kicker: 'Reset link expired',
-    headline: 'This reset link is no longer valid',
-    body: 'Password reset links work once and expire after 2 hours, and a newer reset replaces older ones. Ask an admin to send you a new link.'
-  }
-};
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * Reached when a guest's access-link session dies mid-visit (401 `UNAUTHENTICATED`) or their
@@ -35,17 +12,18 @@ const COPY: Record<'link' | 'qr' | 'reset', ExpiredCopy> = {
  *
  * `withComponentInputBinding()` (app.config.ts) sets `kind` to `undefined` — not its declared
  * default — when the route has no matching `kind` query param, which is how `errorInterceptor`
- * always reaches this route. `copy` falls back to 'link' explicitly rather than trusting the
+ * always reaches this route. `copyKey` falls back to 'link' explicitly rather than trusting the
  * input's own default.
  */
 @Component({
   selector: 'app-link-expired',
-  imports: [MatButtonModule, MatCardModule, MatIconModule, RouterLink],
+  imports: [MatButtonModule, MatCardModule, MatIconModule, RouterLink, TranslocoPipe],
   templateUrl: './link-expired.html',
   styleUrl: './link-expired.scss'
 })
 export class LinkExpired {
   readonly kind = input<'link' | 'qr' | 'reset'>('link');
 
-  protected readonly copy = computed(() => COPY[this.kind() ?? 'link']);
+  /** Translation key prefix for the kicker/headline/body of this kind, e.g. `linkExpired.qr`. */
+  protected readonly copyKey = computed(() => `linkExpired.${this.kind() ?? 'link'}`);
 }

@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 
 import { ErrorState } from './error-state';
+import { provideTestI18n } from '../../../testing/i18n';
 
 describe('ErrorState', () => {
   it('hides the retry button by default', async () => {
-    await TestBed.configureTestingModule({ imports: [ErrorState] }).compileComponents();
+    await TestBed.configureTestingModule({
+      providers: [...provideTestI18n()], imports: [ErrorState] }).compileComponents();
     const fixture = TestBed.createComponent(ErrorState);
     fixture.componentRef.setInput('message', 'Something went wrong.');
     fixture.detectChanges();
@@ -13,7 +15,8 @@ describe('ErrorState', () => {
   });
 
   it('emits retry when the button is clicked', async () => {
-    await TestBed.configureTestingModule({ imports: [ErrorState] }).compileComponents();
+    await TestBed.configureTestingModule({
+      providers: [...provideTestI18n()], imports: [ErrorState] }).compileComponents();
     const fixture = TestBed.createComponent(ErrorState);
     fixture.componentRef.setInput('message', 'Something went wrong.');
     fixture.componentRef.setInput('retryable', true);

@@ -3,8 +3,10 @@ import { Component, computed, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ChallengeStatus, ParticipantChallenge, PlateColor } from '../../../core/api/generated';
+import { PlateColorNamePipe } from '../../../core/i18n/plate-color-name';
 import { ChallengePhoto } from '../../../shared/components/challenge-photo/challenge-photo';
 
 /**
@@ -21,7 +23,7 @@ import { ChallengePhoto } from '../../../shared/components/challenge-photo/chall
  */
 @Component({
   selector: 'app-participant-challenge-card',
-  imports: [ChallengePhoto, DatePipe, MatButtonModule, MatCardModule, MatChipsModule],
+  imports: [ChallengePhoto, DatePipe, MatButtonModule, MatCardModule, MatChipsModule, PlateColorNamePipe, TranslocoPipe],
   templateUrl: './participant-challenge-card.html',
   styleUrl: './participant-challenge-card.scss'
 })

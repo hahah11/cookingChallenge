@@ -5,6 +5,7 @@ import type { ActivatedRouteSnapshot, UrlTree } from '@angular/router';
 
 import { authGuard } from './auth-guard';
 import { Auth } from './auth';
+import { provideTestI18n } from '../../testing/i18n';
 
 describe('authGuard', () => {
   function runGuard(authenticated: boolean, queryParams: Record<string, string> = {}) {
@@ -13,7 +14,7 @@ describe('authGuard', () => {
     const state = { url: '/home' } as RouterStateSnapshot;
 
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: Auth, useValue: auth }]
+      providers: [...provideTestI18n(), provideRouter([]), { provide: Auth, useValue: auth }]
     });
     return TestBed.runInInjectionContext(() => authGuard(route, state));
   }

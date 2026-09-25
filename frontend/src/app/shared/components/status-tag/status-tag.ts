@@ -1,6 +1,7 @@
 import { Component, input } from '@angular/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ChallengeStatus } from '../../../core/api/generated';
 
@@ -14,7 +15,7 @@ import { ChallengeStatus } from '../../../core/api/generated';
  */
 @Component({
   selector: 'app-status-tag',
-  imports: [MatChipsModule, MatIconModule],
+  imports: [MatChipsModule, MatIconModule, TranslocoPipe],
   template: `
     <mat-chip-set>
       <mat-chip
@@ -26,7 +27,7 @@ import { ChallengeStatus } from '../../../core/api/generated';
         disableRipple
       >
         <mat-icon matChipAvatar aria-hidden="true">check</mat-icon>
-        <span class="status-tag__label">{{ LABELS[status()] }}</span>
+        <span class="status-tag__label">{{ 'status.' + status() | transloco }}</span>
       </mat-chip>
     </mat-chip-set>
   `,
@@ -68,9 +69,4 @@ export class StatusTag {
   readonly status = input.required<ChallengeStatus>();
 
   protected readonly ChallengeStatus = ChallengeStatus;
-  protected readonly LABELS: Record<ChallengeStatus, string> = {
-    [ChallengeStatus.OPEN]: 'Open',
-    [ChallengeStatus.CLOSED]: 'Scoring closed',
-    [ChallengeStatus.REVEALED]: 'Revealed'
-  };
 }

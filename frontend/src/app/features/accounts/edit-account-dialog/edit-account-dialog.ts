@@ -6,10 +6,13 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
-import { Account, AccountsApi, SystemRole } from '../../../core/api/generated';
+import { Account, AccountsApi, Locale, SystemRole } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
 import { ApiError } from '../../../core/errors/api-error';
+import { detectApiLocale } from '../../../core/i18n/api-locale';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 
@@ -23,6 +26,7 @@ interface EditAccountFormModel {
   lastName: string;
   email: string;
   password: string;
+  locale: Locale;
 }
 
 type LoadState = 'loading' | 'loaded' | 'error';
@@ -45,12 +49,15 @@ type LoadState = 'loading' | 'loaded' | 'error';
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    TranslocoPipe
   ],
   templateUrl: './edit-account-dialog.html',
   styleUrl: './edit-account-dialog.scss'
 })
 export class EditAccountDialog {
+  private readonly transloco = inject(TranslocoService);
   private readonly data = inject<EditAccountDialogData>(MAT_DIALOG_DATA);
   private readonly dialogRef = inject(MatDialogRef<EditAccountDialog, Account | undefined>);
   private readonly accountsApi = inject(AccountsApi);
@@ -59,9 +66,15 @@ export class EditAccountDialog {
   protected readonly availableRoles = this.appConfig.availableRoles;
   protected readonly SystemRole = SystemRole;
 
+  /** Endonyms, deliberately not translated: each language is named in itself. */
+  protected readonly languages = [
+    { value: Locale.EN, label: 'English' },
+    { value: Locale.DE, label: 'Deutsch' }
+  ];
+
   protected readonly isCreate = this.data.accountId === null;
-  protected readonly dialogTitle = this.isCreate ? 'New account' : 'Edit account';
-  protected readonly submitLabel = this.isCreate ? 'Create account' : 'Save changes';
+  protected readonly dialogTitle = this.transloco.translate(this.isCreate ? 'editAccount.titleNew' : 'editAccount.titleEdit');
+  protected readonly submitLabel = this.transloco.translate(this.isCreate ? 'editAccount.submitNew' : 'common.saveChanges');
 
   protected readonly state = signal<LoadState>(this.isCreate ? 'loaded' : 'loading');
   protected readonly errorMessage = signal('');
@@ -70,13 +83,14 @@ export class EditAccountDialog {
     firstName: '',
     lastName: '',
     email: '',
-    password: ''
+    password: '',
+    locale: detectApiLocale()
   });
   protected readonly accountForm = form(this.model, (path) => {
-    required(path.firstName, { message: 'First name is required.' });
-    required(path.lastName, { message: 'Last name is required.' });
-    required(path.email, { message: 'Email is required.' });
-    emailValidator(path.email, { message: 'Enter a valid email address.' });
+    required(path.firstName, { message: this.transloco.translate('validation.firstNameRequired') });
+    required(path.lastName, { message: this.transloco.translate('validation.lastNameRequired') });
+    required(path.email, { message: this.transloco.translate('validation.emailRequired') });
+    emailValidator(path.email, { message: this.transloco.translate('validation.emailInvalid') });
   });
 
   protected readonly roles = signal<ReadonlySet<SystemRole>>(new Set([SystemRole.USER]));
@@ -101,7 +115,8 @@ export class EditAccountDialog {
           firstName: account.firstName,
           lastName: account.lastName,
           email: account.email,
-          password: ''
+          password: '',
+          locale: account.locale ?? Locale.EN
         });
         this.roles.set(new Set(account.roles));
         this.state.set('loaded');
@@ -133,12 +148,12 @@ export class EditAccountDialog {
     }
 
     this.submitting.set(true);
-    const { firstName, lastName, email, password } = this.model();
+    const { firstName, lastName, email, password, locale } = this.model();
     const roles = Array.from(this.roles());
     const accountId = this.data.accountId;
     const request = accountId === null
-      ? this.accountsApi.createAccount({ firstName, lastName, email, roles, password: password || undefined })
-      : this.accountsApi.updateAccount(accountId, { firstName, lastName, email, roles });
+      ? this.accountsApi.createAccount({ firstName, lastName, email, roles, locale, password: password || undefined })
+      : this.accountsApi.updateAccount(accountId, { firstName, lastName, email, roles, locale });
 
     request.subscribe({
       next: (response) => this.dialogRef.close(response.data),

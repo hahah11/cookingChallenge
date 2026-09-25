@@ -799,6 +799,29 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /api/v1/me/locale:
+    put:
+      tags: [Auth]
+      operationId: updateMyLocale
+      summary: Set the current account's preferred language (used for emails)
+      description: >
+        Any authenticated role. The frontend calls this after login with the language it
+        detected from the browser, so notification emails follow the recipient's language.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocaleRequest'
+      responses:
+        '204':
+          description: Preferred language stored.
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /api/v1/public/registrations:
     post:
       tags: [Public]
@@ -1110,6 +1133,18 @@ components:
 
     # --- Accounts ---
 
+    Locale:
+      type: string
+      enum: [en, de]
+      description: Supported UI/email languages. Defaults to `en` when omitted.
+
+    UpdateLocaleRequest:
+      type: object
+      required: [locale]
+      properties:
+        locale:
+          $ref: '#/components/schemas/Locale'
+
     Account:
       type: object
       required: [id, email, firstName, lastName, name, roles]
@@ -1131,6 +1166,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SystemRole'
+        locale:
+          $ref: '#/components/schemas/Locale'
 
     CreateAccountRequest:
       type: object
@@ -1152,6 +1189,8 @@ components:
           type: string
           nullable: true
           description: Required for ORGANIZER/ADMIN roles; ignored for USER-only accounts.
+        locale:
+          $ref: '#/components/schemas/Locale'
 
     UpdateAccountRequest:
       type: object
@@ -1168,6 +1207,8 @@ components:
           items:
             $ref: '#/components/schemas/SystemRole'
           description: Replaces the account's full role set; must not end up empty.
+        locale:
+          $ref: '#/components/schemas/Locale'
 
     AccountResponse:
       type: object
@@ -1754,6 +1795,8 @@ components:
         email:
           type: string
           format: email
+        locale:
+          $ref: '#/components/schemas/Locale'
 
     PublicRegistrationResult:
       type: object

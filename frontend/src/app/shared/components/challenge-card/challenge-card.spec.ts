@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { Challenge, ChallengeStatus, ChallengesApi, Config, ConfigApi, DishLabel } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
 import { ChallengeCard } from './challenge-card';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const challenge: Challenge = {
   id: 'chal-1',
@@ -36,7 +37,7 @@ describe('ChallengeCard', () => {
   async function createComponent(overrides: Partial<Challenge> = {}) {
     await TestBed.configureTestingModule({
       imports: [ChallengeCard],
-      providers: [
+      providers: [...provideTestI18n(), 
         { provide: ChallengesApi, useValue: { getChallengeImage: () => of(new Blob()) } },
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta: {} }) } },
         AppConfig

@@ -2,6 +2,7 @@ package at.fraihs.cookoff.auth.infrastructure.registrationinvite;
 
 import at.fraihs.cookoff.auth.application.dto.RegistrationInvite;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.domain.model.Language;
 import at.fraihs.cookoff.auth.infrastructure.persistence.entity.AccountJpaEntity;
 import at.fraihs.cookoff.cookoff.domain.model.ChallengeStatus;
 import at.fraihs.cookoff.cookoff.infrastructure.persistence.entity.ChallengeJpaEntity;
@@ -65,7 +66,7 @@ class RegistrationInviteRepositoryImplTest {
     private long persistAccount() {
         AccountId id = AccountId.generate();
         entityManager.persistAndFlush(new AccountJpaEntity(
-                id.value(), id + "@example.com", "Account", "" + id, null, Set.of()));
+                id.value(), id + "@example.com", "Account", "" + id, null, Set.of(), Language.EN));
         return id.value();
     }
 

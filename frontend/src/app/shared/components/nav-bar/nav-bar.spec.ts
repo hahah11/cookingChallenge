@@ -2,12 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { NavBar } from './nav-bar';
+import { provideTestI18n } from '../../../testing/i18n';
 
 describe('NavBar', () => {
   it('renders one link per item with its icon and label', async () => {
     await TestBed.configureTestingModule({
       imports: [NavBar],
-      providers: [provideRouter([])]
+      providers: [...provideTestI18n(), provideRouter([])]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(NavBar);

@@ -10,6 +10,7 @@ import {
   PlateColor
 } from '../../../core/api/generated';
 import { ParticipantChallengeCard } from './participant-challenge-card';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const RED: PlateColor = { id: 'red', name: 'Red', hexCode: '#c0392b', sortOrder: 0 };
 const YELLOW: PlateColor = { id: 'yellow', name: 'Yellow', hexCode: '#e0b400', sortOrder: 1 };
@@ -41,7 +42,7 @@ describe('ParticipantChallengeCard', () => {
   async function createComponent(props: Record<string, unknown> = {}) {
     await TestBed.configureTestingModule({
       imports: [ParticipantChallengeCard],
-      providers: [{ provide: ChallengesApi, useValue: { getChallengeImage: () => of(new Blob()) } }]
+      providers: [...provideTestI18n(), { provide: ChallengesApi, useValue: { getChallengeImage: () => of(new Blob()) } }]
     }).compileComponents();
     const fixture = TestBed.createComponent(ParticipantChallengeCard);
     for (const [key, value] of Object.entries(props)) {

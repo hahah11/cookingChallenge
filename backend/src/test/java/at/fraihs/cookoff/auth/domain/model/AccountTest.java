@@ -76,4 +76,25 @@ class AccountTest {
 
         assertThrows(IllegalArgumentException.class, () -> account.changeEmail(null));
     }
+
+    @Test
+    void should_defaultToEnglish_when_accountIsCreated() {
+        assertEquals(Language.EN, Account.create(EMAIL, "Alex", "Cook").getLanguage());
+    }
+
+    @Test
+    void should_changeLanguage_when_newLanguageGiven() {
+        Account account = Account.create(EMAIL, "Alex", "Cook");
+
+        account.changeLanguage(Language.DE);
+
+        assertEquals(Language.DE, account.getLanguage());
+    }
+
+    @Test
+    void should_throw_when_changingLanguageToNull() {
+        Account account = Account.create(EMAIL, "Alex", "Cook");
+
+        assertThrows(IllegalArgumentException.class, () -> account.changeLanguage(null));
+    }
 }

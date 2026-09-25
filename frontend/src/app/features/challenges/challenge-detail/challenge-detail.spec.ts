@@ -16,6 +16,7 @@ import { AppConfig } from '../../../core/config/app-config';
 import { Notification } from '../../../core/notifications/notification';
 import { expectNoAxeViolations } from '../../../testing/axe';
 import { ChallengeDetail } from './challenge-detail';
+import { provideTestI18n } from '../../../testing/i18n';
 
 const challengeDetail = {
   challengeId: 'chal-1',
@@ -57,7 +58,7 @@ describe('ChallengeDetail', () => {
   function setup(challengesApi: Record<string, unknown>, dialog: Record<string, unknown> = {}) {
     TestBed.configureTestingModule({
       imports: [ChallengeDetail],
-      providers: [
+      providers: [...provideTestI18n(), 
         provideRouter([]),
         { provide: ChallengesApi, useValue: challengesApi },
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta }) } },

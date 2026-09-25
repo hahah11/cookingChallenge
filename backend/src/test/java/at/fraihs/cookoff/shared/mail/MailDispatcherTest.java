@@ -6,6 +6,7 @@ import jakarta.mail.Multipart;
 import jakarta.mail.Part;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,13 +36,14 @@ class MailDispatcherTest {
     @BeforeEach
     void setUp() {
         dispatcher = new MailDispatcher(
-                new MailConfig().mailTemplateEngine(), mailTransport, "CookOff <no-reply@cookoff.test>", 2);
+                new MailConfig().mailTemplateEngine(new MailMessages()), mailTransport, "CookOff <no-reply@cookoff.test>", 2);
     }
 
     private MailRequest request() {
         return new MailRequest("ada@example.com", "You're invited: Schnitzel-Off", "access-link",
                 Map.of("firstName", "Ada", "challengeTitle", "Schnitzel-Off",
-                        "link", "https://cookoff.test/home?token=abc"));
+                        "link", "https://cookoff.test/home?token=abc"),
+                Locale.ENGLISH);
     }
 
     private void transportAcceptsMessages() {
@@ -106,6 +108,21 @@ class MailDispatcherTest {
         assertTrue(html.contains("Schnitzel-Off"), html);
     }
 
+    @Test
+    void should_renderTheBodiesInTheRequestsLanguage_when_localeIsGerman() throws Exception {
+        transportAcceptsMessages();
+        MailRequest english = request();
+
+        dispatcher.on(new MailRequest(english.to(), "Du bist eingeladen: Schnitzel-Off", english.template(),
+                english.model(), Locale.GERMAN));
+
+        MimeMessage message = sentMessage();
+        assertEquals("Du bist eingeladen: Schnitzel-Off", message.getSubject());
+        String html = bodyOfType(message, "text/html");
+        assertTrue(html.contains("lang=\"de\"") && html.contains("Zum Kochwettbewerb"), html);
+        assertTrue(bodyOfType(message, "text/plain").contains("Hallo Ada"));
+    }
+
     /** Walks the nested multiparts MimeMessageHelper builds and returns the first body of a type. */
     private static String bodyOfType(Part part, String mimeType) throws Exception {
         if (part.isMimeType(mimeType)) {
@@ -137,6 +154,6 @@ class MailDispatcherTest {
         transportAcceptsMessages();
 
         assertDoesNotThrow(() -> dispatcher.on(new MailRequest(
-                "ada@example.com", "Subject", "no-such-template", Map.of())));
+                "ada@example.com", "Subject", "no-such-template", Map.of(), Locale.ENGLISH)));
     }
 }

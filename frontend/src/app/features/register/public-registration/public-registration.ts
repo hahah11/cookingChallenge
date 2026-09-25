@@ -5,9 +5,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { PublicApi, PublicRegistrationResult } from '../../../core/api/generated';
 import { ApiError } from '../../../core/errors/api-error';
+import { detectApiLocale } from '../../../core/i18n/api-locale';
 import { ErrorState } from '../../../shared/components/error-state/error-state';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 
@@ -19,8 +21,8 @@ interface RegisterFormModel {
 
 /**
  * `/register?token=` — a scanned QR token, unauthenticated. `POST /public/registrations`
- * always creates the account; `result.message` is server-rendered display text, rendered
- * verbatim for both `joined` outcomes, see the frontend plan's Phase 6.
+ * always creates the account. The landing text is chosen here from `result.joined`; the
+ * server's own `result.message` is English-only and is deliberately not shown.
  */
 @Component({
   selector: 'app-public-registration',
@@ -32,22 +34,24 @@ interface RegisterFormModel {
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    PageHeader
+    PageHeader,
+    TranslocoPipe
   ],
   templateUrl: './public-registration.html',
   styleUrl: './public-registration.scss'
 })
 export class PublicRegistration {
+  private readonly transloco = inject(TranslocoService);
   private readonly publicApi = inject(PublicApi);
 
   readonly token = input<string>();
 
   protected readonly model = signal<RegisterFormModel>({ firstName: '', lastName: '', email: '' });
   protected readonly registerForm = form(this.model, (path) => {
-    required(path.firstName, { message: 'First name is required.' });
-    required(path.lastName, { message: 'Last name is required.' });
-    required(path.email, { message: 'Email is required.' });
-    emailValidator(path.email, { message: 'Enter a valid email address.' });
+    required(path.firstName, { message: this.transloco.translate('validation.firstNameRequired') });
+    required(path.lastName, { message: this.transloco.translate('validation.lastNameRequired') });
+    required(path.email, { message: this.transloco.translate('validation.emailRequired') });
+    emailValidator(path.email, { message: this.transloco.translate('validation.emailInvalid') });
   });
 
   protected readonly submitting = signal(false);
@@ -71,7 +75,7 @@ export class PublicRegistration {
     this.formErrorMessage.set(null);
 
     const { firstName, lastName, email } = this.model();
-    this.publicApi.registerPublicly({ token, firstName, lastName, email }).subscribe({
+    this.publicApi.registerPublicly({ token, firstName, lastName, email, locale: detectApiLocale() }).subscribe({
       next: (response) => {
         this.submitting.set(false);
         this.result.set(response.data);
@@ -80,8 +84,6 @@ export class PublicRegistration {
         this.submitting.set(false);
         if (error.code === 'INVALID_OR_EXPIRED_LINK') {
           this.linkExpired.set(true);
-        } else if (error.code === 'ACCOUNT_ALREADY_EXISTS') {
-          this.formErrorMessage.set('An account with this email already exists.');
         } else {
           this.formErrorMessage.set(error.message);
         }

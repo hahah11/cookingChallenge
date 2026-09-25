@@ -5,6 +5,7 @@ const toCanvas = vi.fn().mockResolvedValue(undefined);
 vi.mock('qrcode', () => ({ toCanvas: (...args: unknown[]) => toCanvas(...args) }));
 
 import { QrCode } from './qr-code';
+import { provideTestI18n } from '../../../testing/i18n';
 
 describe('QrCode', () => {
   beforeEach(() => {
@@ -12,7 +13,8 @@ describe('QrCode', () => {
   });
 
   it('renders the registration URL onto the canvas', async () => {
-    await TestBed.configureTestingModule({ imports: [QrCode] }).compileComponents();
+    await TestBed.configureTestingModule({
+      providers: [...provideTestI18n()], imports: [QrCode] }).compileComponents();
     const fixture = TestBed.createComponent(QrCode);
     fixture.componentRef.setInput('value', 'https://cookingchallenge.example/register?token=abc');
     fixture.detectChanges();
@@ -26,7 +28,8 @@ describe('QrCode', () => {
   });
 
   it('sets an accessible label on the canvas', async () => {
-    await TestBed.configureTestingModule({ imports: [QrCode] }).compileComponents();
+    await TestBed.configureTestingModule({
+      providers: [...provideTestI18n()], imports: [QrCode] }).compileComponents();
     const fixture = TestBed.createComponent(QrCode);
     fixture.componentRef.setInput('value', 'https://cookingchallenge.example/register?token=abc');
     fixture.detectChanges();

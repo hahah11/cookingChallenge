@@ -2,6 +2,7 @@ package at.fraihs.cookoff.auth.infrastructure.passwordreset;
 
 import at.fraihs.cookoff.auth.application.dto.PasswordResetToken;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
+import at.fraihs.cookoff.auth.domain.model.Language;
 import at.fraihs.cookoff.auth.infrastructure.persistence.entity.AccountJpaEntity;
 import at.fraihs.cookoff.shared.tsid.TsidSupport;
 import org.junit.jupiter.api.BeforeEach;
@@ -113,7 +114,7 @@ class PasswordResetTokenRepositoryImplTest {
     private AccountId persistAccount() {
         AccountId id = AccountId.generate();
         entityManager.persistAndFlush(new AccountJpaEntity(
-                id.value(), id + "@example.com", "Account", "" + id, "hash", Set.of()));
+                id.value(), id + "@example.com", "Account", "" + id, "hash", Set.of(), Language.EN));
         return id;
     }
 }

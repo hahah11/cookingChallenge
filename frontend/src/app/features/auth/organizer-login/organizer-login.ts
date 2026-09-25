@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { Auth } from '../../../core/auth/auth';
 import { AppConfig } from '../../../core/config/app-config';
@@ -33,12 +34,14 @@ interface LoginFormModel {
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    PageHeader
+    PageHeader,
+    TranslocoPipe
   ],
   templateUrl: './organizer-login.html',
   styleUrl: './organizer-login.scss'
 })
 export class OrganizerLogin {
+  private readonly transloco = inject(TranslocoService);
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
   private readonly notification = inject(Notification);
@@ -48,9 +51,9 @@ export class OrganizerLogin {
 
   protected readonly model = signal<LoginFormModel>({ email: '', password: '' });
   protected readonly loginForm = form(this.model, (path) => {
-    required(path.email, { message: 'Email is required.' });
-    emailValidator(path.email, { message: 'Enter a valid email address.' });
-    required(path.password, { message: 'Password is required.' });
+    required(path.email, { message: this.transloco.translate('validation.emailRequired') });
+    emailValidator(path.email, { message: this.transloco.translate('validation.emailInvalid') });
+    required(path.password, { message: this.transloco.translate('validation.passwordRequired') });
   });
 
   protected readonly submitting = signal(false);
@@ -70,7 +73,7 @@ export class OrganizerLogin {
       error: (error: ApiError) => {
         this.submitting.set(false);
         if (error.code === 'INVALID_CREDENTIALS') {
-          this.loginError.set('Incorrect email or password.');
+          this.loginError.set(this.transloco.translate('login.incorrectCredentials'));
         } else {
           this.notification.error(error.message);
         }

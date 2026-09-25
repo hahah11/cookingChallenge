@@ -1,29 +1,32 @@
 @switch (state()) {
   @case ('loading') {
-    <app-page-header title="Rivalry" />
+    <app-page-header [title]="'rivalry.title' | transloco" />
     <app-loading-skeleton [lines]="4" />
   }
   @case ('error') {
-    <app-page-header title="Rivalry" />
+    <app-page-header [title]="'rivalry.title' | transloco" />
     <app-error-state [message]="errorMessage()" [retryable]="true" (retry)="load()" />
   }
   @case ('loaded') {
     @if (rivalry(); as rivalry) {
       <a mat-button type="button" routerLink="/rivalries" class="rivalry-detail__back">
         <mat-icon aria-hidden="true">arrow_back</mat-icon>
-        All rivalries
+        {{ 'rivalry.all' | transloco }}
       </a>
 
-      <app-page-header kicker="Head-to-head" [title]="rivalry.cookAName + ' vs ' + rivalry.cookBName" />
+      <app-page-header
+        [kicker]="'rivalry.kicker' | transloco"
+        [title]="'rivalry.vs' | transloco: { a: rivalry.cookAName, b: rivalry.cookBName }"
+      />
 
-      <p class="rivalry-detail__headline">{{ rivalry.headline }}</p>
+      <p class="rivalry-detail__headline">{{ headline(rivalry) }}</p>
       <dl class="rivalry-detail__record">
         <div>
           <dt>{{ rivalry.cookAName }}</dt>
           <dd>{{ rivalry.cookAWins }}</dd>
         </div>
         <div>
-          <dt>Draws</dt>
+          <dt>{{ 'rivalry.drawsLabel' | transloco }}</dt>
           <dd>{{ rivalry.draws }}</dd>
         </div>
         <div>
@@ -48,7 +51,7 @@
                 <p class="rivalry-detail__challenge-event">{{ challenge.title }}</p>
                 <div class="rivalry-detail__challenge-footer">
                   <app-status-tag [status]="challenge.status" />
-                  <span class="rivalry-detail__challenge-outcome">{{ challenge.outcomeLabel }}</span>
+                  <span class="rivalry-detail__challenge-outcome">{{ outcome(rivalry, challenge) }}</span>
                 </div>
               </mat-card-content>
             </mat-card>

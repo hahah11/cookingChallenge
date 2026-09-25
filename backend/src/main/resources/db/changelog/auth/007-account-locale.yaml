@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-01-add-account-locale
+      author: fraihs
+      comment: >-
+        Preferred language per account, so notification emails (sent by an organizer/admin to
+        someone else) follow the recipient's language. Existing accounts default to English (stored as the Language enum name, like account_roles.role).
+      changes:
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: locale
+                  type: VARCHAR(8)
+                  defaultValue: EN
+                  constraints:
+                    nullable: false

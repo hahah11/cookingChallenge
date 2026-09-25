@@ -3,6 +3,7 @@ import { Component, inject, input, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatRippleModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Challenge, ChallengeStatus, CookAssignment } from '../../../core/api/generated';
 import { AppConfig } from '../../../core/config/app-config';
@@ -16,7 +17,7 @@ import { StatusTag } from '../status-tag/status-tag';
  */
 @Component({
   selector: 'app-challenge-card',
-  imports: [DatePipe, MatCardModule, MatIconModule, MatRippleModule, ChallengePhoto, StatusTag],
+  imports: [DatePipe, MatCardModule, MatIconModule, MatRippleModule, ChallengePhoto, StatusTag, TranslocoPipe],
   templateUrl: './challenge-card.html',
   styleUrl: './challenge-card.scss'
 })

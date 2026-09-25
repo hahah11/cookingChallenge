@@ -11,9 +11,11 @@ import at.fraihs.cookoff.auth.domain.model.Account;
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.auth.domain.model.Email;
 import at.fraihs.cookoff.auth.domain.model.SystemRole;
+import at.fraihs.cookoff.auth.domain.model.Language;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -53,7 +55,7 @@ class PasswordResetServiceTest {
 
     private Account account(String passwordHash, SystemRole role) {
         return Account.reconstitute(accountId, new Email("org@example.com"), "Olga", "Organizer",
-                passwordHash, Set.of(role));
+                passwordHash, Set.of(role), Language.EN);
     }
 
     @Test
@@ -99,6 +101,19 @@ class PasswordResetServiceTest {
         assertEquals(new Email("org@example.com"), mail.recipient());
         assertEquals("Olga", mail.firstName());
         assertEquals("https://cookoff.test/reset-password?token=" + tokenCaptor.getValue().token(), mail.link());
+    }
+
+    @Test
+    void should_mailInTheAccountsLanguage_when_accountPrefersGerman() {
+        Account german = Account.reconstitute(accountId, new Email("org@example.com"), "Olga", "Organizer",
+                "hash", Set.of(SystemRole.ORGANIZER), Language.DE);
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(german));
+
+        service.execute(accountId);
+
+        ArgumentCaptor<PasswordResetNotification> mailCaptor = ArgumentCaptor.forClass(PasswordResetNotification.class);
+        verify(notificationPort).sendPasswordReset(mailCaptor.capture());
+        assertEquals(Locale.GERMAN, mailCaptor.getValue().locale());
     }
 
     @Test
