@@ -69,6 +69,46 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.component }}
           cache-to: type=gha,mode=max,scope=${{ matrix.component }}
 
+  # Records the published version in the repo: a VERSION file committed to main, plus a git tag
+  # with the same name as the image tag, so `git checkout 0.1.42` gives the source of image 0.1.42.
+  # Pushes made with GITHUB_TOKEN never trigger workflows, so this commit can't cause a rebuild loop.
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # Two quick pushes to main would otherwise race to commit VERSION.
+    concurrency:
+      group: release-version
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Commit VERSION and tag
+        env:
+          VERSION: ${{ env.BASE_VERSION }}.${{ github.run_number }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          echo "$VERSION" > VERSION
+          git add VERSION
+          git commit -m "Release $VERSION [skip ci]"
+          # Tag the release commit so the tagged tree contains the matching VERSION file. It
+          # differs from the built commit (${{ github.sha }}) only by that file.
+          git tag -a "$VERSION" -m "Release $VERSION (built from ${{ github.sha }})"
+          # main may have moved on since checkout; replay the VERSION commit on top and re-tag.
+          pushed=false
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then pushed=true; break; fi
+            git pull --rebase origin main
+            git tag -f -a "$VERSION" -m "Release $VERSION (built from ${{ github.sha }})"
+          done
+          [ "$pushed" = true ] || { echo "Could not push VERSION to main"; exit 1; }
+          git push origin "refs/tags/$VERSION"
+
   # GitHub's Free plan caps PRIVATE package storage (~500 MB), and every push leaves the
   # previous untagged manifest behind. Prune them so the quota doesn't fill up.
   prune:

@@ -118,6 +118,14 @@ puts it on `GET /api/v1/config`, where the Angular login page displays it. A bac
 the workflow reports `dev`. The frontend image bakes in no version of its own — it shows the
 backend's, so there is only one source of truth.
 
+After both images are pushed, the workflow's `release` job records the version in git as well: it
+writes it to `VERSION` at the repo root, commits `Release 0.1.<run> [skip ci]` to `main`, and tags
+that commit with an annotated tag named exactly like the image tag (`0.1.<run>`). The tag message
+names the commit the images were built from; the tagged commit differs from it only by `VERSION`.
+Pushes made with `GITHUB_TOKEN` don't trigger workflows, so the commit causes no rebuild. Because
+CI commits to `main` after every push, pull before committing locally. `VERSION` is a record only —
+nothing reads it at build or run time.
+
 **Rollback:** set `IMAGE_TAG=0.1.<previous>` in `.env` and `up -d`. Confirm on the login page.
 
 ## Server setup (once)
