@@ -62,7 +62,6 @@ package "cookoff" {
   class Challenge << (A,orange) AggregateRoot >> {
     id : ChallengeId
     date : LocalDate
-    title : String
     dishName : DishName
     status : ChallengeStatus
     createdBy : AccountId

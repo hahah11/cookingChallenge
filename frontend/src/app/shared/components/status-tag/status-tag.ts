@@ -8,10 +8,9 @@ import { ChallengeStatus } from '../../../core/api/generated';
 /**
  * `Open` / `Scoring closed` / `Revealed` tag, one place for both organizer and participant
  * screens. Every state is a highlighted (colored) chip, matching the design's always-tinted
- * status chip: `Open` uses the M3 error role (design tints it red, its own hue-10
- * chip color isn't a system token, but error already sits at the same hue), `Scoring closed`
- * uses the project's custom warning (yellow) role, `Revealed` uses the project's custom success role — M3
- * has no built-in success or warning color, see `_overrides.scss`.
+ * status chip: `Open` uses the project's custom success (green) role, `Scoring closed` uses the
+ * custom warning (yellow) role — M3 has no built-in success or warning color, see
+ * `_overrides.scss` — and `Revealed` is black with white text, like the filled buttons.
  */
 @Component({
   selector: 'app-status-tag',
@@ -40,11 +39,13 @@ import { ChallengeStatus } from '../../../core/api/generated';
       pointer-events: none;
     }
 
+    /* Same black/white as the filled buttons. */
     .status-tag--revealed {
-      --mat-chip-elevated-selected-container-color: var(--cc-color-success-container);
-      --mat-chip-selected-label-text-color: var(--cc-color-on-success-container);
-      --mat-chip-selected-hover-state-layer-color: var(--cc-color-on-success-container);
-      --mat-chip-selected-focus-state-layer-color: var(--cc-color-on-success-container);
+      --mat-chip-elevated-selected-container-color: #1a1a1a;
+      --mat-chip-selected-label-text-color: #fff;
+      --mat-chip-selected-hover-state-layer-color: #fff;
+      --mat-chip-selected-focus-state-layer-color: #fff;
+      --mat-chip-with-icon-selected-icon-color: #fff;
       --mat-chip-flat-selected-outline-width: 0;
     }
 
@@ -57,10 +58,10 @@ import { ChallengeStatus } from '../../../core/api/generated';
     }
 
     .status-tag--open {
-      --mat-chip-elevated-selected-container-color: var(--mat-sys-error-container);
-      --mat-chip-selected-label-text-color: var(--mat-sys-on-error-container);
-      --mat-chip-selected-hover-state-layer-color: var(--mat-sys-on-error-container);
-      --mat-chip-selected-focus-state-layer-color: var(--mat-sys-on-error-container);
+      --mat-chip-elevated-selected-container-color: var(--cc-color-success-container);
+      --mat-chip-selected-label-text-color: var(--cc-color-on-success-container);
+      --mat-chip-selected-hover-state-layer-color: var(--cc-color-on-success-container);
+      --mat-chip-selected-focus-state-layer-color: var(--cc-color-on-success-container);
       --mat-chip-flat-selected-outline-width: 0;
     }
   `

@@ -16,7 +16,6 @@ public class Challenge {
     @Identity
     private final ChallengeId id;
     private final LocalDate date;
-    private final String title;
     private final DishName dishName;
     private final List<CookAssignment> cookAssignments;
     private final List<AccountId> guestAccountIds;
@@ -25,13 +24,12 @@ public class Challenge {
     private String imageRef;
     private RevealResult lastRevealResult;
 
-    private Challenge(ChallengeId id, LocalDate date, String title, DishName dishName,
+    private Challenge(ChallengeId id, LocalDate date, DishName dishName,
                        List<CookAssignment> cookAssignments, List<AccountId> guestAccountIds,
                        ChallengeStatus status, AccountId createdBy, String imageRef,
                        RevealResult lastRevealResult) {
         this.id = id;
         this.date = date;
-        this.title = title;
         this.dishName = dishName;
         this.cookAssignments = new ArrayList<>(cookAssignments);
         this.guestAccountIds = new ArrayList<>(guestAccountIds);
@@ -41,7 +39,7 @@ public class Challenge {
         this.lastRevealResult = lastRevealResult;
     }
 
-    public static Challenge create(LocalDate date, String title, DishName dishName,
+    public static Challenge create(LocalDate date, DishName dishName,
                                     AccountId cookAAccountId, AccountId cookBAccountId,
                                     List<AccountId> guestAccountIds, AccountId createdBy) {
         if (date == null) {
@@ -63,15 +61,15 @@ public class Challenge {
                 new CookAssignment(cookAAccountId, DishLabel.A),
                 new CookAssignment(cookBAccountId, DishLabel.B)
         );
-        return new Challenge(ChallengeId.generate(), date, title, dishName, assignments,
+        return new Challenge(ChallengeId.generate(), date, dishName, assignments,
                 List.copyOf(guestAccountIds), ChallengeStatus.OPEN, createdBy, null, null);
     }
 
-    public static Challenge reconstitute(ChallengeId id, LocalDate date, String title, DishName dishName,
+    public static Challenge reconstitute(ChallengeId id, LocalDate date, DishName dishName,
                                           List<CookAssignment> cookAssignments, List<AccountId> guestAccountIds,
                                           ChallengeStatus status, AccountId createdBy, String imageRef,
                                           RevealResult lastRevealResult) {
-        return new Challenge(id, date, title, dishName, cookAssignments, guestAccountIds, status, createdBy, imageRef,
+        return new Challenge(id, date, dishName, cookAssignments, guestAccountIds, status, createdBy, imageRef,
                 lastRevealResult);
     }
 
@@ -240,10 +238,6 @@ public class Challenge {
 
     public LocalDate getDate() {
         return date;
-    }
-
-    public String getTitle() {
-        return title;
     }
 
     public DishName getDishName() {

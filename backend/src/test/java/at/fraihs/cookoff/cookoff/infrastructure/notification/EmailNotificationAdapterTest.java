@@ -75,7 +75,7 @@ class EmailNotificationAdapterTest {
                 true, false, Locale.ENGLISH));
 
         assertEquals(
-                Map.of("firstName", "Ada", "challengeTitle", "Schnitzel-Off",
+                Map.of("firstName", "Ada", "dishName", "Schnitzel-Off",
                         "link", "https://cookoff.test/home?token=t",
                         "canRate", true, "picksPlateColor", false),
                 publishedRequest().model());

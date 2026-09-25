@@ -32,7 +32,7 @@ describe('StatusTag', () => {
     expect(chip.classList).not.toContain('status-tag--revealed');
   });
 
-  it('renders "Revealed" for a revealed challenge with the success override class', async () => {
+  it('renders "Revealed" for a revealed challenge with the revealed override class', async () => {
     const fixture = await createComponent(ChallengeStatus.REVEALED);
     const chip = fixture.nativeElement.querySelector('mat-chip');
     expect(chip.querySelector('.status-tag__label').textContent.trim()).toBe('Revealed');

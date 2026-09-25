@@ -55,7 +55,6 @@ public final class ChallengeModelMapper {
         return new ChallengeRestDto(
                 challenge.getId().toString(),
                 challenge.getDate(),
-                challenge.getTitle(),
                 challenge.getDishName().toString(),
                 ChallengeStatusRestDto.valueOf(challenge.getStatus().name()),
                 cookAssignments(challenge, accountLookup),
@@ -141,7 +140,6 @@ public final class ChallengeModelMapper {
         return new ParticipantChallengeRestDto(
                 challenge.getId().toString(),
                 challenge.getDate(),
-                challenge.getTitle(),
                 challenge.getDishName().toString(),
                 ChallengeStatusRestDto.valueOf(challenge.getStatus().name()),
                 Arrays.asList(DishLabelRestDto.values()),

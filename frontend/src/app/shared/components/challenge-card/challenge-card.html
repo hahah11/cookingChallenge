@@ -18,7 +18,6 @@
   <mat-card-content class="challenge-card__content">
     <p class="challenge-card__kicker">{{ challenge().date | date: 'mediumDate' }}</p>
     <h2 class="challenge-card__title">{{ challenge().dishName }}</h2>
-    <p class="challenge-card__event">{{ challenge().title }}</p>
     <p class="challenge-card__cooks">
       @for (cook of challenge().cookAssignments; track cook.accountId; let last = $last) {
         <span

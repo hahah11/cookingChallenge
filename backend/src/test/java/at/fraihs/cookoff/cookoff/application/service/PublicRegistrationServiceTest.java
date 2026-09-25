@@ -43,7 +43,7 @@ class PublicRegistrationServiceTest {
     private PublicRegistrationService service;
 
     private Challenge openChallenge() {
-        return Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(), AccountId.generate());
     }
 

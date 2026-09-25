@@ -257,7 +257,7 @@ class SecurityIntegrationTest {
         AccountRestDto cookB = createAccountService.execute(
                 new CreateAccountRequestRestDto("cook-b@example.com", "Cook", "B").roles(List.of(SystemRoleRestDto.USER)));
         CreateChallengeRequestRestDto request = new CreateChallengeRequestRestDto(
-                LocalDate.now(), "Title", "Schnitzel", cookA.getId(), cookB.getId());
+                LocalDate.now(), "Schnitzel", cookA.getId(), cookB.getId());
         return createChallengeService.execute(request, organizerId);
     }
 

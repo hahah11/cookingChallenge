@@ -33,11 +33,11 @@ public class EmailNotificationAdapter implements NotificationPort {
     public void sendAccessLink(InvitationNotification notification) {
         eventPublisher.publishEvent(new MailRequest(
                 notification.recipient().value(),
-                mailMessages.get("mail.accessLink.subject", notification.locale(), notification.challengeTitle()),
+                mailMessages.get("mail.accessLink.subject", notification.locale(), notification.dishName()),
                 "access-link",
                 Map.of(
                         "firstName", notification.firstName(),
-                        "challengeTitle", notification.challengeTitle(),
+                        "dishName", notification.dishName(),
                         "link", notification.link(),
                         "canRate", notification.canRate(),
                         "picksPlateColor", notification.picksPlateColor()),
@@ -48,11 +48,11 @@ public class EmailNotificationAdapter implements NotificationPort {
     public void sendResultsAvailable(ResultsAvailableNotification notification) {
         eventPublisher.publishEvent(new MailRequest(
                 notification.recipient().value(),
-                mailMessages.get("mail.resultsAvailable.subject", notification.locale(), notification.challengeTitle()),
+                mailMessages.get("mail.resultsAvailable.subject", notification.locale(), notification.dishName()),
                 "results-available",
                 Map.of(
                         "firstName", notification.firstName(),
-                        "challengeTitle", notification.challengeTitle(),
+                        "dishName", notification.dishName(),
                         "link", notification.link(),
                         "canRate", notification.canRate(),
                         "picksPlateColor", notification.picksPlateColor()),

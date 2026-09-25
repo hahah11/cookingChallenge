@@ -1,6 +1,6 @@
 [(#{mail.accessLink.heading(${firstName})})]
 
-[(#{mail.accessLink.intro.text(${challengeTitle})})]
+[(#{mail.accessLink.intro.text(${dishName})})]
 [# th:if="${canRate}"][(#{mail.accessLink.canRate})]
 [/][# th:if="${picksPlateColor}"][(#{mail.accessLink.picksPlateColor})]
 [/]

@@ -27,7 +27,6 @@ const rivalryDetail: RivalryDetailModel = {
     {
       id: 'chal-1',
       date: '2026-08-01',
-      title: 'Summer cook-off',
       dishName: 'Ramen',
       status: ChallengeStatus.REVEALED,
       hasImage: false,
@@ -37,7 +36,6 @@ const rivalryDetail: RivalryDetailModel = {
     {
       id: 'chal-2',
       date: '2026-07-01',
-      title: 'Spring cook-off',
       dishName: 'Curry',
       status: ChallengeStatus.OPEN,
       hasImage: false,

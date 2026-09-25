@@ -57,7 +57,7 @@ class UnrevealChallengeServiceTest {
     private final AccountId organizerId = AccountId.generate();
 
     private Challenge revealedChallenge() {
-        Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(), organizerId);
         challenge.closeScoring();
         challenge.reveal(cookAId);

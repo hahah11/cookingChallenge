@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Organizer-facing single-challenge fetch: the challenge's own metadata (title, dish name,
+ * Organizer-facing single-challenge fetch: the challenge's own metadata (dish name,
  * date, status, hasImage, cookAssignments) plus which guests have/haven't submitted, per
  * docs/cookingChallenge/plans/frontend-implementation-plan.md's Phase 5b. Tracks the
  * pre-added guest list only, not the two cooks, matching that row's literal wording even
@@ -63,7 +63,6 @@ public class GetChallengeStatusService {
                 guests.size(),
                 (int) submittedCount,
                 guests,
-                challenge.getTitle(),
                 challenge.getDishName().toString(),
                 challenge.getDate(),
                 ChallengeStatusRestDto.valueOf(challenge.getStatus().name()),

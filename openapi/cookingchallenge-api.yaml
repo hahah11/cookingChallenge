@@ -328,7 +328,7 @@ paths:
       operationId: getChallengeStatus
       summary: Challenge detail for the organizer screen, including per-guest submission status
       description: >
-        Returns the challenge's own metadata (title, dish name, date, status,
+        Returns the challenge's own metadata (dish name, date, status,
         hasImage, cookAssignments) plus the guest list with per-guest submission
         status. The one organizer-facing single-challenge fetch — safe to call
         regardless of whether the challenge is OPEN or REVEALED.
@@ -1264,7 +1264,6 @@ components:
       required:
         - id
         - date
-        - title
         - dishName
         - status
         - cookAssignments
@@ -1280,8 +1279,6 @@ components:
         date:
           type: string
           format: date
-        title:
-          type: string
         dishName:
           type: string
         status:
@@ -1312,13 +1309,11 @@ components:
 
     CreateChallengeRequest:
       type: object
-      required: [date, title, dishName, cookAAccountId, cookBAccountId]
+      required: [date, dishName, cookAAccountId, cookBAccountId]
       properties:
         date:
           type: string
           format: date
-        title:
-          type: string
         dishName:
           type: string
         cookAAccountId:
@@ -1430,7 +1425,7 @@ components:
 
     ChallengeDetail:
       type: object
-      required: [challengeId, totalGuestCount, submittedGuestCount, guests, title, dishName, date, status, hasImage, cookAssignments]
+      required: [challengeId, totalGuestCount, submittedGuestCount, guests, dishName, date, status, hasImage, cookAssignments]
       properties:
         challengeId:
           $ref: '#/components/schemas/Tsid'
@@ -1442,8 +1437,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GuestSubmissionStatus'
-        title:
-          type: string
         dishName:
           type: string
         date:
@@ -1611,7 +1604,6 @@ components:
       required:
         - id
         - date
-        - title
         - dishName
         - status
         - labels
@@ -1629,8 +1621,6 @@ components:
         date:
           type: string
           format: date
-        title:
-          type: string
         dishName:
           type: string
         status:
@@ -1861,15 +1851,13 @@ components:
 
     RivalryChallengeSummary:
       type: object
-      required: [id, date, title, dishName, status, hasImage, overallWinnerAccountId, outcomeLabel]
+      required: [id, date, dishName, status, hasImage, overallWinnerAccountId, outcomeLabel]
       properties:
         id:
           $ref: '#/components/schemas/Tsid'
         date:
           type: string
           format: date
-        title:
-          type: string
         dishName:
           type: string
         status:

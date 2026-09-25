@@ -68,7 +68,7 @@ class SendChallengeInvitationsServiceTest {
     private final AccountId organizerId = AccountId.generate();
 
     private Challenge challenge() {
-        return Challenge.create(LocalDate.now(), "Title", new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(guestId), organizerId);
     }
 

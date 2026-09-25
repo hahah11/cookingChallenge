@@ -20,14 +20,14 @@ class ChallengeTest {
     private final AccountId organizer = AccountId.generate();
 
     private Challenge newChallenge() {
-        return Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
     }
 
     @Test
     void should_throw_when_bothCooksAreTheSameAccount() {
         assertThrows(IllegalArgumentException.class, () ->
-                Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"), cookA, cookA, List.of(), organizer));
+                Challenge.create(LocalDate.now(), new DishName("Schnitzel"), cookA, cookA, List.of(), organizer));
     }
 
     @Test

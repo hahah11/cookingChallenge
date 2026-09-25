@@ -48,7 +48,7 @@ class GetChallengeForParticipantServiceTest {
     private final AccountId organizer = AccountId.generate();
 
     private Challenge challenge() {
-        return Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(guest), organizer);
     }
 

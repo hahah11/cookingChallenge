@@ -18,7 +18,6 @@ const accounts: Account[] = [
 const createdChallenge: Challenge = {
   id: 'chal-1',
   date: '2026-08-10',
-  title: 'Summer cook-off',
   dishName: 'Ramen',
   status: ChallengeStatus.OPEN,
   cookAssignments: [
@@ -76,7 +75,6 @@ describe('NewChallengeDialog', () => {
     const component = fixture.componentInstance;
 
     component['model'].set({
-      title: 'Summer cook-off',
       date: '2026-08-10',
       dishName: 'Ramen',
       cookAAccountId: 'acc-1',
@@ -86,7 +84,6 @@ describe('NewChallengeDialog', () => {
     component['onSubmit']();
 
     expect(createChallenge).toHaveBeenCalledWith({
-      title: 'Summer cook-off',
       date: '2026-08-10',
       dishName: 'Ramen',
       cookAAccountId: 'acc-1',

@@ -48,7 +48,6 @@ public class ChallengeMapper {
         return Challenge.reconstitute(
                 challengeIdMapper.toDomain(entity.getId()),
                 entity.getChallengeDate(),
-                entity.getTitle(),
                 dishNameMapper.toDomain(entity.getDishName()),
                 cookAssignments,
                 guestAccountIds,
@@ -67,7 +66,6 @@ public class ChallengeMapper {
         CookAssignment cookB = challenge.cookAssignmentFor(DishLabel.B);
         return new ChallengeJpaEntity(
                 challengeIdMapper.toRaw(challenge.getId()),
-                challenge.getTitle(),
                 challenge.getDate(),
                 dishNameMapper.toRaw(challenge.getDishName()),
                 accountIdMapper.toRaw(cookA.accountId()),

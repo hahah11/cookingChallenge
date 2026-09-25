@@ -31,14 +31,6 @@
   <input #photoInput type="file" accept="image/*" class="cc-visually-hidden" (change)="onPhotoSelected($event)" />
 
   <mat-form-field appearance="outline">
-    <mat-label>{{ 'newChallenge.titleField' | transloco }}</mat-label>
-    <input matInput placeholder="Grillabend" [formField]="challengeForm.title" />
-    @if (challengeForm.title().touched() && challengeForm.title().invalid()) {
-      <mat-error>{{ challengeForm.title().errors()[0]?.message }}</mat-error>
-    }
-  </mat-form-field>
-
-  <mat-form-field appearance="outline">
     <mat-label>{{ 'newChallenge.date' | transloco }}</mat-label>
     <input matInput type="date" [formField]="challengeForm.date" />
     @if (challengeForm.date().touched() && challengeForm.date().invalid()) {

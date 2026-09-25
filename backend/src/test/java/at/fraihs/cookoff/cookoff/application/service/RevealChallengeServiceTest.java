@@ -66,7 +66,7 @@ class RevealChallengeServiceTest {
     private final AccountId guestId = AccountId.generate();
 
     private Challenge openChallenge() {
-        return Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(guestId), organizerId);
     }
 

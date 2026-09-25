@@ -154,7 +154,7 @@ class QrRegistrationFlowIntegrationTest {
                 "organizer@example.com", "Organizer", "Test")
                 .roles(List.of(SystemRoleRestDto.ORGANIZER)).password("password123"));
         CreateChallengeRequestRestDto request = new CreateChallengeRequestRestDto(
-                LocalDate.now(), "Title", "Schnitzel", cookA.getId(), cookB.getId());
+                LocalDate.now(), "Schnitzel", cookA.getId(), cookB.getId());
         return createChallengeService.execute(request, AccountId.fromString(organizer.getId()));
     }
 

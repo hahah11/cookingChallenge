@@ -51,7 +51,7 @@ class ChangeChallengeImageServiceTest {
     private final byte[] imageBytes = {1, 2, 3};
 
     private Challenge openChallenge() {
-        return Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(), organizerId);
     }
 

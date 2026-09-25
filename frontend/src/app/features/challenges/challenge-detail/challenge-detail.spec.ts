@@ -23,7 +23,6 @@ const challengeDetail = {
   totalGuestCount: 1,
   submittedGuestCount: 0,
   guests: [{ accountId: 'guest-1', name: 'Gina', email: 'gina@example.com', submitted: false }],
-  title: 'Summer cook-off',
   dishName: 'Ramen',
   date: '2026-08-01',
   status: ChallengeStatus.OPEN,

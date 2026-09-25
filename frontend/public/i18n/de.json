@@ -112,7 +112,6 @@
     "passwordMismatch": "Die Passwörter stimmen nicht überein.",
     "firstNameRequired": "Vorname ist erforderlich.",
     "lastNameRequired": "Nachname ist erforderlich.",
-    "titleRequired": "Titel ist erforderlich.",
     "dateRequired": "Datum ist erforderlich.",
     "dishNameRequired": "Name des Gerichts ist erforderlich.",
     "cookARequired": "Wähle Koch A.",
@@ -303,7 +302,6 @@
     "addPhoto": "Foto hinzufügen",
     "removePhoto": "Foto entfernen",
     "drop": "Ziehe ein 4:3-Foto für diese Rivalität hierher",
-    "titleField": "Titel",
     "date": "Datum",
     "dishName": "Name des Gerichts",
     "submit": "Challenge erstellen"

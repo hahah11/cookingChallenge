@@ -56,7 +56,7 @@ class HomeControllerTest {
     void should_return200_withHomeBuckets_when_authenticated() throws Exception {
         AccountId accountId = AccountId.generate();
         ParticipantChallengeRestDto view = new ParticipantChallengeRestDto(
-                "chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatusRestDto.OPEN,
+                "chal-1", LocalDate.now(), "Schnitzel", ChallengeStatusRestDto.OPEN,
                 List.of(DishLabelRestDto.A, DishLabelRestDto.B), List.of(CategoryRestDto.MUNDGEFUEHL), List.of(),
                 false, false, null, null, true, false);
         when(homeService.execute(accountId)).thenReturn(new GuestHomeRestDto("Felix", List.of(view), List.of()));

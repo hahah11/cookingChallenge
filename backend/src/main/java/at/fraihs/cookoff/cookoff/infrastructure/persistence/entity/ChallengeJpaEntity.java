@@ -30,8 +30,6 @@ public class ChallengeJpaEntity {
     @Id
     private Long id;
 
-    private String title;
-
     @Column(name = "challenge_date")
     private LocalDate challengeDate;
 

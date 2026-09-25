@@ -55,7 +55,7 @@ class GetChallengeStatusServiceTest {
         AccountId organizer = AccountId.generate();
         AccountId guest1 = AccountId.generate();
         AccountId guest2 = AccountId.generate();
-        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(guest1, guest2), organizer);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(accountLookup.getById(guest1)).thenReturn(new AccountSummary(guest1, new Email("g1@x.com"), "Guest One", "Guest"));
@@ -95,7 +95,7 @@ class GetChallengeStatusServiceTest {
     void should_throw_when_requesterDidNotCreateTheChallenge() {
         AccountId organizer = AccountId.generate();
         AccountId otherOrganizer = AccountId.generate();
-        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(), organizer);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(accountLookup.isAdmin(otherOrganizer)).thenReturn(false);
@@ -109,7 +109,7 @@ class GetChallengeStatusServiceTest {
         AccountId admin = AccountId.generate();
         AccountId cookA = AccountId.generate();
         AccountId cookB = AccountId.generate();
-        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(accountLookup.isAdmin(admin)).thenReturn(true);

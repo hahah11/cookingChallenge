@@ -19,7 +19,6 @@ const accounts: Account[] = [
 const updatedChallenge: Challenge = {
   id: 'chal-1',
   date: '2026-08-10',
-  title: 'Summer cook-off',
   dishName: 'Ramen',
   status: ChallengeStatus.OPEN,
   cookAssignments: [

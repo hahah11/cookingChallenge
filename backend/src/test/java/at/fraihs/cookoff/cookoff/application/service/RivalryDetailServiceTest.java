@@ -52,7 +52,7 @@ class RivalryDetailServiceTest {
 
     @Test
     void should_returnDetail_when_rivalryRecordExists() {
-        Challenge challenge = Challenge.create(LocalDate.of(2026, 1, 1), "Finale", new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.of(2026, 1, 1), new DishName("Schnitzel"),
                 aliceId, bobId, List.of(), organizerId);
         CookRivalry rivalry = CookRivalry.reconstitute(CookRivalryId.generate(), aliceId, bobId, 2, 0, 0, 2);
         when(challengeRepository.findByCookPair(aliceId, bobId)).thenReturn(List.of(challenge));
@@ -70,7 +70,7 @@ class RivalryDetailServiceTest {
 
     @Test
     void should_returnZeroedDetail_when_challengesExistButNeverRevealed() {
-        Challenge challenge = Challenge.create(LocalDate.of(2026, 1, 1), "Opener", new DishName("Goulash"),
+        Challenge challenge = Challenge.create(LocalDate.of(2026, 1, 1), new DishName("Goulash"),
                 bobId, aliceId, List.of(), organizerId);
         when(challengeRepository.findByCookPair(aliceId, bobId)).thenReturn(List.of(challenge));
         when(cookRivalryRepository.findByPair(aliceId, bobId)).thenReturn(Optional.empty());

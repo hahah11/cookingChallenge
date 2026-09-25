@@ -129,7 +129,7 @@ class AccessLinkLoginFlowIntegrationTest {
                 new CreateAccountRequestRestDto("organizer@example.com", "Organizer", "Test")
                         .roles(List.of(SystemRoleRestDto.ORGANIZER)).password("password123"));
         CreateChallengeRequestRestDto request = new CreateChallengeRequestRestDto(
-                LocalDate.now(), "Title", "Schnitzel", cookA.getId(), cookB.getId())
+                LocalDate.now(), "Schnitzel", cookA.getId(), cookB.getId())
                 .guestAccountIds(List.of(guest.getId()));
         return createChallengeService.execute(request, AccountId.fromString(organizer.getId()));
     }
@@ -139,7 +139,7 @@ class AccessLinkLoginFlowIntegrationTest {
         AccountRestDto cookB = createAccount("cook-b@example.com", "Cook", "B", SystemRoleRestDto.USER);
         AccountRestDto organizer = createAccount("challenge-organizer@example.com", "Organizer", "Test", SystemRoleRestDto.ORGANIZER);
         CreateChallengeRequestRestDto request = new CreateChallengeRequestRestDto(
-                LocalDate.now(), "Title", "Schnitzel", cookA.getId(), cookB.getId());
+                LocalDate.now(), "Schnitzel", cookA.getId(), cookB.getId());
         return createChallengeService.execute(request, AccountId.fromString(organizer.getId()));
     }
 

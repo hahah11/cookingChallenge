@@ -112,7 +112,6 @@
     "passwordMismatch": "Passwords do not match.",
     "firstNameRequired": "First name is required.",
     "lastNameRequired": "Last name is required.",
-    "titleRequired": "Title is required.",
     "dateRequired": "Date is required.",
     "dishNameRequired": "Dish name is required.",
     "cookARequired": "Choose Cook A.",
@@ -303,7 +302,6 @@
     "addPhoto": "Add a photo",
     "removePhoto": "Remove photo",
     "drop": "Drop a 4:3 photo for this rivalry",
-    "titleField": "Title",
     "date": "Date",
     "dishName": "Dish name",
     "submit": "Create challenge"

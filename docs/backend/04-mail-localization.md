@@ -28,7 +28,7 @@ The language is stored on the recipient's account instead.
 - Subjects come from the same bundle via `MailMessages` in the notification adapters; the template
   context's locale (`MailDispatcher` → `new Context(request.locale())`) selects the language, and
   `<html lang>` follows it.
-- User-entered text that lands inside a markup message (the challenge title) is
+- User-entered text that lands inside a markup message (the dish name) is
   `#strings.escapeXml`-ed before it goes in.
 
 ## Adding or changing text

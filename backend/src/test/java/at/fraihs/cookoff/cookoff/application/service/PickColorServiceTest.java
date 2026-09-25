@@ -49,7 +49,7 @@ class PickColorServiceTest {
     private final PlateColor yellow = PlateColor.create("Yellow", "#F4D35E", 2, true);
 
     private Challenge openChallenge() {
-        return Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(), organizerId);
     }
 

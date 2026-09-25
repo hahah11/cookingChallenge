@@ -9,7 +9,6 @@ import { provideTestI18n } from '../../../testing/i18n';
 const challenge: Challenge = {
   id: 'chal-1',
   date: '2026-08-01',
-  title: 'Summer cook-off',
   dishName: 'Ramen',
   status: ChallengeStatus.REVEALED,
   cookAssignments: [
@@ -50,11 +49,10 @@ describe('ChallengeCard', () => {
     return fixture;
   }
 
-  it('renders dish title, event title, and both cook names', async () => {
+  it('renders the dish name and both cook names', async () => {
     const fixture = await createComponent();
     const el = fixture.nativeElement;
     expect(el.querySelector('.challenge-card__title').textContent.trim()).toBe('Ramen');
-    expect(el.querySelector('.challenge-card__event').textContent.trim()).toBe('Summer cook-off');
     expect(el.querySelector('.challenge-card__cooks').textContent).toContain('Alice');
     expect(el.querySelector('.challenge-card__cooks').textContent).toContain('Bob');
   });

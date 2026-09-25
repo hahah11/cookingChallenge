@@ -60,7 +60,7 @@ class CloseChallengeScoringServiceTest {
     private final AccountId organizerId = AccountId.generate();
 
     private Challenge openChallenge() {
-        return Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(), organizerId);
     }
 

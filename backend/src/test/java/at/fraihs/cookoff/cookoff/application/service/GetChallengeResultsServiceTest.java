@@ -52,7 +52,7 @@ class GetChallengeResultsServiceTest {
 
     @Test
     void should_throw_when_challengeNotYetRevealed() {
-        Challenge open = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge open = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
         when(challengeRepository.findById(open.getId())).thenReturn(Optional.of(open));
 
@@ -69,7 +69,7 @@ class GetChallengeResultsServiceTest {
 
     @Test
     void should_throw_when_requesterIsNotAParticipant() {
-        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
         challenge.closeScoring();
         challenge.reveal(cookA);
@@ -81,7 +81,7 @@ class GetChallengeResultsServiceTest {
 
     @Test
     void should_returnResults_when_challengeRevealed() {
-        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
         challenge.closeScoring();
         challenge.reveal(cookA);
@@ -98,7 +98,7 @@ class GetChallengeResultsServiceTest {
 
     @Test
     void should_returnResults_when_requesterIsTheChallengeCreator() {
-        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
         challenge.closeScoring();
         challenge.reveal(cookA);
@@ -116,7 +116,7 @@ class GetChallengeResultsServiceTest {
     @Test
     void should_throw_when_requesterIsAnotherOrganizerWhoDidNotCreateTheChallenge() {
         AccountId otherOrganizer = AccountId.generate();
-        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
         challenge.closeScoring();
         challenge.reveal(cookA);

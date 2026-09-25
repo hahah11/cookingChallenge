@@ -62,7 +62,7 @@ class ChallengeRevealedNotifierTest {
     private final AccountId organizerId = AccountId.generate();
 
     private Challenge challenge() {
-        return Challenge.create(LocalDate.now(), "Schnitzel-Off", new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(guestId), organizerId);
     }
 
@@ -118,7 +118,7 @@ class ChallengeRevealedNotifierTest {
         ArgumentCaptor<ResultsAvailableNotification> captor =
                 ArgumentCaptor.forClass(ResultsAvailableNotification.class);
         verify(notificationPort, times(3)).sendResultsAvailable(captor.capture());
-        assertTrue(captor.getAllValues().stream().allMatch(n -> "Schnitzel-Off".equals(n.challengeTitle())));
+        assertTrue(captor.getAllValues().stream().allMatch(n -> "Schnitzel".equals(n.dishName())));
     }
 
     @Test
@@ -138,7 +138,7 @@ class ChallengeRevealedNotifierTest {
 
     @Test
     void should_setBothFlags_when_aCookIsAlsoAGuest() {
-        Challenge challenge = Challenge.create(LocalDate.now(), "Schnitzel-Off", new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(guestId, cookAId), organizerId);
         when(challengeRepository.findById(challenge.getId())).thenReturn(Optional.of(challenge));
         when(accountLookup.getById(any(AccountId.class))).thenAnswer(i -> accountFor(i.getArgument(0)));

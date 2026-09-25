@@ -19,7 +19,6 @@ function baseChallenge(overrides: Partial<ParticipantChallenge> = {}): Participa
   return {
     id: 'chal-1',
     date: '2026-08-01',
-    title: 'Summer cook-off',
     dishName: 'Ramen',
     status: ChallengeStatus.OPEN,
     labels: [DishLabel.A, DishLabel.B],

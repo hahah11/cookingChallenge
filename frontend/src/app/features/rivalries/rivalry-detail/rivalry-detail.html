@@ -48,7 +48,6 @@
               <mat-card-content class="rivalry-detail__challenge-content">
                 <p class="rivalry-detail__challenge-kicker">{{ challenge.date | date: 'mediumDate' }}</p>
                 <h2 class="rivalry-detail__challenge-title">{{ challenge.dishName }}</h2>
-                <p class="rivalry-detail__challenge-event">{{ challenge.title }}</p>
                 <div class="rivalry-detail__challenge-footer">
                   <app-status-tag [status]="challenge.status" />
                   <span class="rivalry-detail__challenge-outcome">{{ outcome(rivalry, challenge) }}</span>

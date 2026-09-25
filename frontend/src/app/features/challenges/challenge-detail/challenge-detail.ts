@@ -170,7 +170,7 @@ export class ChallengeDetail {
     const challenge = this.challenge();
     if (!challenge) return;
 
-    const data: QrDialogData = { challengeId: challenge.challengeId, challengeName: challenge.title };
+    const data: QrDialogData = { challengeId: challenge.challengeId, challengeName: challenge.dishName };
     this.dialog.open(QrDialog, { data, width: '360px' });
   }
 

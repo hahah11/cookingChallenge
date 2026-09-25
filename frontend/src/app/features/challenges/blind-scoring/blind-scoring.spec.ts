@@ -21,7 +21,6 @@ import { provideTestI18n } from '../../../testing/i18n';
 const challenge: ParticipantChallenge = {
   id: 'chal-1',
   date: '2026-08-01',
-  title: 'Summer cook-off',
   dishName: 'Ramen',
   status: ChallengeStatus.OPEN,
   labels: [DishLabel.A, DishLabel.B],

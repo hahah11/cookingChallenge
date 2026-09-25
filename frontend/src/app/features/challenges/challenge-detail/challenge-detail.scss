@@ -92,12 +92,6 @@
   font: var(--mat-sys-headline-medium);
 }
 
-.challenge-detail__event {
-  margin: 0;
-  font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .challenge-detail__actions {
   display: flex;
   flex-wrap: wrap;
@@ -153,8 +147,9 @@
 }
 
 .challenge-detail__guest-tag--submitted {
-  background: var(--cc-color-success-container);
-  color: var(--cc-color-on-success-container);
+  // Same black/white as the filled buttons (see `_overrides.scss`).
+  background: #1a1a1a;
+  color: #fff;
   font-weight: 600;
 }
 

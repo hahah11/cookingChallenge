@@ -17,7 +17,6 @@ import { ApiError } from '../../../core/errors/api-error';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 
 interface NewChallengeFormModel {
-  title: string;
   date: string;
   dishName: string;
   cookAAccountId: string;
@@ -60,14 +59,12 @@ export class NewChallengeDialog {
   protected readonly accountsLoading = signal(true);
 
   protected readonly model = signal<NewChallengeFormModel>({
-    title: '',
     date: '',
     dishName: '',
     cookAAccountId: '',
     cookBAccountId: ''
   });
   protected readonly challengeForm = form(this.model, (path) => {
-    required(path.title, { message: this.transloco.translate('validation.titleRequired') });
     required(path.date, { message: this.transloco.translate('validation.dateRequired') });
     required(path.dishName, { message: this.transloco.translate('validation.dishNameRequired') });
     required(path.cookAAccountId, { message: this.transloco.translate('validation.cookARequired') });
@@ -138,10 +135,9 @@ export class NewChallengeDialog {
     this.submitting.set(true);
     this.errorMessage.set(null);
 
-    const { title, date, dishName, cookAAccountId, cookBAccountId } = this.model();
+    const { date, dishName, cookAAccountId, cookBAccountId } = this.model();
     this.challengesApi
       .createChallenge({
-        title,
         date,
         dishName,
         cookAAccountId,

@@ -1,6 +1,6 @@
 [(#{mail.resultsAvailable.heading(${firstName})})]
 
-[(#{mail.resultsAvailable.intro.text(${challengeTitle})})]
+[(#{mail.resultsAvailable.intro.text(${dishName})})]
 [# th:if="${canRate}"][(#{mail.resultsAvailable.canRate})]
 [/][# th:if="${picksPlateColor}"][(#{mail.resultsAvailable.picksPlateColor})]
 [/]

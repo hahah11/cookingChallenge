@@ -22,6 +22,8 @@
   align-items: flex-start;
   justify-content: center;
   gap: var(--md-sys-spacing-2);
+  // mat-card-content only gets vertical padding as the card's first/last child; it sits inside the row here.
+  padding-block: var(--md-sys-spacing-4);
 }
 
 .participant-challenge-card__photo {
@@ -39,12 +41,6 @@
 .participant-challenge-card__title {
   margin: 0;
   font: var(--mat-sys-title-large);
-}
-
-.participant-challenge-card__event {
-  margin: 0 0 var(--md-sys-spacing-1);
-  font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .participant-challenge-card__action {
@@ -103,5 +99,13 @@
   --mat-chip-selected-label-text-color: var(--cc-color-on-warning-container);
   --mat-chip-selected-hover-state-layer-color: var(--cc-color-on-warning-container);
   --mat-chip-selected-focus-state-layer-color: var(--cc-color-on-warning-container);
+  --mat-chip-flat-selected-outline-width: 0;
+}
+
+.participant-challenge-card__submitted-tag {
+  --mat-chip-elevated-selected-container-color: var(--cc-color-success-container);
+  --mat-chip-selected-label-text-color: var(--cc-color-on-success-container);
+  --mat-chip-selected-hover-state-layer-color: var(--cc-color-on-success-container);
+  --mat-chip-selected-focus-state-layer-color: var(--cc-color-on-success-container);
   --mat-chip-flat-selected-outline-width: 0;
 }

@@ -24,12 +24,12 @@ public class LoggingNotificationAdapter implements NotificationPort {
     @Override
     public void sendAccessLink(InvitationNotification notification) {
         log.info("Access link for {} ({}): {}",
-                notification.recipient(), notification.challengeTitle(), notification.link());
+                notification.recipient(), notification.dishName(), notification.link());
     }
 
     @Override
     public void sendResultsAvailable(ResultsAvailableNotification notification) {
         log.info("Results available for {} ({}): {}",
-                notification.recipient(), notification.challengeTitle(), notification.link());
+                notification.recipient(), notification.dishName(), notification.link());
     }
 }

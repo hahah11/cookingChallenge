@@ -66,7 +66,7 @@ public class ChallengeRevealedNotifier {
             AccountSummary account = accountLookup.getById(accountId);
             String token = accessLinkService.issue(accountId, challenge.getId().value(), LINK_VALIDITY);
             notificationPort.sendResultsAvailable(new ResultsAvailableNotification(
-                    account.email(), account.firstName(), challenge.getTitle(),
+                    account.email(), account.firstName(), challenge.getDishName().toString(),
                     frontendBaseUrl + "/home?token=" + token,
                     challenge.canScore(accountId), challenge.isCook(accountId), account.locale()));
         }

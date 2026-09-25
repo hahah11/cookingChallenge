@@ -52,7 +52,7 @@ class SubmitScoreServiceTest {
     private final AccountId guestId = AccountId.generate();
 
     private Challenge openChallenge(List<AccountId> guests) {
-        return Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookAId, cookBId, guests, organizerId);
     }
 

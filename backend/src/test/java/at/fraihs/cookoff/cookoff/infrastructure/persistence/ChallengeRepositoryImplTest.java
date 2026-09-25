@@ -60,7 +60,7 @@ class ChallengeRepositoryImplTest {
         AccountId guest2 = new AccountId(persistAccount());
         AccountId organizer = new AccountId(persistAccount());
         Challenge challenge = Challenge.create(
-                LocalDate.of(2026, 8, 1), "Schnitzel Showdown", new DishName("Schnitzel"),
+                LocalDate.of(2026, 8, 1), new DishName("Schnitzel"),
                 cookA, cookB, List.of(guest1, guest2), organizer);
 
         Challenge saved = repository.save(challenge);
@@ -70,7 +70,6 @@ class ChallengeRepositoryImplTest {
         Challenge result = found.get();
         assertEquals(saved.getId(), result.getId());
         assertEquals(LocalDate.of(2026, 8, 1), result.getDate());
-        assertEquals("Schnitzel Showdown", result.getTitle());
         assertEquals(new DishName("Schnitzel"), result.getDishName());
         assertEquals(cookA, result.cookAssignmentFor(DishLabel.A).accountId());
         assertEquals(cookB, result.cookAssignmentFor(DishLabel.B).accountId());
@@ -82,9 +81,9 @@ class ChallengeRepositoryImplTest {
     @Test
     void should_returnAllChallenges_when_findingAll() {
         AccountId organizer = new AccountId(persistAccount());
-        repository.save(Challenge.create(LocalDate.now(), null, new DishName("Goulash"),
+        repository.save(Challenge.create(LocalDate.now(), new DishName("Goulash"),
                 new AccountId(persistAccount()), new AccountId(persistAccount()), List.of(), organizer));
-        repository.save(Challenge.create(LocalDate.now(), null, new DishName("Kaiserschmarrn"),
+        repository.save(Challenge.create(LocalDate.now(), new DishName("Kaiserschmarrn"),
                 new AccountId(persistAccount()), new AccountId(persistAccount()), List.of(), organizer));
 
         assertEquals(2, repository.findAll(Pageable.unpaged()).getTotalElements());
@@ -94,9 +93,9 @@ class ChallengeRepositoryImplTest {
     void should_returnOnlyChallengesCreatedByThatAccount_when_findingAllByCreatedBy() {
         AccountId organizerA = new AccountId(persistAccount());
         AccountId organizerB = new AccountId(persistAccount());
-        Challenge byA = repository.save(Challenge.create(LocalDate.now(), null, new DishName("Goulash"),
+        Challenge byA = repository.save(Challenge.create(LocalDate.now(), new DishName("Goulash"),
                 new AccountId(persistAccount()), new AccountId(persistAccount()), List.of(), organizerA));
-        repository.save(Challenge.create(LocalDate.now(), null, new DishName("Kaiserschmarrn"),
+        repository.save(Challenge.create(LocalDate.now(), new DishName("Kaiserschmarrn"),
                 new AccountId(persistAccount()), new AccountId(persistAccount()), List.of(), organizerB));
 
         var result = repository.findAllByCreatedBy(organizerA, Pageable.unpaged());
@@ -113,11 +112,11 @@ class ChallengeRepositoryImplTest {
         AccountId guest = new AccountId(persistAccount());
         AccountId stranger = new AccountId(persistAccount());
 
-        Challenge openAsGuest = repository.save(Challenge.create(LocalDate.now(), null, new DishName("Goulash"),
+        Challenge openAsGuest = repository.save(Challenge.create(LocalDate.now(), new DishName("Goulash"),
                 cookA, new AccountId(persistAccount()), List.of(guest), organizer));
-        Challenge openAsCook = repository.save(Challenge.create(LocalDate.now(), null, new DishName("Kaiserschmarrn"),
+        Challenge openAsCook = repository.save(Challenge.create(LocalDate.now(), new DishName("Kaiserschmarrn"),
                 cookB, new AccountId(persistAccount()), List.of(), organizer));
-        Challenge revealed = Challenge.create(LocalDate.now(), null, new DishName("Palatschinken"),
+        Challenge revealed = Challenge.create(LocalDate.now(), new DishName("Palatschinken"),
                 cookA, cookB, List.of(guest), organizer);
         revealed.closeScoring();
         revealed.reveal(null);
@@ -141,11 +140,11 @@ class ChallengeRepositoryImplTest {
         AccountId cookY = new AccountId(persistAccount());
         AccountId stranger = new AccountId(persistAccount());
 
-        Challenge xThenY = repository.save(Challenge.create(LocalDate.now(), null, new DishName("Goulash"),
+        Challenge xThenY = repository.save(Challenge.create(LocalDate.now(), new DishName("Goulash"),
                 cookX, cookY, List.of(), organizer));
-        Challenge yThenX = repository.save(Challenge.create(LocalDate.now(), null, new DishName("Kaiserschmarrn"),
+        Challenge yThenX = repository.save(Challenge.create(LocalDate.now(), new DishName("Kaiserschmarrn"),
                 cookY, cookX, List.of(), organizer));
-        repository.save(Challenge.create(LocalDate.now(), null, new DishName("Palatschinken"),
+        repository.save(Challenge.create(LocalDate.now(), new DishName("Palatschinken"),
                 cookX, stranger, List.of(), organizer));
 
         List<Challenge> found = repository.findByCookPair(cookX, cookY);
@@ -160,7 +159,7 @@ class ChallengeRepositoryImplTest {
         AccountId organizer = new AccountId(persistAccount());
         PlateColorId red = persistPlateColor();
         PlateColorId yellow = persistPlateColor();
-        Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
         challenge.pickColor(cookA, red, yellow);
 
@@ -176,7 +175,7 @@ class ChallengeRepositoryImplTest {
         AccountId cookA = new AccountId(persistAccount());
         AccountId cookB = new AccountId(persistAccount());
         AccountId organizer = new AccountId(persistAccount());
-        Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
         challenge.changeImage("image-ref-1");
 
@@ -191,7 +190,7 @@ class ChallengeRepositoryImplTest {
         AccountId cookA = new AccountId(persistAccount());
         AccountId cookB = new AccountId(persistAccount());
         AccountId organizer = new AccountId(persistAccount());
-        Challenge challenge = Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookA, cookB, List.of(), organizer);
         challenge.closeScoring();
         challenge.reveal(cookA);

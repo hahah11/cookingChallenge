@@ -40,7 +40,6 @@ public class CreateChallengeService {
 
         Challenge challenge = Challenge.create(
                 request.getDate(),
-                request.getTitle(),
                 new DishName(request.getDishName()),
                 cookAAccountId,
                 cookBAccountId,

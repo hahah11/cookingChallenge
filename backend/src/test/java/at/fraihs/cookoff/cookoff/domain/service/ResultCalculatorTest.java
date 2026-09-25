@@ -28,7 +28,7 @@ class ResultCalculatorTest {
     private final AccountId organizer = AccountId.generate();
 
     private Challenge newChallenge() {
-        return Challenge.create(LocalDate.now(), "Test", new DishName("Schnitzel"), cookA, cookB, List.of(), organizer);
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"), cookA, cookB, List.of(), organizer);
     }
 
     private ScoreSubmission submissionFavoring(ChallengeId challengeId, DishLabel favored, int categoriesWonByFavored) {

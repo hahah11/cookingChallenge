@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-01-drop-challenge-title
+      author: fraihs
+      comment: >-
+        A challenge is identified by its dish name; the separate free-text title was redundant.
+      changes:
+        - dropColumn:
+            tableName: challenges
+            columnName: title

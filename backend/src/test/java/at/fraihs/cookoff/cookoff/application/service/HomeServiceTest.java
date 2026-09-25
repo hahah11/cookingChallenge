@@ -57,9 +57,9 @@ class HomeServiceTest {
 
     @Test
     void should_bucketAllOpenChallengesAsOpen_regardlessOfSubmission() {
-        Challenge notYetSubmitted = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge notYetSubmitted = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
-        Challenge alreadySubmitted = Challenge.create(LocalDate.now(), null, new DishName("Goulash"),
+        Challenge alreadySubmitted = Challenge.create(LocalDate.now(), new DishName("Goulash"),
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
         when(accountLookup.getById(any())).thenReturn(
                 new AccountSummary(AccountId.generate(), new Email("guest@example.com"), "Guest", "Guest"));
@@ -82,7 +82,7 @@ class HomeServiceTest {
     @Test
     void should_bucketOpenChallengeAsOpen_evenAfterCookAlreadyPickedColor() {
         AccountId cookAccountId = accountId;
-        Challenge challenge = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookAccountId, AccountId.generate(), List.of(), AccountId.generate());
         challenge.pickColor(cookAccountId, PlateColorId.generate(), PlateColorId.generate());
         when(accountLookup.getById(any())).thenReturn(
@@ -99,7 +99,7 @@ class HomeServiceTest {
 
     @Test
     void should_bucketClosedChallengeAsOpen_when_scoringClosedButNotYetRevealed() {
-        Challenge closed = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge closed = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
         closed.closeScoring();
         when(accountLookup.getById(any())).thenReturn(
@@ -116,7 +116,7 @@ class HomeServiceTest {
 
     @Test
     void should_bucketRevealedChallengeAsPast_evenWithoutASubmission() {
-        Challenge revealed = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge revealed = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
         revealed.closeScoring();
         revealed.reveal(null);
@@ -134,7 +134,7 @@ class HomeServiceTest {
 
     @Test
     void should_hideCookMapping_when_challengeNotRevealed() {
-        Challenge open = Challenge.create(LocalDate.now(), null, new DishName("Schnitzel"),
+        Challenge open = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 AccountId.generate(), AccountId.generate(), List.of(accountId), AccountId.generate());
         when(accountLookup.getById(any())).thenReturn(
                 new AccountSummary(AccountId.generate(), new Email("guest@example.com"), "Guest", "Guest"));

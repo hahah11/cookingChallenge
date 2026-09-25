@@ -5,13 +5,13 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{mail/_layout.html :: page(~{::title}, ~{::heading}, ~{::body-copy}, #{mail.resultsAvailable.cta}, ~{::footer})}">
 <head>
-  <title th:text="${challengeTitle}">Cook-off</title>
+  <title th:text="${dishName}">Cook-off</title>
 </head>
 <body>
 <th:block th:ref="heading" th:text="#{mail.resultsAvailable.heading(${firstName})}">Hi there, the results are in!</th:block>
 <th:block th:ref="body-copy">
-  <!--/* The title is user-entered and the message carries markup, so escape it before it goes in. */-->
-  <th:block th:utext="#{mail.resultsAvailable.intro.html(${#strings.escapeXml(challengeTitle)})}"><strong>The cook-off</strong> has been revealed.</th:block>
+  <!--/* The dish name is user-entered and the message carries markup, so escape it before it goes in. */-->
+  <th:block th:utext="#{mail.resultsAvailable.intro.html(${#strings.escapeXml(dishName)})}"><strong>The cook-off</strong> has been revealed.</th:block>
   <!--/* Two independent flags, not either/or: a cook who is also a guest gets both. */-->
   <th:block th:if="${canRate}" th:text="#{mail.resultsAvailable.canRate}">You can now see who cooked which plate.</th:block>
   <th:block th:if="${picksPlateColor}" th:text="#{mail.resultsAvailable.picksPlateColor}">The dishes are unblinded.</th:block>

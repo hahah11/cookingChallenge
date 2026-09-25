@@ -42,7 +42,7 @@ class CreateChallengeServiceTest {
     private final AccountId cookBId = AccountId.generate();
 
     private CreateChallengeRequestRestDto request() {
-        return new CreateChallengeRequestRestDto(LocalDate.now(), "Season Finale", "Schnitzel",
+        return new CreateChallengeRequestRestDto(LocalDate.now(), "Schnitzel",
                 cookAId.toString(), cookBId.toString()).guestAccountIds(List.of());
     }
 

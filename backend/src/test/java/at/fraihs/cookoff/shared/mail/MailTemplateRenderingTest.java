@@ -38,11 +38,11 @@ class MailTemplateRenderingTest {
     }
 
     /** The locale is always explicit: a bare {@code new Context()} would pick up the machine's default language. */
-    private Context context(Locale locale, String challengeTitle, boolean canRate, boolean picksPlateColor) {
+    private Context context(Locale locale, String dishName, boolean canRate, boolean picksPlateColor) {
         Context context = new Context(locale);
         context.setVariables(Map.of(
                 "firstName", "Ada",
-                "challengeTitle", challengeTitle,
+                "dishName", dishName,
                 "link", "https://cookoff.test/home?token=abc",
                 "canRate", canRate,
                 "picksPlateColor", picksPlateColor));
@@ -221,7 +221,7 @@ class MailTemplateRenderingTest {
     }
 
     @Test
-    void should_escapeTheChallengeTitle_when_titleContainsMarkup() {
+    void should_escapeTheDishName_when_dishNameContainsMarkup() {
         Context context = context(Locale.ENGLISH, "<script>alert(1)</script>", true, false);
 
         String html = engine.process("mail/access-link.html", context);

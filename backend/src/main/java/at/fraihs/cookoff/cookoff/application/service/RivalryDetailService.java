@@ -74,7 +74,7 @@ public class RivalryDetailService {
                 cookAId.toString(), cookAName, cookBId.toString(), cookBName);
         ChallengeStatusRestDto status = ChallengeStatusRestDto.valueOf(challenge.getStatus().name());
         return new RivalryChallengeSummaryRestDto(challenge.getId().toString(), challenge.getDate(),
-                challenge.getTitle(), challenge.getDishName().toString(), status, challenge.getImageRef() != null,
+                challenge.getDishName().toString(), status, challenge.getImageRef() != null,
                 overallWinnerAccountId, outcomeLabel);
     }
 }

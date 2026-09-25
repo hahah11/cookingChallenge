@@ -16,6 +16,6 @@ import java.util.Locale;
  *
  * <p>{@code locale} is the recipient's preferred language.
  */
-public record InvitationNotification(Email recipient, String firstName, String challengeTitle, String link,
+public record InvitationNotification(Email recipient, String firstName, String dishName, String link,
                                      boolean canRate, boolean picksPlateColor, Locale locale) {
 }

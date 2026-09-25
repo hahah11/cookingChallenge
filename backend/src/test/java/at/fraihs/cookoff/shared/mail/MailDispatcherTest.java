@@ -41,7 +41,7 @@ class MailDispatcherTest {
 
     private MailRequest request() {
         return new MailRequest("ada@example.com", "You're invited: Schnitzel-Off", "access-link",
-                Map.of("firstName", "Ada", "challengeTitle", "Schnitzel-Off",
+                Map.of("firstName", "Ada", "dishName", "Schnitzel-Off",
                         "link", "https://cookoff.test/home?token=abc"),
                 Locale.ENGLISH);
     }

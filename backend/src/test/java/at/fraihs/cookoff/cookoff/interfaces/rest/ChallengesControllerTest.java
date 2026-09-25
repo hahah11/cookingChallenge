@@ -139,7 +139,7 @@ class ChallengesControllerTest {
     }
 
     private ChallengeRestDto sampleChallenge() {
-        return new ChallengeRestDto("chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatusRestDto.OPEN,
+        return new ChallengeRestDto("chal-1", LocalDate.now(), "Schnitzel", ChallengeStatusRestDto.OPEN,
                 List.of(new CookAssignmentRestDto("acc-a", "Cook A", DishLabelRestDto.A, null),
                         new CookAssignmentRestDto("acc-b", "Cook B", DishLabelRestDto.B, null)),
                 List.of(), "acc-org", 0, 0, false, null);
@@ -156,7 +156,7 @@ class ChallengesControllerTest {
     }
 
     private ParticipantChallengeRestDto sampleParticipantChallenge() {
-        return new ParticipantChallengeRestDto("chal-1", LocalDate.now(), "Title", "Schnitzel", ChallengeStatusRestDto.OPEN,
+        return new ParticipantChallengeRestDto("chal-1", LocalDate.now(), "Schnitzel", ChallengeStatusRestDto.OPEN,
                 List.of(DishLabelRestDto.A, DishLabelRestDto.B), List.of(CategoryRestDto.MUNDGEFUEHL), List.of(),
                 false, false, null, null, true, false);
     }
@@ -170,7 +170,7 @@ class ChallengesControllerTest {
         mockMvc.perform(post("/api/v1/challenges")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(
-                                new CreateChallengeRequestRestDto(LocalDate.now(), "Title", "Schnitzel", "acc-a", "acc-b"))))
+                                new CreateChallengeRequestRestDto(LocalDate.now(), "Schnitzel", "acc-a", "acc-b"))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.dishName").value("Schnitzel"));
     }
@@ -214,7 +214,7 @@ class ChallengesControllerTest {
     void should_return200_when_gettingStatus() throws Exception {
         AccountId organizer = AccountId.generate();
         when(getChallengeStatusService.execute("chal-1", organizer)).thenReturn(new ChallengeDetailRestDto(
-                "chal-1", 2, 1, List.of(), "Title", "Schnitzel", LocalDate.now(), ChallengeStatusRestDto.OPEN, false,
+                "chal-1", 2, 1, List.of(), "Schnitzel", LocalDate.now(), ChallengeStatusRestDto.OPEN, false,
                 List.of(new CookAssignmentRestDto("acc-a", "Cook A", DishLabelRestDto.A, null),
                         new CookAssignmentRestDto("acc-b", "Cook B", DishLabelRestDto.B, null))));
         authenticateAs(organizer);

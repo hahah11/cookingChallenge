@@ -74,7 +74,7 @@ class RegistrationInviteRepositoryImplTest {
         long id = TsidSupport.generate();
         long cookBAccountId = persistAccount();
         entityManager.persistAndFlush(new ChallengeJpaEntity(
-                id, "Test Challenge", LocalDate.now(), "Schnitzel",
+                id, LocalDate.now(), "Schnitzel",
                 cookAAccountId, cookBAccountId, null, null, ChallengeStatus.OPEN, cookAAccountId, List.of(), null,
                 false, null));
         return id;

@@ -47,7 +47,7 @@ class ListChallengesServiceTest {
     private final AccountId cookBId = AccountId.generate();
 
     private Challenge challenge() {
-        return Challenge.create(LocalDate.now(), "Season Finale", new DishName("Schnitzel"),
+        return Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
                 cookAId, cookBId, List.of(), organizerId);
     }
 

@@ -18,6 +18,8 @@ databaseChangeLog:
   - include:
       file: db/changelog/cookoff/007-registration-invites.yaml
   - include:
+      file: db/changelog/cookoff/008-drop-challenge-title.yaml
+  - include:
       file: db/changelog/auth/003-add-admin.yaml
   - include:
       file: db/changelog/auth/004-add-role-admin.yaml
