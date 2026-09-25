@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
@@ -154,6 +155,39 @@ class ChallengeRepositoryImplTest {
     }
 
     @Test
+    void should_returnNewestChallengeDateFirst_fromEveryListFinder() {
+        AccountId organizer = new AccountId(persistAccount());
+        AccountId cookA = new AccountId(persistAccount());
+        AccountId cookB = new AccountId(persistAccount());
+        AccountId guest = new AccountId(persistAccount());
+        Challenge oldest = saveChallengeOn(LocalDate.of(2026, 1, 10), cookA, cookB, guest, organizer);
+        Challenge newest = saveChallengeOn(LocalDate.of(2026, 9, 1), cookA, cookB, guest, organizer);
+        Challenge middle = saveChallengeOn(LocalDate.of(2026, 5, 20), cookA, cookB, guest, organizer);
+        List<?> expected = List.of(newest.getId(), middle.getId(), oldest.getId());
+
+        assertEquals(expected, repository.findAll(Pageable.unpaged()).map(Challenge::getId).getContent());
+        assertEquals(expected,
+                repository.findAllByCreatedBy(organizer, Pageable.unpaged()).map(Challenge::getId).getContent());
+        assertEquals(expected, repository.findByParticipant(guest).stream().map(Challenge::getId).toList());
+        assertEquals(expected, repository.findByCookPair(cookA, cookB).stream().map(Challenge::getId).toList());
+    }
+
+    @Test
+    void should_keepNewestFirstOrder_acrossPages_when_findingAll() {
+        AccountId organizer = new AccountId(persistAccount());
+        AccountId cookA = new AccountId(persistAccount());
+        AccountId cookB = new AccountId(persistAccount());
+        AccountId guest = new AccountId(persistAccount());
+        saveChallengeOn(LocalDate.of(2026, 1, 10), cookA, cookB, guest, organizer);
+        Challenge newest = saveChallengeOn(LocalDate.of(2026, 9, 1), cookA, cookB, guest, organizer);
+        saveChallengeOn(LocalDate.of(2026, 5, 20), cookA, cookB, guest, organizer);
+
+        var firstPage = repository.findAll(PageRequest.of(0, 1));
+
+        assertEquals(List.of(newest.getId()), firstPage.map(Challenge::getId).getContent());
+    }
+
+    @Test
     void should_hideDeletedChallenges_fromEveryFinder() {
         AccountId organizer = new AccountId(persistAccount());
         AccountId cookA = new AccountId(persistAccount());
@@ -237,6 +271,11 @@ class ChallengeRepositoryImplTest {
         PlateColorId id = PlateColorId.generate();
         entityManager.persistAndFlush(new PlateColorJpaEntity(id.value(), "Color " + id, "#000000", 1, true));
         return id;
+    }
+
+    private Challenge saveChallengeOn(
+            LocalDate date, AccountId cookA, AccountId cookB, AccountId guest, AccountId organizer) {
+        return repository.save(Challenge.create(date, new DishName("Goulash"), cookA, cookB, List.of(guest), organizer));
     }
 
     private long persistAccount() {

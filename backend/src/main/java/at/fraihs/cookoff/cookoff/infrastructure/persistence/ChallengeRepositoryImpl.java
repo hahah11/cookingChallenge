@@ -31,12 +31,13 @@ class ChallengeRepositoryImpl implements ChallengeRepository {
 
     @Override
     public Page<Challenge> findAll(Pageable pageable) {
-        return jpaRepository.findAllByStatusNot(HIDDEN, pageable).map(mapper::toDomain);
+        return jpaRepository.findAllByStatusNotOrderByChallengeDateDescIdDesc(HIDDEN, pageable).map(mapper::toDomain);
     }
 
     @Override
     public Page<Challenge> findAllByCreatedBy(AccountId createdBy, Pageable pageable) {
-        return jpaRepository.findAllByCreatedByAccountIdAndStatusNot(createdBy.value(), HIDDEN, pageable).map(mapper::toDomain);
+        return jpaRepository.findAllByCreatedByAccountIdAndStatusNotOrderByChallengeDateDescIdDesc(
+                createdBy.value(), HIDDEN, pageable).map(mapper::toDomain);
     }
 
     @Override

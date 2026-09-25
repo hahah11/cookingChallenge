@@ -17,7 +17,8 @@ import java.util.Optional;
 @Repository
 public interface ChallengeRepository {
 
-    // Soft-deleted challenges (ChallengeStatus.DELETED) are invisible to every finder below.
+    // Soft-deleted challenges (ChallengeStatus.DELETED) are invisible to every finder below,
+    // and every list-returning finder yields newest challenge date first.
 
     Optional<Challenge> findById(ChallengeId id);
 
