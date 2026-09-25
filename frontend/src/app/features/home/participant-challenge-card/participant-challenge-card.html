@@ -33,9 +33,9 @@
             <mat-chip-set>
               <mat-chip class="participant-challenge-card__closed-tag" highlighted disableRipple>Scoring closed</mat-chip>
             </mat-chip-set>
-            @if (challenge().submitted) {
-              <button mat-stroked-button type="button" (click)="score.emit(challenge().id)">View my scores</button>
-            }
+            <button mat-stroked-button type="button" (click)="score.emit(challenge().id)">
+              {{ challenge().submitted ? 'View my scores' : 'View' }}
+            </button>
           </div>
         } @else if (challenge().canScore && !challenge().submitted) {
           <button mat-flat-button type="button" (click)="score.emit(challenge().id)">Score now</button>

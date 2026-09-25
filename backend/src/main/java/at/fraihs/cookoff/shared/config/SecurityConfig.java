@@ -79,6 +79,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/challenges").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/challenges/*/invitations").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/challenges/*/status").hasAnyRole("ORGANIZER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/challenges/*/close").hasAnyRole("ORGANIZER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/challenges/*/reopen").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/challenges/*/reveal").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/challenges/*/unreveal").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/challenges/*/participants").hasAnyRole("ORGANIZER", "ADMIN")

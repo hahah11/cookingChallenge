@@ -7,6 +7,7 @@ Implementation notes:
 - Color-pick and image-upload 409 descriptions in the OpenAPI spec now read "already REVEALED", matching `requireNotRevealed()`. The `/me/home` description was also stale (it described action-based bucketing); it now states the status-based rule the code uses.
 - Reveal/unreveal confirm-dialog copy no longer claims reveal "closes scoring" or unreveal "reopens scoring".
 - The close status chip uses the M3 tertiary-container role (the palette has no warning token); the read-only blind-scoring banner uses the same role.
+- The guest card always offers a button while CLOSED ("View my scores", or "View" when the guest never scored) so a guest can always open the challenge; the score page then shows the read-only grid or just the banner.
 - Backend build is Gradle: run tests with `./gradlew test` in `backend/`.
 - Pre-existing, unrelated failure: `error-interceptor.spec.ts` "leaves non-UNAUTHENTICATED 401s alone" fails because `error-interceptor.ts` logs out on any 401.
 

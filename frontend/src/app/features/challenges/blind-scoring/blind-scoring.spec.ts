@@ -258,14 +258,17 @@ describe('BlindScoring', () => {
     expect(radios.every((radio) => radio.disabled)).toBe(true);
   });
 
-  it('shows only the closed banner when CLOSED and the guest never submitted', () => {
+  it('shows the grid read-only, with no stars filled, when CLOSED and the guest never submitted', () => {
     const closedChallenge: ParticipantChallenge = { ...challenge, status: ChallengeStatus.CLOSED };
     const getChallenge = vi.fn().mockReturnValue(of({ data: closedChallenge, meta }));
     const { fixture } = setup({ getChallenge });
 
     expect(fixture.nativeElement.textContent).toContain('Scoring is closed');
-    expect(fixture.nativeElement.querySelector('.blind-scoring__grid')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.blind-scoring__grid')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.blind-scoring__submit')).toBeNull();
+    const radios: HTMLInputElement[] = Array.from(fixture.nativeElement.querySelectorAll('app-star-rating input'));
+    expect(radios.length).toBeGreaterThan(0);
+    expect(radios.every((radio) => radio.disabled && !radio.checked)).toBe(true);
   });
 
   it('shows the already-revealed message immediately when the challenge loads REVEALED', () => {

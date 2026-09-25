@@ -96,3 +96,12 @@
   align-items: flex-start;
   gap: var(--md-sys-spacing-2);
 }
+
+// Same yellow as the organizer-side "Scoring closed" status tag.
+.participant-challenge-card__closed-tag {
+  --mat-chip-elevated-selected-container-color: var(--cc-color-warning-container);
+  --mat-chip-selected-label-text-color: var(--cc-color-on-warning-container);
+  --mat-chip-selected-hover-state-layer-color: var(--cc-color-on-warning-container);
+  --mat-chip-selected-focus-state-layer-color: var(--cc-color-on-warning-container);
+  --mat-chip-flat-selected-outline-width: 0;
+}

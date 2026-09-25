@@ -9,8 +9,8 @@ import { ChallengeStatus } from '../../../core/api/generated';
  * screens. Every state is a highlighted (colored) chip, matching the design's always-tinted
  * status chip: `Open` uses the M3 error role (design tints it red, its own hue-10
  * chip color isn't a system token, but error already sits at the same hue), `Scoring closed`
- * uses the neutral M3 tertiary role, `Revealed` uses the project's custom success role — M3
- * has no built-in success color, see `_overrides.scss`.
+ * uses the project's custom warning (yellow) role, `Revealed` uses the project's custom success role — M3
+ * has no built-in success or warning color, see `_overrides.scss`.
  */
 @Component({
   selector: 'app-status-tag',
@@ -48,10 +48,10 @@ import { ChallengeStatus } from '../../../core/api/generated';
     }
 
     .status-tag--closed {
-      --mat-chip-elevated-selected-container-color: var(--mat-sys-tertiary-container);
-      --mat-chip-selected-label-text-color: var(--mat-sys-on-tertiary-container);
-      --mat-chip-selected-hover-state-layer-color: var(--mat-sys-on-tertiary-container);
-      --mat-chip-selected-focus-state-layer-color: var(--mat-sys-on-tertiary-container);
+      --mat-chip-elevated-selected-container-color: var(--cc-color-warning-container);
+      --mat-chip-selected-label-text-color: var(--cc-color-on-warning-container);
+      --mat-chip-selected-hover-state-layer-color: var(--cc-color-on-warning-container);
+      --mat-chip-selected-focus-state-layer-color: var(--cc-color-on-warning-container);
       --mat-chip-flat-selected-outline-width: 0;
     }
 

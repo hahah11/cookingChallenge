@@ -59,8 +59,9 @@
 
 // Fill this star and every lower-valued one that follows it in the
 // (deliberately reversed) DOM order.
-.star-rating__star:hover::before,
-.star-rating__star:hover ~ .star-rating__star::before,
+// Hover only previews on an enabled rating — a disabled (read-only) one must not imply it can be changed.
+.star-rating:not([disabled]) .star-rating__star:hover::before,
+.star-rating:not([disabled]) .star-rating__star:hover ~ .star-rating__star::before,
 .star-rating__input:checked ~ .star-rating__star::before {
   color: var(--plate-color, var(--mat-sys-primary));
   font-variation-settings:

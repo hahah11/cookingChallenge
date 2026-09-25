@@ -179,6 +179,34 @@ class SecurityIntegrationTest {
                 .andExpect(jsonPath("$.error.code").value("INVALID_OR_EXPIRED_LINK"));
     }
 
+    @Test
+    void should_return200_when_organizerClosesAndReopensScoringOverHttp() throws Exception {
+        AccountRestDto organizer = createAccountService.execute(
+                new CreateAccountRequestRestDto("closing-organizer@example.com", "Organizer", "Test")
+                        .roles(List.of(SystemRoleRestDto.ORGANIZER)).password("password123"));
+        String challengeId = createChallengeOwnedBy(AccountId.fromString(organizer.getId())).getId();
+        String token = login("closing-organizer@example.com", "password123");
+
+        mockMvc.perform(post("/api/v1/challenges/" + challengeId + "/close").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("CLOSED"));
+        mockMvc.perform(post("/api/v1/challenges/" + challengeId + "/reopen").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("OPEN"));
+    }
+
+    @Test
+    void should_return403_when_userRoleJwtClosesScoring() throws Exception {
+        createAccountService.execute(
+                new CreateAccountRequestRestDto("closing-user@example.com", "User", "Test")
+                        .roles(List.of(SystemRoleRestDto.USER)).password("password123"));
+        String challengeId = createSampleChallenge().getId();
+        String token = login("closing-user@example.com", "password123");
+
+        mockMvc.perform(post("/api/v1/challenges/" + challengeId + "/close").header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
     private String issueLinkTokenForNewGuest() {
         AccountRestDto guest = createAccountService.execute(
                 new CreateAccountRequestRestDto("guest@example.com", "Guest", "Test").roles(List.of(SystemRoleRestDto.USER)));
@@ -187,15 +215,19 @@ class SecurityIntegrationTest {
     }
 
     private ChallengeRestDto createSampleChallenge() {
+        AccountRestDto organizer = createAccountService.execute(
+                new CreateAccountRequestRestDto("challenge-organizer@example.com", "Organizer", "Test").roles(List.of(SystemRoleRestDto.ORGANIZER)));
+        return createChallengeOwnedBy(AccountId.fromString(organizer.getId()));
+    }
+
+    private ChallengeRestDto createChallengeOwnedBy(AccountId organizerId) {
         AccountRestDto cookA = createAccountService.execute(
                 new CreateAccountRequestRestDto("cook-a@example.com", "Cook", "A").roles(List.of(SystemRoleRestDto.USER)));
         AccountRestDto cookB = createAccountService.execute(
                 new CreateAccountRequestRestDto("cook-b@example.com", "Cook", "B").roles(List.of(SystemRoleRestDto.USER)));
-        AccountRestDto organizer = createAccountService.execute(
-                new CreateAccountRequestRestDto("challenge-organizer@example.com", "Organizer", "Test").roles(List.of(SystemRoleRestDto.ORGANIZER)));
         CreateChallengeRequestRestDto request = new CreateChallengeRequestRestDto(
                 LocalDate.now(), "Title", "Schnitzel", cookA.getId(), cookB.getId());
-        return createChallengeService.execute(request, AccountId.fromString(organizer.getId()));
+        return createChallengeService.execute(request, organizerId);
     }
 
     private String login(String email, String password) throws Exception {

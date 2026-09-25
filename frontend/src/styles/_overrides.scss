@@ -14,6 +14,11 @@
   --cc-color-on-success: oklch(100% 0 145);
   --cc-color-success-container: oklch(90% 0.0379 145);
   --cc-color-on-success-container: oklch(10% 0.072 145);
+
+  // Warning role (yellow, hue 95°), for the "Scoring closed" indicators — same
+  // container/on-container pairing as success, at a yellow hue.
+  --cc-color-warning-container: oklch(92% 0.1 95);
+  --cc-color-on-warning-container: oklch(25% 0.06 95);
 }
 
 [data-theme='dark'] {
@@ -21,6 +26,9 @@
   --cc-color-on-success: oklch(20% 0.117 145);
   --cc-color-success-container: oklch(30% 0.1553 145);
   --cc-color-on-success-container: oklch(90% 0.0379 145);
+
+  --cc-color-warning-container: oklch(38% 0.08 95);
+  --cc-color-on-warning-container: oklch(92% 0.1 95);
 }
 
 // Focus-visible ring for hand-built interactive elements (nav-bar,
