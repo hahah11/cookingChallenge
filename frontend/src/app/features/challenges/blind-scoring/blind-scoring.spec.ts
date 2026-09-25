@@ -88,6 +88,20 @@ describe('BlindScoring', () => {
     expect(plates[1].textContent.trim()).toBe('Yellow');
   });
 
+  it('gives every rating cell its category label and grid indexes for the stacked phone layout', () => {
+    const getChallenge = vi.fn().mockReturnValue(of({ data: challenge, meta }));
+    const { fixture } = setup({ getChallenge });
+
+    const ratings: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.blind-scoring__rating'));
+    expect(ratings.length).toBe(challenge.categories.length * challenge.labels.length);
+    expect(ratings[0].querySelector('.blind-scoring__cell-label')?.textContent?.trim()).toBe('Mundgefühl');
+    expect(ratings.map((cell) => [cell.style.getPropertyValue('--label-index'), cell.style.getPropertyValue('--category-index')])).toEqual(
+      challenge.categories.flatMap((_, categoryIndex) =>
+        challenge.labels.map((_, labelIndex) => [String(labelIndex), String(categoryIndex)])
+      )
+    );
+  });
+
   it('pre-fills stars from mySubmission for edit-until-reveal', () => {
     const submitted: ParticipantChallenge = {
       ...challenge,

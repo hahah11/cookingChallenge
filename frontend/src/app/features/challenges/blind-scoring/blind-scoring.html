@@ -44,24 +44,31 @@
               <div class="blind-scoring__cell" role="columnheader">
                 <span class="cc-visually-hidden">Category</span>
               </div>
-              @for (label of challenge.labels; track label) {
+              @for (label of challenge.labels; track label; let labelIndex = $index) {
                 <div
                   class="blind-scoring__cell blind-scoring__plate"
                   role="columnheader"
                   [class.plate-solid]="colorFor(label)"
                   [style.--plate-color]="colorFor(label)?.hexCode"
+                  [style.--label-index]="labelIndex"
                 >
                   {{ plateLabel(label) }}
                 </div>
               }
             </div>
-            @for (category of challenge.categories; track category) {
+            @for (category of challenge.categories; track category; let categoryIndex = $index) {
               <div class="blind-scoring__row" role="row">
                 <div class="blind-scoring__cell blind-scoring__category" role="rowheader">
                   {{ CATEGORY_LABELS[category] }}
                 </div>
-                @for (label of challenge.labels; track label) {
-                  <div class="blind-scoring__cell" role="cell">
+                @for (label of challenge.labels; track label; let labelIndex = $index) {
+                  <div
+                    class="blind-scoring__cell blind-scoring__rating"
+                    role="cell"
+                    [style.--label-index]="labelIndex"
+                    [style.--category-index]="categoryIndex"
+                  >
+                    <span class="blind-scoring__cell-label" aria-hidden="true">{{ CATEGORY_LABELS[category] }}</span>
                     <app-star-rating
                       [label]="CATEGORY_LABELS[category] + ' for ' + plateLabel(label)"
                       [colorHex]="colorFor(label)?.hexCode"

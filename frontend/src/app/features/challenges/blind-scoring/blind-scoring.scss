@@ -82,6 +82,11 @@
   padding-block: var(--md-sys-spacing-3);
 }
 
+// Only shown in the stacked (phone) layout, where the category column is gone.
+.blind-scoring__cell-label {
+  display: none;
+}
+
 .blind-scoring__error {
   margin: 0 0 var(--md-sys-spacing-4);
   color: var(--mat-sys-error);
@@ -99,5 +104,38 @@
   // inherited custom property, the same mechanism --plate-color already uses.
   .blind-scoring__grid {
     --star-size: 22px;
+  }
+}
+
+// Phones: stack the plates instead of scrolling sideways. Rows are display: contents,
+// so every cell is a direct grid item and `order` regroups them per plate:
+// plate header, then that plate's categories, then the next plate.
+@media (max-width: 599.98px) {
+  .blind-scoring__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blind-scoring__category,
+  .blind-scoring__row--header > :first-child {
+    display: none;
+  }
+
+  .blind-scoring__plate {
+    order: calc(var(--label-index) * 100);
+    margin-top: calc(var(--label-index) * var(--md-sys-spacing-4));
+  }
+
+  .blind-scoring__rating {
+    order: calc(var(--label-index) * 100 + var(--category-index) + 1);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--md-sys-spacing-2);
+  }
+
+  .blind-scoring__cell-label {
+    display: inline;
+    font: var(--mat-sys-body-medium);
   }
 }
