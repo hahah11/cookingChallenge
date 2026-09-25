@@ -260,6 +260,8 @@
     "linksSent": "Links sent",
     "unrevealHint": "Made a mistake? You can hide the results again (scoring stays closed).",
     "unreveal": "Unreveal challenge",
+    "deleteHint": "Deleting removes this challenge from all lists and from the rivalry record.",
+    "delete": "Delete challenge",
     "closeDialog": {
       "title": "Close scoring?",
       "message": "Guests can no longer submit or edit scores.",
@@ -274,6 +276,11 @@
       "title": "Unreveal this challenge?",
       "message": "This hides the cook-to-dish mapping again. Scoring stays closed — guests will see it as pending until you reveal it again.",
       "confirm": "Yes, unreveal"
+    },
+    "deleteDialog": {
+      "title": "Delete this challenge?",
+      "message": "The challenge disappears for everyone and no longer counts toward rivalries. This cannot be undone from the app.",
+      "confirm": "Yes, delete"
     }
   },
   "participants": {

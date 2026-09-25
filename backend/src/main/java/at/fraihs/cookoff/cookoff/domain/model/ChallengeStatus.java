@@ -6,5 +6,7 @@ import org.jmolecules.ddd.annotation.ValueObject;
 public enum ChallengeStatus {
     OPEN,
     CLOSED,
-    REVEALED
+    REVEALED,
+    /** Soft-deleted: kept in the database, but never exposed or counted anywhere. */
+    DELETED
 }

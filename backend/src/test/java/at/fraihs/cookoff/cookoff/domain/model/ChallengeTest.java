@@ -286,6 +286,57 @@ class ChallengeTest {
     }
 
     @Test
+    void should_markDeletedWithoutEvent_when_deletingAnOpenOrClosedChallenge() {
+        Challenge open = newChallenge();
+        Challenge closed = newChallenge();
+        closed.closeScoring();
+
+        assertTrue(open.delete().isEmpty());
+        assertTrue(closed.delete().isEmpty());
+
+        assertEquals(ChallengeStatus.DELETED, open.getStatus());
+        assertEquals(ChallengeStatus.DELETED, closed.getStatus());
+    }
+
+    @Test
+    void should_returnUnrevealedEventAndClearResult_when_deletingARevealedChallenge() {
+        Challenge challenge = newChallenge();
+        challenge.closeScoring();
+        challenge.reveal(cookA);
+
+        ChallengeUnrevealed event = challenge.delete().orElseThrow();
+
+        assertEquals(ChallengeStatus.DELETED, challenge.getStatus());
+        assertEquals(null, challenge.getLastRevealResult());
+        assertEquals(challenge.getId(), event.challengeId());
+        assertEquals(cookA, event.cookAAccountId());
+        assertEquals(cookB, event.cookBAccountId());
+        assertEquals(cookA, event.previousOverallWinnerAccountId());
+    }
+
+    @Test
+    void should_throw_when_deletingTwice() {
+        Challenge challenge = newChallenge();
+        challenge.delete();
+
+        assertThrows(IllegalStateException.class, challenge::delete);
+    }
+
+    @Test
+    void should_rejectAllChanges_when_challengeIsDeleted() {
+        Challenge challenge = newChallenge();
+        challenge.delete();
+
+        assertThrows(IllegalStateException.class, challenge::closeScoring);
+        assertThrows(IllegalStateException.class, challenge::reopenScoring);
+        assertThrows(IllegalStateException.class, () -> challenge.reveal(cookA));
+        assertThrows(IllegalStateException.class, challenge::unreveal);
+        assertThrows(IllegalStateException.class, () -> challenge.changeImage("ref"));
+        assertThrows(IllegalStateException.class,
+                () -> challenge.editParticipants(null, null, List.of(), List.of()));
+    }
+
+    @Test
     void should_allowReRevealingWithADifferentWinner_when_unrevealedFirst() {
         Challenge challenge = newChallenge();
         challenge.closeScoring();

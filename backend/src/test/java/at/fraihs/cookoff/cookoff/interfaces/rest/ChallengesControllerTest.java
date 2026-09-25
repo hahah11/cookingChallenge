@@ -2,10 +2,12 @@ package at.fraihs.cookoff.cookoff.interfaces.rest;
 
 import at.fraihs.cookoff.auth.domain.model.AccountId;
 import at.fraihs.cookoff.cookoff.application.dto.StoredImage;
+import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotFoundException;
 import at.fraihs.cookoff.cookoff.application.exception.ChallengeNotRevealedException;
 import at.fraihs.cookoff.cookoff.application.exception.NotAParticipantException;
 import at.fraihs.cookoff.cookoff.application.service.ChangeChallengeImageService;
 import at.fraihs.cookoff.cookoff.application.service.CreateChallengeService;
+import at.fraihs.cookoff.cookoff.application.service.DeleteChallengeService;
 import at.fraihs.cookoff.cookoff.application.service.CreateRegistrationInviteService;
 import at.fraihs.cookoff.cookoff.application.service.EditChallengeParticipantsService;
 import at.fraihs.cookoff.cookoff.application.service.GetChallengeForParticipantService;
@@ -65,7 +67,10 @@ import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -114,6 +119,8 @@ class ChallengesControllerTest {
     private RevealChallengeService revealChallengeService;
     @MockitoBean
     private UnrevealChallengeService unrevealChallengeService;
+    @MockitoBean
+    private DeleteChallengeService deleteChallengeService;
 
     @MockitoBean
     private CloseChallengeScoringService closeChallengeScoringService;
@@ -316,6 +323,27 @@ class ChallengesControllerTest {
         mockMvc.perform(post("/api/v1/challenges/chal-1/unreveal"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value("chal-1"));
+    }
+
+    @Test
+    void should_return204_when_deletingChallenge() throws Exception {
+        AccountId organizer = AccountId.generate();
+        authenticateAs(organizer);
+
+        mockMvc.perform(delete("/api/v1/challenges/chal-1"))
+                .andExpect(status().isNoContent());
+
+        verify(deleteChallengeService).execute("chal-1", organizer);
+    }
+
+    @Test
+    void should_return404_when_deletingUnknownChallenge() throws Exception {
+        AccountId organizer = AccountId.generate();
+        doThrow(new ChallengeNotFoundException("chal-1")).when(deleteChallengeService).execute("chal-1", organizer);
+        authenticateAs(organizer);
+
+        mockMvc.perform(delete("/api/v1/challenges/chal-1"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
@@ -150,6 +151,31 @@ class ChallengeRepositoryImplTest {
         List<Challenge> found = repository.findByCookPair(cookX, cookY);
 
         assertEquals(Set.of(xThenY.getId(), yThenX.getId()), found.stream().map(Challenge::getId).collect(Collectors.toSet()));
+    }
+
+    @Test
+    void should_hideDeletedChallenges_fromEveryFinder() {
+        AccountId organizer = new AccountId(persistAccount());
+        AccountId cookA = new AccountId(persistAccount());
+        AccountId cookB = new AccountId(persistAccount());
+        AccountId guest = new AccountId(persistAccount());
+        Challenge kept = repository.save(Challenge.create(LocalDate.now(), new DishName("Goulash"),
+                cookA, cookB, List.of(guest), organizer));
+        Challenge deleted = Challenge.create(LocalDate.now(), new DishName("Kaiserschmarrn"),
+                cookA, cookB, List.of(guest), organizer);
+        deleted.delete();
+        repository.save(deleted);
+
+        assertFalse(repository.findById(deleted.getId()).isPresent());
+        assertTrue(repository.findById(kept.getId()).isPresent());
+        assertEquals(List.of(kept.getId()),
+                repository.findAll(Pageable.unpaged()).map(Challenge::getId).getContent());
+        assertEquals(List.of(kept.getId()),
+                repository.findAllByCreatedBy(organizer, Pageable.unpaged()).map(Challenge::getId).getContent());
+        assertEquals(List.of(kept.getId()),
+                repository.findByParticipant(guest).stream().map(Challenge::getId).toList());
+        assertEquals(List.of(kept.getId()),
+                repository.findByCookPair(cookA, cookB).stream().map(Challenge::getId).toList());
     }
 
     @Test

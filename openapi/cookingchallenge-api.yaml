@@ -322,6 +322,27 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+    delete:
+      tags: [Challenges]
+      operationId: deleteChallenge
+      summary: Delete a challenge (soft delete)
+      description: >
+        The challenge is kept in the database but disappears from every list and
+        view and no longer counts toward rivalries. Allowed in any status; deleting
+        a REVEALED challenge also reverses its rivalry result.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ChallengeIdPathParam'
+      responses:
+        '204':
+          description: Challenge deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /api/v1/challenges/{challengeId}/status:
     get:
       tags: [Challenges]

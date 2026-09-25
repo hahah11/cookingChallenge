@@ -97,6 +97,15 @@ class RivalryDetailServiceTest {
     }
 
     @Test
+    void should_throw_when_allChallengesOfThePairWereDeleted() {
+        CookRivalry emptiedRivalry = CookRivalry.reconstitute(CookRivalryId.generate(), aliceId, bobId, 0, 0, 0, 0);
+        when(challengeRepository.findByCookPair(aliceId, bobId)).thenReturn(List.of());
+        when(cookRivalryRepository.findByPair(aliceId, bobId)).thenReturn(Optional.of(emptiedRivalry));
+
+        assertThrows(RivalryNotFoundException.class, () -> service.execute(aliceId, bobId));
+    }
+
+    @Test
     void should_throw_when_pairHasNoSharedChallenges() {
         when(challengeRepository.findByCookPair(aliceId, bobId)).thenReturn(List.of());
         when(cookRivalryRepository.findByPair(aliceId, bobId)).thenReturn(Optional.empty());

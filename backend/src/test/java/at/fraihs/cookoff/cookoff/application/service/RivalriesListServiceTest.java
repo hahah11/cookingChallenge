@@ -42,7 +42,7 @@ class RivalriesListServiceTest {
         CookRivalry rivalry = CookRivalry.reconstitute(
                 at.fraihs.cookoff.cookoff.domain.model.CookRivalryId.generate(), aliceId, bobId, 3, 1, 1, 5);
         PageRequest pageRequest = PageRequest.of(0, 20);
-        when(cookRivalryRepository.findAll(pageRequest)).thenReturn(new PageImpl<>(List.of(rivalry), pageRequest, 1));
+        when(cookRivalryRepository.findAllWithChallenges(pageRequest)).thenReturn(new PageImpl<>(List.of(rivalry), pageRequest, 1));
         when(accountLookup.getById(aliceId)).thenReturn(new AccountSummary(aliceId, new Email("alice@example.com"), "Alice", "Alice"));
         when(accountLookup.getById(bobId)).thenReturn(new AccountSummary(bobId, new Email("bob@example.com"), "Bob", "Bob"));
 
@@ -60,7 +60,7 @@ class RivalriesListServiceTest {
     void should_returnEmptyPage_when_noRivalriesExist() {
         PageRequest pageRequest = PageRequest.of(0, 20);
         Page<CookRivalry> empty = new PageImpl<>(List.of(), pageRequest, 0);
-        when(cookRivalryRepository.findAll(pageRequest)).thenReturn(empty);
+        when(cookRivalryRepository.findAllWithChallenges(pageRequest)).thenReturn(empty);
 
         PagedResult<RivalryRestDto> result = service.execute(0, 20);
 

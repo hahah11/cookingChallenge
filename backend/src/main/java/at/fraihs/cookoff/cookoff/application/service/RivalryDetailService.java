@@ -42,7 +42,7 @@ public class RivalryDetailService {
 
         List<Challenge> challenges = challengeRepository.findByCookPair(cookAId, cookBId);
         Optional<CookRivalry> rivalry = cookRivalryRepository.findByPair(cookAId, cookBId);
-        if (challenges.isEmpty() && rivalry.isEmpty()) {
+        if (challenges.isEmpty() && rivalry.filter(r -> r.getTotalChallenges() > 0).isEmpty()) {
             throw new RivalryNotFoundException(requestedCookA.toString(), requestedCookB.toString());
         }
 

@@ -17,6 +17,8 @@ import java.util.Optional;
 @Repository
 public interface ChallengeRepository {
 
+    // Soft-deleted challenges (ChallengeStatus.DELETED) are invisible to every finder below.
+
     Optional<Challenge> findById(ChallengeId id);
 
     /** See docs/cookingChallenge/adr/0003-spring-data-pageable-in-repository-ports.md. */

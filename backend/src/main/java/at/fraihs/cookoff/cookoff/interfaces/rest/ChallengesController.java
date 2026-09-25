@@ -5,6 +5,7 @@ import at.fraihs.cookoff.cookoff.application.service.ChangeChallengeImageService
 import at.fraihs.cookoff.cookoff.application.service.CloseChallengeScoringService;
 import at.fraihs.cookoff.cookoff.application.service.CreateChallengeService;
 import at.fraihs.cookoff.cookoff.application.service.CreateRegistrationInviteService;
+import at.fraihs.cookoff.cookoff.application.service.DeleteChallengeService;
 import at.fraihs.cookoff.cookoff.application.service.EditChallengeParticipantsService;
 import at.fraihs.cookoff.cookoff.application.service.GetChallengeForParticipantService;
 import at.fraihs.cookoff.cookoff.application.service.GetChallengeImageService;
@@ -71,6 +72,7 @@ public class ChallengesController implements ChallengesApi {
     private final ReopenChallengeScoringService reopenChallengeScoringService;
     private final RevealChallengeService revealChallengeService;
     private final UnrevealChallengeService unrevealChallengeService;
+    private final DeleteChallengeService deleteChallengeService;
     private final GetChallengeResultsService getChallengeResultsService;
     private final SubmitScoreService submitScoreService;
 
@@ -169,6 +171,12 @@ public class ChallengesController implements ChallengesApi {
     public ResponseEntity<ChallengeResponseRestDto> unrevealChallenge(String challengeId) {
         ChallengeRestDto challenge = unrevealChallengeService.execute(challengeId, CurrentAccount.id());
         return ResponseEntity.ok(new ChallengeResponseRestDto(challenge, meta()));
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteChallenge(String challengeId) {
+        deleteChallengeService.execute(challengeId, CurrentAccount.id());
+        return ResponseEntity.noContent().build();
     }
 
     @Override

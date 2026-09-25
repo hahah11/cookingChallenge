@@ -21,5 +21,8 @@ public interface CookRivalryRepository {
      * docs/cookingChallenge/adr/0003-spring-data-pageable-in-repository-ports.md. */
     Page<CookRivalry> findAll(Pageable pageable);
 
+    /** Like {@link #findAll} but only pairs with at least one counted challenge. */
+    Page<CookRivalry> findAllWithChallenges(Pageable pageable);
+
     CookRivalry save(CookRivalry rivalry);
 }

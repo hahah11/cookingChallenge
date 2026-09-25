@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -102,6 +103,22 @@ class SecurityIntegrationTest {
 
         mockMvc.perform(get("/api/v1/challenges").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void should_return403_when_userRoleJwtDeletesAChallenge() throws Exception {
+        createAccountService.execute(
+                new CreateAccountRequestRestDto("delete-user@example.com", "User", "Test").roles(List.of(SystemRoleRestDto.USER)).password("password123"));
+        String token = login("delete-user@example.com", "password123");
+
+        mockMvc.perform(delete("/api/v1/challenges/some-id").header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void should_return401_when_unauthenticatedRequestDeletesAChallenge() throws Exception {
+        mockMvc.perform(delete("/api/v1/challenges/some-id"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

@@ -29,7 +29,7 @@ public class RivalriesListService {
      */
     @Transactional(readOnly = true)
     public PagedResult<RivalryRestDto> execute(int page, int size) {
-        Page<RivalryRestDto> rivalries = cookRivalryRepository.findAll(PageRequest.of(page, size))
+        Page<RivalryRestDto> rivalries = cookRivalryRepository.findAllWithChallenges(PageRequest.of(page, size))
                 .map(this::toGenerated);
         return PagedResult.of(rivalries);
     }

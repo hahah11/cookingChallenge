@@ -129,6 +129,21 @@
           }
         }
       }
+
+      <mat-divider class="challenge-detail__delete-divider" />
+      <div class="challenge-detail__delete">
+        <p>{{ 'challengeDetail.deleteHint' | transloco }}</p>
+        <button
+          mat-stroked-button
+          type="button"
+          class="challenge-detail__delete-button"
+          [disabled]="deleteBusy()"
+          (click)="confirmDelete()"
+        >
+          <mat-icon aria-hidden="true">delete</mat-icon>
+          {{ 'challengeDetail.delete' | transloco }}
+        </button>
+      </div>
     }
   }
 }

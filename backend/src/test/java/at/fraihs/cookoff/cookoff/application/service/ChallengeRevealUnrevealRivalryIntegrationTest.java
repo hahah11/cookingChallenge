@@ -70,6 +70,7 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
 
     private RevealChallengeService revealChallengeService;
     private UnrevealChallengeService unrevealChallengeService;
+    private DeleteChallengeService deleteChallengeService;
 
     @BeforeEach
     void setUp() {
@@ -90,6 +91,7 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
                 challengeRepository, scoreSubmissionRepository, cookRivalryRepository, accountLookup, deferredPublisher);
         unrevealChallengeService = new UnrevealChallengeService(
                 accountLookup, challengeRepository, scoreSubmissionRepository, deferredPublisher);
+        deleteChallengeService = new DeleteChallengeService(accountLookup, challengeRepository, deferredPublisher);
     }
 
     private void commit() {
@@ -148,6 +150,30 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         assertEquals(1, afterSecondReveal.getCookBWins());
         assertEquals(0, afterSecondReveal.getDraws());
         assertEquals(1, afterSecondReveal.getTotalChallenges());
+    }
+
+    @Test
+    void should_reverseRivalryCounters_when_aRevealedChallengeIsDeleted() {
+        when(accountLookup.canOrganize(organizerId)).thenReturn(true);
+        when(accountLookup.getById(cookAId)).thenReturn(new AccountSummary(cookAId, new Email("a@x.com"), "Cook A", "Cook"));
+        when(accountLookup.getById(cookBId)).thenReturn(new AccountSummary(cookBId, new Email("b@x.com"), "Cook B", "Cook"));
+        Challenge challenge = Challenge.create(LocalDate.now(), new DishName("Schnitzel"),
+                cookAId, cookBId, List.of(guestId), organizerId);
+        challenge.closeScoring();
+        challengeRepository.save(challenge);
+        scoreSubmissionRepository.replace(challenge.getId(), cookAWinsSubmission(challenge.getId()));
+        revealChallengeService.execute(challenge.getId().toString(), organizerId);
+        commit();
+
+        deleteChallengeService.execute(challenge.getId().toString(), organizerId);
+        commit();
+
+        CookRivalry afterDelete = cookRivalryRepository.findByPair(cookAId, cookBId).orElseThrow();
+        assertEquals(0, afterDelete.getCookAWins());
+        assertEquals(0, afterDelete.getCookBWins());
+        assertEquals(0, afterDelete.getDraws());
+        assertEquals(0, afterDelete.getTotalChallenges());
+        assertEquals(0, cookRivalryRepository.findAllWithChallenges(Pageable.unpaged()).getTotalElements());
     }
 
     private ScoreSubmission cookAWinsSubmission(ChallengeId challengeId) {
@@ -267,6 +293,12 @@ class ChallengeRevealUnrevealRivalryIntegrationTest {
         @Override
         public Page<CookRivalry> findAll(Pageable pageable) {
             return new PageImpl<>(List.copyOf(store.values()), pageable, store.size());
+        }
+
+        @Override
+        public Page<CookRivalry> findAllWithChallenges(Pageable pageable) {
+            List<CookRivalry> counted = store.values().stream().filter(r -> r.getTotalChallenges() > 0).toList();
+            return new PageImpl<>(counted, pageable, counted.size());
         }
 
         @Override

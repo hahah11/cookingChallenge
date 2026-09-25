@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
-import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { provideRouter, Router } from '@angular/router';
+import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import {
@@ -55,6 +55,7 @@ const meta = { requestId: 'req-1', timestamp: '2026-01-01T00:00:00Z' };
 
 describe('ChallengeDetail', () => {
   function setup(challengesApi: Record<string, unknown>, dialog: Record<string, unknown> = {}) {
+    const notification = { error: vi.fn(), success: vi.fn(), info: vi.fn() };
     TestBed.configureTestingModule({
       imports: [ChallengeDetail],
       providers: [...provideTestI18n(), 
@@ -63,14 +64,14 @@ describe('ChallengeDetail', () => {
         { provide: ConfigApi, useValue: { getConfig: () => of({ data: config, meta }) } },
         AppConfig,
         { provide: MatDialog, useValue: dialog },
-        { provide: Notification, useValue: { error: vi.fn(), success: vi.fn(), info: vi.fn() } }
+        { provide: Notification, useValue: notification }
       ]
     });
 
     const fixture = TestBed.createComponent(ChallengeDetail);
     fixture.componentRef.setInput('id', 'chal-1');
     fixture.detectChanges();
-    return { fixture };
+    return { fixture, notification };
   }
 
   it('fetches challenge detail fresh and renders metadata plus guest status for an OPEN challenge', () => {
@@ -197,6 +198,63 @@ describe('ChallengeDetail', () => {
     expect(unrevealChallenge).toHaveBeenCalledWith('chal-1');
     expect(getChallengeStatus).toHaveBeenCalledTimes(2);
     expect(fixture.componentInstance['challenge']()?.status).toBe(ChallengeStatus.CLOSED);
+  });
+
+  it.each([ChallengeStatus.OPEN, ChallengeStatus.CLOSED, ChallengeStatus.REVEALED])(
+    'shows the delete button for a %s challenge',
+    (status) => {
+      const { fixture } = setup({
+        getChallengeStatus: () => of({ data: { ...challengeDetail, status }, meta }),
+        getChallengeResults: () => of({ data: revealedResult, meta })
+      });
+
+      expect(fixture.nativeElement.textContent).toContain('Delete challenge');
+    }
+  );
+
+  it('deletes the challenge after confirmation in danger style and returns to the list', () => {
+    const deleteChallenge = vi.fn().mockReturnValue(of(undefined));
+    const dialog = { open: vi.fn().mockReturnValue({ afterClosed: () => of(true) }) };
+    const { fixture } = setup(
+      { getChallengeStatus: () => of({ data: challengeDetail, meta }), deleteChallenge },
+      dialog
+    );
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    fixture.componentInstance['confirmDelete']();
+
+    expect(dialog.open.mock.calls[0][1].data.danger).toBe(true);
+    expect(deleteChallenge).toHaveBeenCalledWith('chal-1');
+    expect(navigate).toHaveBeenCalledWith(['/challenges']);
+  });
+
+  it('does not delete when the confirmation is cancelled', () => {
+    const deleteChallenge = vi.fn();
+    const dialog = { open: vi.fn().mockReturnValue({ afterClosed: () => of(false) }) };
+    const { fixture } = setup(
+      { getChallengeStatus: () => of({ data: challengeDetail, meta }), deleteChallenge },
+      dialog
+    );
+
+    fixture.componentInstance['confirmDelete']();
+
+    expect(deleteChallenge).not.toHaveBeenCalled();
+  });
+
+  it('shows the error and stays on the page when deleting fails', () => {
+    const deleteChallenge = vi.fn().mockReturnValue(throwError(() => ({ code: 'NOT_FOUND', message: 'Gone' })));
+    const dialog = { open: vi.fn().mockReturnValue({ afterClosed: () => of(true) }) };
+    const { fixture, notification } = setup(
+      { getChallengeStatus: () => of({ data: challengeDetail, meta }), deleteChallenge },
+      dialog
+    );
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate');
+
+    fixture.componentInstance['confirmDelete']();
+
+    expect(notification.error).toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+    expect(fixture.componentInstance['deleteBusy']()).toBe(false);
   });
 
   it(

@@ -9,6 +9,7 @@ import org.jmolecules.ddd.annotation.Identity;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @AggregateRoot
 public class Challenge {
@@ -142,8 +143,28 @@ public class Challenge {
      */
     public ChallengeUnrevealed unreveal() {
         requireRevealed();
-        AccountId previousWinner = lastRevealResult.winnerAccountId();
+        ChallengeUnrevealed event = withdrawRevealResult();
         this.status = ChallengeStatus.CLOSED;
+        return event;
+    }
+
+    /**
+     * Soft-deletes the challenge: it stays in the database but is no longer visible or counted.
+     * From REVEALED, the reveal result is withdrawn like in {@link #unreveal} and the same event
+     * is returned so the CookRivalry counters get reversed; from any other state there is nothing
+     * to reverse and the result is empty.
+     */
+    public Optional<ChallengeUnrevealed> delete() {
+        requireNotDeleted();
+        Optional<ChallengeUnrevealed> event = status == ChallengeStatus.REVEALED
+                ? Optional.of(withdrawRevealResult())
+                : Optional.empty();
+        this.status = ChallengeStatus.DELETED;
+        return event;
+    }
+
+    private ChallengeUnrevealed withdrawRevealResult() {
+        AccountId previousWinner = lastRevealResult.winnerAccountId();
         this.lastRevealResult = null;
         AccountId cookA = cookAssignmentFor(DishLabel.A).accountId();
         AccountId cookB = cookAssignmentFor(DishLabel.B).accountId();
@@ -221,8 +242,15 @@ public class Challenge {
     }
 
     private void requireNotRevealed() {
+        requireNotDeleted();
         if (status == ChallengeStatus.REVEALED) {
             throw new IllegalStateException("Challenge is already revealed");
+        }
+    }
+
+    private void requireNotDeleted() {
+        if (status == ChallengeStatus.DELETED) {
+            throw new IllegalStateException("Challenge is deleted");
         }
     }
 

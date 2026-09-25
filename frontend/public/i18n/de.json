@@ -260,6 +260,8 @@
     "linksSent": "Links gesendet",
     "unrevealHint": "Fehler passiert? Du kannst die Ergebnisse wieder verbergen (die Bewertung bleibt beendet).",
     "unreveal": "Aufdeckung zurücknehmen",
+    "deleteHint": "Beim Löschen verschwindet diese Challenge aus allen Listen und aus der Rivalitäts-Bilanz.",
+    "delete": "Challenge löschen",
     "closeDialog": {
       "title": "Bewertung beenden?",
       "message": "Gäste können danach keine Bewertungen mehr abgeben oder ändern.",
@@ -274,6 +276,11 @@
       "title": "Aufdeckung dieser Challenge zurücknehmen?",
       "message": "Damit wird die Zuordnung von Köchen zu Gerichten wieder verborgen. Die Bewertung bleibt beendet – Gäste sehen die Challenge als ausstehend, bis du sie erneut aufdeckst.",
       "confirm": "Ja, zurücknehmen"
+    },
+    "deleteDialog": {
+      "title": "Diese Challenge löschen?",
+      "message": "Die Challenge verschwindet für alle und zählt nicht mehr für Rivalitäten. Das lässt sich in der App nicht rückgängig machen.",
+      "confirm": "Ja, löschen"
     }
   },
   "participants": {

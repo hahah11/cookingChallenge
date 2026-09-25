@@ -83,6 +83,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/challenges/*/reopen").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/challenges/*/reveal").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/challenges/*/unreveal").hasAnyRole("ORGANIZER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/challenges/*").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/challenges/*/participants").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/challenges/*/image").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/challenges/*/registration-invites").hasAnyRole("ORGANIZER", "ADMIN")

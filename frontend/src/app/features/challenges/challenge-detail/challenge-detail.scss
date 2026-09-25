@@ -178,3 +178,28 @@
   font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
 }
+
+.challenge-detail__delete-divider {
+  margin-top: var(--md-sys-spacing-6);
+  margin-bottom: var(--md-sys-spacing-4);
+}
+
+.challenge-detail__delete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--md-sys-spacing-3);
+}
+
+.challenge-detail__delete p {
+  margin: 0;
+  max-width: 42ch;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.challenge-detail__delete-button {
+  --mat-button-outlined-label-text-color: var(--mat-sys-error);
+  --mat-button-outlined-outline-color: var(--mat-sys-error);
+}

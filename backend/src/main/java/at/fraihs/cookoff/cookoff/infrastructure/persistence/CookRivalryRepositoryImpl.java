@@ -37,6 +37,11 @@ class CookRivalryRepositoryImpl implements CookRivalryRepository {
     }
 
     @Override
+    public Page<CookRivalry> findAllWithChallenges(Pageable pageable) {
+        return jpaRepository.findAllByTotalChallengesGreaterThan(0, pageable).map(mapper::toDomain);
+    }
+
+    @Override
     public CookRivalry save(CookRivalry rivalry) {
         CookRivalryJpaEntity saved = jpaRepository.save(mapper.toEntity(rivalry));
         return mapper.toDomain(saved);

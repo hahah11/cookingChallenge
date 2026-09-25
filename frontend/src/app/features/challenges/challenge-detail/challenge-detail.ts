@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import {
@@ -61,6 +61,7 @@ export class ChallengeDetail {
   private readonly appConfig = inject(AppConfig);
   private readonly dialog = inject(MatDialog);
   private readonly notification = inject(Notification);
+  private readonly router = inject(Router);
 
   readonly id = input.required<string>();
 
@@ -79,6 +80,7 @@ export class ChallengeDetail {
   protected readonly revealBusy = signal(false);
   protected readonly unrevealBusy = signal(false);
   protected readonly scoringBusy = signal(false);
+  protected readonly deleteBusy = signal(false);
 
   protected readonly plateColorHex = computed<Record<string, string>>(() =>
     Object.fromEntries(this.appConfig.plateColors().map((color) => [color.id, color.hexCode]))
@@ -293,6 +295,40 @@ export class ChallengeDetail {
       },
       error: (error: ApiError) => {
         this.unrevealBusy.set(false);
+        this.notification.error(error.message);
+      }
+    });
+  }
+
+  protected confirmDelete(): void {
+    const data: ConfirmDialogData = {
+      title: this.transloco.translate('challengeDetail.deleteDialog.title'),
+      message: this.transloco.translate('challengeDetail.deleteDialog.message'),
+      confirmLabel: this.transloco.translate('challengeDetail.deleteDialog.confirm'),
+      danger: true
+    };
+    this.dialog
+      .open(ConfirmDialog, { data, width: '360px' })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.deleteChallenge();
+        }
+      });
+  }
+
+  private deleteChallenge(): void {
+    const challenge = this.challenge();
+    if (!challenge) return;
+
+    this.deleteBusy.set(true);
+    this.challengesApi.deleteChallenge(challenge.challengeId).subscribe({
+      next: () => {
+        this.deleteBusy.set(false);
+        void this.router.navigate(['/challenges']);
+      },
+      error: (error: ApiError) => {
+        this.deleteBusy.set(false);
         this.notification.error(error.message);
       }
     });
